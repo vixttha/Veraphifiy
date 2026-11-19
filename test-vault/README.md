@@ -1,6 +1,6 @@
 # Graphify HQ Test Vault
 
-Graphify HQ uses the copy-in starter from [Lydite v0.0.4](https://github.com/vixttha/Lydite-Test-Vault-Template/releases/tag/v0.0.4). The [case catalog](cases.md) lists executable checks across Python, Bash, JavaScript, TypeScript, Go, and PowerShell. The [coverage plan](PLAN.md) records the original 40 scenarios. The [audit](AUDIT.md) records the gaps and the checks that address them.
+Graphify HQ uses the copy-in starter from [Lydite v0.0.4](https://github.com/vixttha/Lydite-Test-Vault-Template/releases/tag/v0.0.4). The [case catalog](cases.md) lists executable checks across Python, Bash, JavaScript, TypeScript, Go, and PowerShell. The [coverage plan](PLAN.md) records the original 40 scenarios. The [language plan](LANGUAGE-PLAN.md) maps the next cases across all 14 Lydite languages. The [audit](AUDIT.md) records the gaps and the checks that address them.
 
 ## Run the suites
 
