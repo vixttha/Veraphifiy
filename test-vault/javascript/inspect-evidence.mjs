@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
+import { closeSync, fstatSync, openSync, readSync } from "node:fs";
 import { join } from "node:path";
 
 export function sha256(bytes) {
@@ -29,8 +29,10 @@ function rejectDuplicateKeys(text, filename) {
   }
 }
 
-function readBytes(path, maxBytes) {
-  if (maxBytes === undefined) return readFileSync(path);
+export const GRAPH_BYTES = 16 * 1024 * 1024;
+export const RECEIPT_BYTES = 2 * 1024 * 1024;
+
+export function readBytes(path, maxBytes) {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error("Invalid artifact byte budget");
   const fd = openSync(path, "r");
   try {
@@ -52,13 +54,15 @@ function readBytes(path, maxBytes) {
   }
 }
 
-function readJSON(directory, filename, maxBytes) {
-  let raw;
+function readArtifact(directory, filename, maxBytes) {
   try {
-    raw = readBytes(join(directory, filename), maxBytes);
+    return readBytes(join(directory, filename), maxBytes);
   } catch (err) {
     throw new Error("Cannot read " + filename + ": " + (err.code ?? err.message));
   }
+}
+
+export function parseEvidenceObject(raw, filename) {
   let text;
   try {
     text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(raw);
@@ -75,7 +79,7 @@ function readJSON(directory, filename, maxBytes) {
     throw new Error("Expected an object in " + filename);
   }
   rejectDuplicateKeys(text, filename);
-  return [raw, value];
+  return value;
 }
 
 const relations = new Set(["documented_in", "changed_in", "tested_by", "implemented_in"]);
@@ -87,16 +91,25 @@ function ordinaryRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function repositoryPath(path) {
+export function repositoryPath(path) {
   return typeof path === "string" && path.trim().length > 0 && !/[\\:\p{C}]/u.test(path) &&
     path.split("/").every((part) => part !== "" && part !== "." && part !== ".." && part !== ".git");
 }
 
-export function inspectEvidence(directory, sourceCommit, {
-  repository, templateVersion, producerVersion, maxGraphBytes, sourceBlobs,
+export function inspectEvidence(directory, sourceCommit, options = {}) {
+  const bytes = readArtifact(directory, "graph.json", options.maxGraphBytes ?? GRAPH_BYTES);
+  const receiptBytes = readArtifact(directory, "receipt.json", RECEIPT_BYTES);
+  return inspectEvidenceBytes(bytes, receiptBytes, sourceCommit, options);
+}
+
+export function inspectEvidenceBytes(bytes, receiptBytes, sourceCommit, {
+  repository, templateVersion, producerVersion, sourceBlobs,
 } = {}) {
-  const [bytes, graph] = readJSON(directory, "graph.json", maxGraphBytes);
-  const [receiptBytes, receipt] = readJSON(directory, "receipt.json");
+  if (bytes.length > GRAPH_BYTES || receiptBytes.length > RECEIPT_BYTES) {
+    throw new Error("Evidence exceeds the archive byte budget");
+  }
+  const graph = parseEvidenceObject(bytes, "graph.json");
+  const receipt = parseEvidenceObject(receiptBytes, "receipt.json");
   if (receipt.schema_version !== 1) throw new Error("Unsupported receipt schema");
   if (!Array.isArray(graph.nodes) || !Array.isArray(graph.links)) throw new Error("Invalid graph shape");
   if (!/^[a-f0-9]{40}$/.test(sourceCommit) || graph.built_at_commit !== sourceCommit ||
@@ -222,10 +235,18 @@ export function inspectEvidence(directory, sourceCommit, {
     hash.update(String(part.length) + "\n");
     hash.update(part);
   }
-  return { nodes, links: graph.links, digest, bundleDigest: hash.digest("hex") };
+  const evidence = { nodes, links: graph.links, digest, bundleDigest: hash.digest("hex"), sourceBlobs };
+  if (sourceBlobs !== undefined) {
+    for (const edge of graph.links) {
+      if (edge.relation === "implemented_in" && !implementationLocation(evidence, edge.source, edge.target)) {
+        throw new Error("Implementation citation does not identify a line in the pinned source: " + edge.target);
+      }
+    }
+  }
+  return evidence;
 }
 
-export function implementationLocation({ nodes, links }, feature, target) {
+export function implementationLocation({ nodes, links, sourceBlobs }, feature, target) {
   const edge = links.find((link) => link.source === feature && link.target === target &&
     link.relation === "implemented_in");
   const node = nodes.get(target);
@@ -235,5 +256,13 @@ export function implementationLocation({ nodes, links }, feature, target) {
     return null;
   }
   const line = Number(node.source_location.slice(1));
-  return Number.isSafeInteger(line) ? { path: node.source_file, line } : null;
+  if (!Number.isSafeInteger(line)) return null;
+  const blob = sourceBlobs?.get(node.source_file);
+  if (blob !== undefined) {
+    // A terminated line counts once and an empty blob has no lines.
+    let physicalLines = blob.length > 0 && blob.at(-1) !== 10 ? 1 : 0;
+    for (const byte of blob) if (byte === 10) physicalLines++;
+    if (line > physicalLines) return null;
+  }
+  return { path: node.source_file, line };
 }

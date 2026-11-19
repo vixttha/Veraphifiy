@@ -129,6 +129,75 @@ class BuilderTests(unittest.TestCase):
         write_observation(output, "python")
         shutil.copytree(output, HANDOFF)
 
+    def test_GHQ_PY_059_archives_and_replays_two_pinned_versions(self):
+        cli = Path(__file__).resolve().parents[2] / "veraphifiy.mjs"
+        project = self.manifest["repository"]
+        archive = self.root / "Veraphifiy archive"
+        first = self.root / "first evidence"
+        second = self.root / "second evidence"
+
+        def call(command, version, *extra, project_id=project):
+            return subprocess.run(
+                ["node", str(cli), command, "--archive", str(archive),
+                 "--project", project_id, "--version", version, *extra],
+                cwd=self.root, capture_output=True, text=True, timeout=30,
+            )
+
+        def import_version(version, source, output, project_id=project):
+            return call("import", version, "--source", source, "--checkout", str(self.repo),
+                        "--evidence", str(output), project_id=project_id)
+
+        def result(command, version, *extra):
+            run = call(command, version, *extra)
+            self.succeeds(run)
+            return json.loads(run.stdout)
+
+        first_source = self.source
+        self.succeeds(self.invoke(first))
+        self.succeeds(import_version("v1.0.0", first_source, first))
+        self.succeeds(import_version("v1.0.0", first_source, first))
+        old_entry = next(archive.glob("*.json"))
+        old_bytes = old_entry.read_bytes()
+
+        self.write("src/feature.py", b"# implementation\n# second version\ndef export():\n    return 'ready'\n")
+        self.git("add", "src/feature.py")
+        self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-qm", "Change the second fixture version")
+        second_source = self.git("rev-parse", "HEAD").strip()
+        newer_manifest = dict(self.manifest, source_commit=second_source)
+        self.succeeds(self.invoke(second, manifest=newer_manifest))
+        self.succeeds(import_version("v1.1.0", second_source, second))
+
+        for version, source, line in (("v1.0.0", first_source, 3), ("v1.1.0", second_source, 4)):
+            looked_up = result("lookup", version, "--source", source, "--feature", FEATURE)
+            self.assertEqual((looked_up["project"], looked_up["version"], looked_up["source"]),
+                             (project, version, source))
+            self.assertEqual(looked_up["citations"], [{"path": "src/feature.py", "line": line}])
+            self.assertEqual(result("verify", version)["graph_sha256"], looked_up["graph_sha256"])
+
+        missing = call("verify", "v1.2.0")
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn("not archived", missing.stderr)
+        wrong_project = import_version("v1.0.0", first_source, first, "example/other-fixture")
+        self.assertNotEqual(wrong_project.returncode, 0)
+        self.assertIn("repository mismatch", wrong_project.stderr)
+        wrong_pin = call("verify", "v1.0.0", "--source", second_source)
+        self.assertNotEqual(wrong_pin.returncode, 0)
+        self.assertIn("source commit mismatch", wrong_pin.stderr)
+        replace = import_version("v1.0.0", second_source, second)
+        self.assertNotEqual(replace.returncode, 0)
+        self.assertIn("cannot be replaced", replace.stderr)
+        self.assertEqual(old_entry.read_bytes(), old_bytes)
+
+        damaged = read_json(old_entry)
+        damaged["receipt_sha256"] = "0" * 64
+        old_entry.write_text(json.dumps(damaged), encoding="utf-8")
+        changed = call("verify", "v1.0.0")
+        self.assertNotEqual(changed.returncode, 0)
+        self.assertIn("Receipt digest mismatch", changed.stderr)
+        old_entry.write_bytes(old_bytes)
+        shutil.copytree(archive, HANDOFF / "veraphifiy-archive")
+
     def test_GHQ_PY_002_rebuilds_identical_graph_and_receipt(self):
         first, second = self.root / "first", self.root / "second"
         self.succeeds(self.invoke(first))
