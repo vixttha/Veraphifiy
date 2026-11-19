@@ -97,11 +97,18 @@ test("GHQ-TS-015 rejects a non-string coordinate without coercion", () => {
   assert.deepEqual(findImplementation(invalid, feature), { status: "invalid-citation" });
 });
 
-test("GHQ-TS-016 refuses a repeated evidence node identity", () => {
+test("GHQ-TS-016 refuses repeated evidence nodes or edges", () => {
   const target = graph.nodes.find((node) => node.id === anchor);
-  assert.ok(target);
+  const edge = graph.links.find((link) => link.source === feature && link.target === anchor);
+  assert.ok(target && edge);
   const nodes = [...graph.nodes, { ...target, source_location: "L31" }];
-  assert.deepEqual(findImplementation({ ...graph, nodes }, feature), { status: "invalid-citation" });
+  for (const duplicate of [{ ...graph, nodes }, { ...graph, links: [...graph.links, { ...edge }] }]) {
+    assert.equal(decodeEvidenceGraph(duplicate), null);
+    assert.deepEqual(findImplementation(duplicate, feature), { status: "invalid-citation" });
+  }
+  const checked = decodeEvidenceGraph(graph);
+  assert.ok(checked);
+  assert.equal(findImplementation(checked, feature).status, "found");
 });
 
 test("GHQ-TS-017 keeps distinct coordinates in the same implementation file", () => {
