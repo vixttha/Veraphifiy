@@ -1,6 +1,6 @@
 # Graphify HQ Test Vault
 
-Graphify HQ uses the copy-in starter from [Lydite v0.0.4](https://github.com/vixttha/Lydite-Test-Vault-Template/releases/tag/v0.0.4). The [case catalog](cases.md) lists executable TypeScript, Go, and PowerShell checks. The [initial test plan](PLAN.md) describes the proposed Python, Bash, and JavaScript cases. Use the [case and run receipt form](case-and-receipt.md) to record verified runs.
+Graphify HQ uses the copy-in starter from [Lydite v0.0.4](https://github.com/vixttha/Lydite-Test-Vault-Template/releases/tag/v0.0.4). The [case catalog](cases.md) lists executable checks across Python, Bash, JavaScript, TypeScript, Go, and PowerShell. The [coverage plan](PLAN.md) records the original 40 scenarios. The [audit](AUDIT.md) records the gaps and the checks that address them.
 
 ## Run the suites
 
@@ -25,6 +25,26 @@ python -m venv .venv
 export GRAPHIFY_HQ_PYTHON="$PWD/.venv/bin/python"
 (cd test-vault/go && go test -v -count=1 -mod=readonly ./...)
 ```
+
+Run the builder, JavaScript, and Bash suites with the same locked Linux dependencies. The Python suite creates the graph consumed by Node. Draft recovery and provenance checks use the pinned BART candidate.
+
+```bash
+vault_tmp=$(mktemp -d)
+candidate=d227b202c7cce1b86a1ee06596d709f3dfee1039
+workflow=2680e03a3d1a7216666554c5baca43b2ec93b944
+git -C _archive fetch --no-tags --depth=1 https://github.com/vixttha/Blender-Agent-Refinement-Toolkit.git "$candidate" "$workflow"
+export GRAPHIFY_HQ_CANDIDATE="$vault_tmp/candidate"
+export GRAPHIFY_HQ_BART_WORKFLOW="$vault_tmp/obj-mtl-evidence.yml"
+export GRAPHIFY_HQ_HANDOFF="$vault_tmp/graph-handoff"
+mkdir "$GRAPHIFY_HQ_CANDIDATE"
+git -C _archive archive "$candidate" candidate tools | tar -x -C "$GRAPHIFY_HQ_CANDIDATE"
+git -C _archive show "$workflow:.github/workflows/obj-mtl-evidence.yml" > "$GRAPHIFY_HQ_BART_WORKFLOW"
+"$GRAPHIFY_HQ_PYTHON" -B -m unittest discover -s test-vault/python -v
+node --test test-vault/javascript/evidence.test.mjs
+bash test-vault/bash/workflow.tests.sh
+```
+
+The workflow compares case-level results with the catalog. The Linux run also verifies the two Lydite v2 receipts for the fresh graph handoff using the run ID and attempt supplied by GitHub.
 
 Run the PowerShell suite with PowerShell 7, Git, and Python 3.12 on the path. It copies the pinned verifier and its helpers into a temporary Git checkout with a tracked catalog. Its synthetic manifests, receipts, and Actions summary files live beside that checkout.
 

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "tsc --noEmit && node --test citations.test.ts"
+    "test": "tsc --noEmit --listFiles && node --test --test-reporter=tap citations.test.ts"
   },
   "devDependencies": {
     "@types/node": "24.10.0",

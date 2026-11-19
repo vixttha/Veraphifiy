@@ -1,10 +1,10 @@
 # Graphify HQ Test Vault plan
 
-**Status: Proposed.** The 40 cases below cover 22 Python, 6 Bash, and 12 JavaScript cases. The original 12 case IDs carry over from the original Vault plan. The [case catalog](cases.md) separately lists executable TypeScript, Go, and PowerShell checks. Where a pinned source already has a regression, register or extend it when the corresponding code is adopted.
+**Status: Implemented.** All 40 cases below run in the Vault workflow. The [case catalog](cases.md) also includes TypeScript, Go, PowerShell, and checks of the Vault evidence itself. Cases that use BART draft code are described in the [audit](AUDIT.md).
 
 ## Python · unittest
 
-Owns Graphify behavior and on-disk recovery. Use the real evidence builder and Graphify MCP for the graph cases. Reuse the publication tests already in BART #79 when that candidate is available on the test checkout.
+Owns Graphify behavior and on-disk recovery. The graph cases exercise the released builder and Graphify MCP. Candidate checks exercise the pinned BART #79 snapshot, which also includes the #74 runner-mode and #77 provenance work.
 
 | Case ID | Behavior | Fixture and action | Expected result |
 | --- | --- | --- | --- |

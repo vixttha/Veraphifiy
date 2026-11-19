@@ -25,6 +25,11 @@ export type ImplementationLookup =
   | { status: "no-implementation" }
   | { status: "invalid-citation" };
 
+function isRepositoryPath(path: string): boolean {
+  return typeof path === "string" && path.trim().length > 0 && !/[\\:\p{C}]/u.test(path) &&
+    path.split("/").every((part) => part !== "" && part !== "." && part !== ".." && part !== ".git");
+}
+
 export function findImplementation(graph: EvidenceGraph, feature: string): ImplementationLookup {
   const nodes = new Map(graph.nodes.map((node) => [node.id, node]));
   if (!feature.startsWith("feature:") || !nodes.has(feature)) {
@@ -37,7 +42,7 @@ export function findImplementation(graph: EvidenceGraph, feature: string): Imple
       continue;
     }
     const target = nodes.get(edge.target);
-    if (!target || !target.source_file.trim() || !target.source_location ||
+    if (!target || !isRepositoryPath(target.source_file) || !target.source_location ||
         !/^L[1-9][0-9]*$/.test(target.source_location)) {
       return { status: "invalid-citation" };
     }

@@ -185,7 +185,7 @@ func TestGraphifyMCP(t *testing.T) {
 
 	t.Run("GHQ-GO-010 find the implementation from a feature name without a node ID", func(t *testing.T) {
 		got := call(t, "query_graph", map[string]any{"question": "archive verification", "depth": 2, "token_budget": 8000})
-		requireText(t, got, "tools/verify_archive.py", "implemented_in")
+		requireText(t, got, "EDGE Reproducible Graphify archive --implemented_in [EXTRACTED]--> tools/verify_archive.py L30")
 	})
 
 	t.Run("GHQ-GO-011 warn when a low token budget hides additional neighbors", func(t *testing.T) {

@@ -53,3 +53,10 @@ test("GHQ-TS-009 does not give an app an implementation citation with an empty p
   const nodes = graph.nodes.map((node) => node.id === anchor ? { ...node, source_file: "" } : node);
   assert.deepEqual(findImplementation({ ...graph, nodes }, feature), { status: "invalid-citation" });
 });
+
+test("GHQ-TS-010 withholds paths the Graphify builder would never emit", () => {
+  for (const source_file of ["/tmp/file.py", "../file.py", "src/../file.py", "C:\\file.py", "src//file.py", ".git/config"]) {
+    const nodes = graph.nodes.map((node) => node.id === anchor ? { ...node, source_file } : node);
+    assert.deepEqual(findImplementation({ ...graph, nodes }, feature), { status: "invalid-citation" }, source_file);
+  }
+});
