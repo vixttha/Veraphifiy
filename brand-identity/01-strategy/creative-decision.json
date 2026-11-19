@@ -1,0 +1,51 @@
+{
+  "initial_category": "abstract mark",
+  "art_style": "Flat geometric linework with squared terminals and enough negative space to hold up at avatar size.",
+  "category_fit": {
+    "abstract mark": {
+      "fits": true,
+      "reason": "A compact relationship can suggest a graph and remain legible in a square avatar."
+    },
+    "pictorial mark": {
+      "fits": true,
+      "reason": "A repository artifact makes the evidence purpose recognizable in a small silhouette."
+    },
+    "lettermark": {
+      "fits": false,
+      "reason": "The name is locked. Its initials give first-time readers little context at avatar size."
+    }
+  },
+  "concepts": [
+    {
+      "id": "filed-edge",
+      "category": "abstract mark",
+      "art_style": "A compact geometric silhouette with a strong diagonal and squared terminals.",
+      "example": "Join a short horizontal source bar to a tall index tab with a single upward diagonal. Cut a shallow rectangular notch into the tab.",
+      "rationale": "The diagonal is a graph relationship, the source bar is a specific line and the index tab is its filed evidence. The tab notch may need to widen at avatar size.",
+      "scores": {"brand_fit": 5, "artistic_character": 4, "distinctiveness": 5, "versatility": 5}
+    },
+    {
+      "id": "source-bracket",
+      "category": "abstract mark",
+      "art_style": "Two squared brackets and a continuous stepped line.",
+      "example": "Place offset brackets on the left and right with a stepped line that starts inside one bracket and terminates inside the other.",
+      "rationale": "The brackets quote two exact locations, the path traces their relationship and the offsets show a change in context. Standalone brackets can read as a generic developer mark.",
+      "scores": {"brand_fit": 5, "artistic_character": 4, "distinctiveness": 3, "versatility": 5}
+    },
+    {
+      "id": "paired-receipt",
+      "category": "pictorial mark",
+      "art_style": "Two offset document silhouettes with a shared diagonal cut.",
+      "example": "Pair a solid graph sheet with an outlined receipt behind it. Align their top corners along one diagonal.",
+      "rationale": "The front sheet is the graph export, the rear sheet is its companion receipt and the common corner signals the shared source. The overlap needs room to read.",
+      "scores": {"brand_fit": 4, "artistic_character": 4, "distinctiveness": 4, "versatility": 3}
+    }
+  ],
+  "selected_concept": "filed-edge",
+  "selection_reason": "Filed Edge leads at 95 / 100. Its single path and index tab combine navigation and verification in the smallest proposed silhouette.",
+  "names": {
+    "product": "Veraphifiy",
+    "wordmark": "Veraphifiy"
+  },
+  "confirmation": null
+}

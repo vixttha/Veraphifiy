@@ -6,6 +6,7 @@ on:
     paths:
       - 'test-vault/**'
       - 'veraphifiy.mjs'
+      - 'brand-identity/**'
       - '.gitattributes'
       - '.github/workflows/test-vault.yml'
 
@@ -14,6 +15,7 @@ on:
     paths:
       - 'test-vault/**'
       - 'veraphifiy.mjs'
+      - 'brand-identity/**'
       - '.gitattributes'
       - '.github/workflows/test-vault.yml'
 
@@ -55,6 +57,10 @@ jobs:
         with:
           go-version: '1.25.5'
           cache: false
+      - name: Verify the Veraphifiy brand records and approval checks
+        run: |
+          python -B brand-identity/verify.py
+          python -B -m unittest discover -s brand-identity -v
       - name: Validate the Lydite case catalog
         run: python -B test-vault/validate_catalog.py
       - name: Fetch the pinned BART candidate and workflow
