@@ -4,9 +4,12 @@ param([string]$Python = 'python')
 $ErrorActionPreference = 'Stop'
 # Several cases intentionally exercise a nonzero exit from Python.
 $PSNativeCommandUseErrorActionPreference = $false
-$verifier = Join-Path $PSScriptRoot '../verify_receipts.py'
+$vault = Join-Path $PSScriptRoot '..'
 $root = Join-Path ([IO.Path]::GetTempPath()) ('ghq vault [fixture] ' + [guid]::NewGuid())
 $checkout = Join-Path $root 'git checkout [literal]'
+$fixtureVault = Join-Path $checkout 'test-vault'
+$verifier = Join-Path $fixtureVault 'verify_receipts.py'
+$catalog = Join-Path $fixtureVault 'catalog [cases].md'
 $caseId = 'FIXTURE-001'
 $runId = '94501'
 $attempt = '2'
@@ -22,24 +25,19 @@ function Write-JsonFile([string]$Path, [hashtable]$Value) {
     $Value | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $Path -Encoding utf8NoBOM
 }
 
-function New-Fixture([string]$Name, [switch]$Shared) {
+function New-Fixture([string]$Name, [switch]$Shared, [int]$SchemaVersion = 2) {
     $directory = Join-Path $root "$Name [case files]"
     $paths = @{
-        Catalog = Join-Path $directory 'catalog [cases].md'
         CaseFile = Join-Path $directory 'case [definition].json'
         Receipts = Join-Path $directory 'receipt [output]'
         Summary = Join-Path $directory 'job [summary].md'
+        SchemaVersion = $SchemaVersion
         Evidence = $null
         EvidenceDigest = $null
     }
     [void][IO.Directory]::CreateDirectory($paths.Receipts)
-    @"
-| Case | Area | Priority | Suggested implementation | Expected outcome |
-|---|---|---|---|---|
-| $caseId | Vault fixture | P1 | Invoke verifier | Check portable invocation |
-"@ | Set-Content -LiteralPath $paths.Catalog -Encoding utf8NoBOM
     Write-JsonFile $paths.CaseFile @{
-        schema_version = 1
+        schema_version = $SchemaVersion
         case_id = $caseId
         required_checks = @('build', 'read')
         shared_evidence = [bool]$Shared
@@ -54,8 +52,8 @@ function New-Fixture([string]$Name, [switch]$Shared) {
 
 function Write-FixtureReceipt([hashtable]$Fixture, [string]$Check) {
     $path = Join-Path $Fixture.Receipts "$Check.json"
-    Write-JsonFile $path @{
-        schema_version = 1
+    $receipt = @{
+        schema_version = $Fixture.SchemaVersion
         case_id = $caseId
         check_id = $Check
         checkout_sha = $script:fixtureHead
@@ -65,6 +63,10 @@ function Write-FixtureReceipt([hashtable]$Fixture, [string]$Check) {
         environment = @{ os = 'synthetic-fixture'; runtime = 'synthetic-fixture' }
         status = 'pass'
     }
+    if ($Fixture.SchemaVersion -eq 2) {
+        $receipt.case_plan_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $Fixture.CaseFile).Hash.ToLowerInvariant()
+    }
+    Write-JsonFile $path $receipt
 }
 
 function Invoke-Verifier {
@@ -76,7 +78,7 @@ function Invoke-Verifier {
         [switch]$WriteSummary
     )
 
-    $arguments = @('-B', '-X', 'utf8', $verifier, '--catalog', $Fixture.Catalog, '--case', $Fixture.CaseFile,
+    $arguments = @('-B', '-X', 'utf8', $verifier, '--catalog', $catalog, '--case', $Fixture.CaseFile,
         '--receipts', $Fixture.Receipts)
     if (-not $NoFlags) { $arguments += @('--run-id', $runId, '--attempt', $attempt) }
     if ($Fixture.Evidence) { $arguments += @('--evidence', $Fixture.Evidence) }
@@ -124,9 +126,18 @@ function Test-Case([string]$Name, [scriptblock]$Body) {
 }
 
 try {
-    [void][IO.Directory]::CreateDirectory($checkout)
+    [void][IO.Directory]::CreateDirectory($fixtureVault)
     Invoke-FixtureGit init -q
-    Invoke-FixtureGit -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit --allow-empty -qm 'Receipt fixture'
+    foreach ($file in @('verify_receipts.py', 'validate_catalog.py', 'source_commit.py')) {
+        Copy-Item -LiteralPath (Join-Path $vault $file) -Destination $fixtureVault
+    }
+    @"
+| Case | Area | Priority | Suggested implementation | Expected outcome |
+|---|---|---|---|---|
+| $caseId | Vault fixture | P1 | Invoke verifier | Check portable invocation |
+"@ | Set-Content -LiteralPath $catalog -Encoding utf8NoBOM
+    Invoke-FixtureGit add -- test-vault
+    Invoke-FixtureGit -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit -qm 'Receipt fixture'
     $script:fixtureHead = Invoke-FixtureGit rev-parse HEAD
 
     Test-Case 'GHQ-PS-001 passes literal Windows-style argument paths to the verifier' {
@@ -200,8 +211,38 @@ try {
         Write-FixtureReceipt $fixture 'build'
         Write-FixtureReceipt $fixture 'read'
         Invoke-FixtureGit -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit --allow-empty -qm 'Advance fixture checkout'
+        $script:fixtureHead = Invoke-FixtureGit rev-parse HEAD
         $result = Invoke-Verifier $fixture
         Assert-Verdict $result 1 'checkout_sha does not match'
+    }
+
+    Test-Case 'GHQ-PS-009 binds v2 receipts to the exact case plan bytes' {
+        $fixture = New-Fixture 'v2 case plan'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $result = Invoke-Verifier $fixture
+        Assert-Verdict $result 0 '**Overall: PASS**'
+        Assert-Verdict $result 0 'Case plan SHA-256:'
+        [IO.File]::AppendAllText($fixture.CaseFile, "`n")
+        Assert-Verdict (Invoke-Verifier $fixture) 1 'case_plan_sha256 does not match'
+    }
+
+    Test-Case 'GHQ-PS-010 verifies legacy v1 receipts after the upgrade' {
+        $fixture = New-Fixture 'legacy receipt' -SchemaVersion 1
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $result = Invoke-Verifier $fixture
+        Assert-Verdict $result 0 '**Overall: PASS**'
+        Assert-Verdict $result 0 'Legacy receipt v1'
+    }
+
+    Test-Case 'GHQ-PS-011 rejects tracked checkout changes before accepting receipts' {
+        $fixture = New-Fixture 'dirty checkout'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+        [IO.File]::AppendAllText($catalog, "`n")
+        Assert-Verdict (Invoke-Verifier $fixture) 1 'commit tracked changes before writing or verifying receipts'
     }
 }
 finally {

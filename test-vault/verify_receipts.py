@@ -8,6 +8,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from source_commit import source_commit
 from validate_catalog import read_cases
 
 
@@ -27,23 +28,24 @@ def unique_object(items):
     return result
 
 
-def read_object(path):
-    data = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+def read_object(path, raw=None):
+    data = json.loads(path.read_bytes() if raw is None else raw, object_pairs_hook=unique_object)
     if not isinstance(data, dict):
         raise ValueError("expected a JSON object")
     return data
 
 
-def expect_fields(data, fields):
+def expect_fields(data, fields, versions):
     if data.keys() != set(fields):
         raise ValueError("missing or unknown fields")
-    if type(data["schema_version"]) is not int or data["schema_version"] != 1:
+    if type(data["schema_version"]) is not int or data["schema_version"] not in versions:
         raise ValueError("unsupported schema version")
 
 
 def read_case(path, catalog):
-    case = read_object(path)
-    expect_fields(case, ("schema_version", "case_id", "required_checks", "shared_evidence"))
+    raw = path.read_bytes()
+    case = read_object(path, raw)
+    expect_fields(case, ("schema_version", "case_id", "required_checks", "shared_evidence"), {1, 2})
     case_id, checks = case["case_id"], case["required_checks"]
     if not isinstance(case_id, str) or case_id not in read_cases(catalog)[0]:
         raise ValueError("case ID must be registered in the selected catalog")
@@ -53,11 +55,11 @@ def read_case(path, catalog):
         raise ValueError("required checks must be a nonempty list of unique check IDs")
     if type(case["shared_evidence"]) is not bool:
         raise ValueError("shared_evidence must be a boolean")
-    return case
+    return case, hashlib.sha256(raw).hexdigest()
 
 
 def verify_receipt(receipt, expected):
-    expect_fields(receipt, (*expected, "schema_version", "check_id", "environment", "status"))
+    expect_fields(receipt, (*expected, "check_id", "environment", "status"), {expected["schema_version"]})
     for field, value in expected.items():
         if receipt[field] != value:
             raise ValueError(f"{field} does not match this verification")
@@ -115,6 +117,8 @@ def render(case_id, expected, rows, issues):
         f"### Test Vault execution evidence · {case_id}",
         "",
         f"Checkout: {expected['checkout_sha']} · Run: {expected['run_id']} · Attempt: {expected['attempt']}",
+        *([f"Case plan SHA-256: {expected['case_plan_sha256']}"] if "case_plan_sha256" in expected
+          else ["Legacy receipt v1 · case plan binding unavailable"]),
         "",
         "| Required check | Result | Evidence |",
         "|---|---|---|",
@@ -139,18 +143,21 @@ def main():
     args = parser.parse_args()
 
     try:
-        case = read_case(args.case, args.catalog)
+        case, plan_sha = read_case(args.case, args.catalog)
         if not RUN_ID.fullmatch(args.run_id or "") or not RUN_ID.fullmatch(args.attempt or ""):
             raise ValueError("run ID and attempt must be positive decimal strings")
-        checkout = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+        checkout = source_commit(Path.cwd(), (Path(__file__), args.catalog))
         if not SHA.fullmatch(checkout):
             raise ValueError("checkout must be a full Git SHA")
         if case["shared_evidence"] != (args.evidence is not None):
             raise ValueError("evidence argument must match the case's shared_evidence setting")
         expected = {
+            "schema_version": case["schema_version"],
             "case_id": case["case_id"], "checkout_sha": checkout, "run_id": args.run_id,
             "attempt": args.attempt, "evidence_sha256": None,
         }
+        if case["schema_version"] == 2:
+            expected["case_plan_sha256"] = plan_sha
         if args.evidence is not None:
             with args.evidence.open("rb") as stream:
                 expected["evidence_sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
