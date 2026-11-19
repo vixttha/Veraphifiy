@@ -7,13 +7,12 @@ import os
 import tempfile
 from pathlib import Path
 
-from evidence_bundle import PROFILE_PATH, encode_bundle, read_part
+from evidence_bundle import CHECKS, PROFILE_PATH, check_observation, encode_bundle
 from source_commit import source_commit
 from verify_receipts import RUN_ID
 
 VAULT = Path(__file__).resolve().parent
 PLAN = VAULT / "javascript/case.json"
-CHECKS = {"python-build": "python", "node-consume": "node"}
 
 
 def main():
@@ -32,16 +31,9 @@ def main():
         parser.error("set GITHUB_RUN_ID and GITHUB_RUN_ATTEMPT to positive decimal strings")
     try:
         actual = hashlib.sha256(encode_bundle(args.handoff)).hexdigest()
-        observation_file = args.handoff / (CHECKS[args.check] + ".observation.json")
-        observation = json.loads(read_part(observation_file, 8192))
+        check_observation(args.handoff, args.check, run, attempt, actual)
     except (OSError, ValueError) as error:
-        parser.error(f"cannot read observed bundle: {error}")
-    if not isinstance(observation, dict) or observation.keys() != {"run_id", "attempt", "bundle_sha256"}:
-        parser.error("invalid handoff observation")
-    if (observation["run_id"], observation["attempt"]) != (run, attempt):
-        parser.error("handoff observation is for a different run or attempt")
-    if observation["bundle_sha256"] != actual:
-        parser.error("bundle changed after " + args.check + " observed it")
+        parser.error(f"cannot verify handoff observation: {error}")
     receipt = {
         "schema_version": 2,
         "case_id": "GHQ-JS-001",

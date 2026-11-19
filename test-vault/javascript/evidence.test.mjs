@@ -41,6 +41,7 @@ test("GHQ-JS-001 accepts the fresh Python graph and its receipt", () => {
   assert.deepEqual(readFileSync(join(handoff, "source.txt")), Buffer.from(source + "\n", "ascii"));
   writeFileSync(join(handoff, "node.sha256"), graph.digest + "\n");
   writeFileSync(join(handoff, "node.observation.json"), JSON.stringify({
+    check_id: "node-consume",
     run_id: process.env.GITHUB_RUN_ID ?? "",
     attempt: process.env.GITHUB_RUN_ATTEMPT ?? "",
     bundle_sha256: graph.bundleDigest,

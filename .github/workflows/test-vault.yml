@@ -199,7 +199,7 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $false
           $handoff = Join-Path $env:RUNNER_TEMP 'linux-handoff'
-          python -B test-vault/evidence_bundle.py $handoff --check
+          python -B test-vault/evidence_bundle.py $handoff --check --check-observations
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --input-type=module -e 'import { inspectHandoff } from "./test-vault/javascript/inspect-evidence.mjs"; const result = inspectHandoff(process.argv[1]); console.log(`Verified producer and pinned source blobs: ${result.bundleDigest}`);' $handoff
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

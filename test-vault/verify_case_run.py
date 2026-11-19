@@ -1,6 +1,8 @@
 """Check the Vault catalog against named results from completed runner commands."""
 
 import argparse
+from html import escape
+import os
 import json
 import re
 from collections import Counter, defaultdict
@@ -165,6 +167,12 @@ def main():
         if failures:
             raise ValueError("\n" + "\n".join(failures))
     except (OSError, ValueError) as error:
+        if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
+            heading = f"### Test Vault {args.platform} reconciliation failed\n\n"
+            # Escape report text and bound the retained summary independently of the logs.
+            diagnostic = escape(str(error)[:4096])
+            with Path(summary).open("a", encoding="utf-8") as output:
+                output.write(heading + "<pre>" + diagnostic + "</pre>\n")
         parser.exit(1, f"Test Vault run evidence failed: {error}\n")
 
 

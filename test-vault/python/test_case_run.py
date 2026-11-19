@@ -23,6 +23,13 @@ class CaseRunTests(unittest.TestCase):
             require_cases(expected, passed_cases("JS", log))
         require_cases(expected, passed_cases("JS", log.replace(" # SKIP", "")))
 
+        typed_expected = {"GHQ-TS-001", "GHQ-TS-004"}
+        complete = "ok 1 - GHQ-TS-001 control\nok 2 - GHQ-TS-004 implementation coordinates\n"
+        require_cases(typed_expected, passed_cases("TS", complete))
+        omitted = complete.replace("GHQ-TS-004 implementation coordinates", "unrelated passing assertion")
+        with self.assertRaisesRegex(ValueError, "missing=.*GHQ-TS-004"):
+            require_cases(typed_expected, passed_cases("TS", omitted))
+
     def test_GHQ_PY_024_rejects_duplicate_and_unexpected_case_reports(self):
         expected = {"GHQ-PS-001"}
         for log, diagnostic in (
@@ -139,6 +146,16 @@ class CaseRunTests(unittest.TestCase):
             self.assertFalse(receipts.exists())
             with mock.patch.dict(os.environ, {"GITHUB_RUN_ID": "12", "GITHUB_RUN_ATTEMPT": "2"}):
                 write_observation(handoff, "node")
+            path = handoff / "node.observation.json"
+            original = path.read_text(encoding="utf-8")
+            observation = json.loads(original)
+            observation["check_id"] = "python-build"
+            path.write_text(json.dumps(observation), encoding="utf-8")
+            wrong_check = self.invoke_recorder(recorder, handoff, receipts, attempt="2")
+            self.assertNotEqual(wrong_check.returncode, 0)
+            self.assertIn("belongs to a different check", wrong_check.stderr)
+            self.assertFalse(receipts.exists())
+            path.write_text(original, encoding="utf-8")
             result = self.invoke_recorder(recorder, handoff, receipts, attempt="2")
             self.assertEqual(result.returncode, 0, result.stderr)
 
@@ -210,14 +227,19 @@ class CaseRunTests(unittest.TestCase):
                 {"Action": "fail", "Test": "TestGraphifyMCP/GHQ-GO-001_discover"},
                 {"Action": "fail"},
             ), encoding="utf-8")
+            summary = root / "summary.md"
             result = subprocess.run(
                 [sys.executable, "-B", str(reconciler), "linux", str(root)],
+                env=dict(os.environ, GITHUB_STEP_SUMMARY=str(summary)),
                 capture_output=True, text=True, timeout=10,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("JS: failed or skipped cases=['GHQ-JS-001']", result.stderr)
             self.assertIn("GO: failed or skipped cases=['GHQ-GO-001']", result.stderr)
             self.assertIn("SH: no native log, suite unavailable", result.stderr)
+            retained = summary.read_text(encoding="utf-8")
+            self.assertIn("GHQ-JS-001", retained)
+            self.assertIn("no native log", retained)
 
     def test_GHQ_PY_057_requires_complete_native_tap_and_rejects_unnamed_failures(self):
         with tempfile.TemporaryDirectory() as directory:
