@@ -186,3 +186,10 @@ grep -q 'PR belongs to a different repository' "$root/stderr"
 FIXTURE_PR_REPOSITORY=example/graphify step check > "$root/repository-check"
 [[ -f "$ARCHIVE_CHECK_MARKER" && "$(hashes)" == "$before" ]]
 echo 'PASS GHQ-SH-031 rejects an unrelated PR repository before archive checking'
+
+if PIP_FAIL=install PATH="$root/bin:$PATH" step install | tee "$root/dependency-output"; then
+  printf 'Install failed but its CI-style logging pipeline reported success\n' >&2
+  exit 1
+fi
+[[ "$(hashes)" == "$before" ]]
+echo 'PASS GHQ-SH-010 preserves a failure when the log sink succeeds'

@@ -23,7 +23,7 @@ def typed_passes(log, source):
     return observed
 
 
-def go_outcomes(log):
+def go_outcomes(log, failed_cases):
     packages = set()
     terminal = defaultdict(list)
     outcomes = []
@@ -49,7 +49,10 @@ def go_outcomes(log):
         elif isinstance(test, str):
             match = re.match(r"TestGraphifyMCP/(GHQ-GO-\d{3,})(?:_|$)", test)
             if match:
-                outcomes.append((match[1], action == "pass"))
+                passed = action == "pass"
+                outcomes.append((match[1], passed))
+                if failed_cases is not None and not passed:
+                    failed_cases.add(match[1])
         else:
             raise ValueError("invalid Go test name")
     if not packages or any(terminal[package] != ["pass"] for package in packages):
@@ -65,7 +68,7 @@ def passed_cases(kind, log, *, failed_cases=None):
         )
         outcomes = [(name.replace("_", "-"), status == "ok") for name, status in matches]
     elif kind == "GO":
-        outcomes = go_outcomes(log)
+        outcomes = go_outcomes(log, failed_cases)
     elif kind in {"TS", "JS"}:
         outcomes = []
         for line in log.splitlines():

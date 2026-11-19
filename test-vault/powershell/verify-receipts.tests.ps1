@@ -76,10 +76,12 @@ function Invoke-Verifier {
         [switch]$NoFlags,
         [string]$EnvironmentRun,
         [string]$EnvironmentAttempt,
-        [switch]$WriteSummary
+        [switch]$WriteSummary,
+        [string]$CatalogPath = $catalog,
+        [string]$WorkingDirectory = $checkout
     )
 
-    $arguments = @('-B', '-X', 'utf8', $verifier, '--catalog', $catalog, '--case', $Fixture.CaseFile,
+    $arguments = @('-B', '-X', 'utf8', $verifier, '--catalog', $CatalogPath, '--case', $Fixture.CaseFile,
         '--receipts', $Fixture.Receipts)
     if (-not $NoFlags) { $arguments += @('--run-id', $runId, '--attempt', $attempt) }
     if ($Fixture.Evidence) { $arguments += @('--evidence', $Fixture.Evidence) }
@@ -92,7 +94,7 @@ function Invoke-Verifier {
     foreach ($name in $variables.Keys) {
         $previous[$name] = [Environment]::GetEnvironmentVariable($name)
     }
-    Push-Location -LiteralPath $checkout
+    Push-Location -LiteralPath $WorkingDirectory
     try {
         foreach ($name in $variables.Keys) {
             [Environment]::SetEnvironmentVariable($name, $variables[$name])
@@ -250,6 +252,24 @@ try {
         Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
     }
 
+    Test-Case 'GHQ-PS-014 rejects an otherwise identical untracked catalog' {
+        $fixture = New-Fixture 'untracked catalog'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $duplicate = Join-Path $fixtureVault 'untracked.md'
+        Copy-Item -LiteralPath $catalog -Destination $duplicate
+        Assert-Verdict (Invoke-Verifier $fixture -CatalogPath $duplicate) 1 'source must be tracked'
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-018 restricts verification to the intended Git root' {
+        $fixture = New-Fixture 'intended checkout root'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        Assert-Verdict (Invoke-Verifier $fixture -WorkingDirectory $fixtureVault) 1 'intended Git checkout root'
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
     Test-Case 'GHQ-PS-016 rejects duplicate receipts with different filenames' {
         $fixture = New-Fixture 'duplicate record'
         Write-FixtureReceipt $fixture 'build'
@@ -313,6 +333,19 @@ try {
         if ((Get-FileHash -LiteralPath $build).Hash -ne $digest) { throw 'Previous evidence changed.' }
         Write-FixtureReceipt $fixture 'read'
         Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-030 follows the pinned receipt decoder encoding profile' {
+        $fixture = New-Fixture 'receipt encoding'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $receiptPath = Join-Path $fixture.Receipts 'read.json'
+        $valid = [IO.File]::ReadAllText($receiptPath)
+        [IO.File]::WriteAllText($receiptPath, $valid, [Text.Encoding]::Unicode)
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+        $bytes = [IO.File]::ReadAllBytes($receiptPath)
+        [IO.File]::WriteAllBytes($receiptPath, $bytes[0..($bytes.Length - 2)])
+        Assert-Verdict (Invoke-Verifier $fixture) 1 'Found an unreadable or invalid receipt.'
     }
 
     Test-Case 'GHQ-PS-011 rejects tracked checkout changes before accepting receipts' {

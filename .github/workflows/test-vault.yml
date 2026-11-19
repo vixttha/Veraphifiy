@@ -5,12 +5,14 @@ on:
     branches: [graphify-hq-test-vault]
     paths:
       - 'test-vault/**'
+      - '.gitattributes'
       - '.github/workflows/test-vault.yml'
 
   pull_request:
     branches: [graphify-hq-test-vault]
     paths:
       - 'test-vault/**'
+      - '.gitattributes'
       - '.github/workflows/test-vault.yml'
 
 permissions:

@@ -316,3 +316,22 @@ test("GHQ-JS-037 rejects a numeric path even when the endpoint and edge agree", 
   assert.equal(implementationLocation(replaceCitationPath(graph, 204), feature, anchor), null);
   assert.deepEqual(implementationLocation(graph, feature, anchor), { path: "src/feature.py", line: 3 });
 });
+
+test("GHQ-JS-036 preserves exact graph identities across Unicode normalization", (t) => {
+  const dir = copy(t);
+  const composed = "diagnostic:\u00e9";
+  const decomposed = "diagnostic:e\u0301";
+  assert.notEqual(composed, decomposed);
+  assert.equal(composed.normalize(), decomposed.normalize());
+  changeGraph(dir, (graph) => {
+    graph.nodes.push({ id: composed, label: "composed" }, { id: decomposed, label: "decomposed" });
+  });
+  change(dir, receiptFile, (receipt) => { receipt.nodes += 2; });
+  const graph = inspectEvidence(dir, source);
+  assert.equal(graph.nodes.get(composed).label, "composed");
+  assert.equal(graph.nodes.get(decomposed).label, "decomposed");
+  changeGraph(dir, (payload) => {
+    payload.links[0].target = decomposed + "x";
+  });
+  assert.throws(() => inspectEvidence(dir, source), /Missing edge endpoint/);
+});

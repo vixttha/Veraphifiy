@@ -199,13 +199,17 @@ class CaseRunTests(unittest.TestCase):
             (root / "js.log").write_text(
                 "not ok 1 - GHQ-JS-001 failed\nok 2 - GHQ-JS-002 passed\n", encoding="utf-8",
             )
+            (root / "go.log").write_text(self.go_log(
+                {"Action": "fail", "Test": "TestGraphifyMCP/GHQ-GO-001_discover"},
+                {"Action": "fail"},
+            ), encoding="utf-8")
             result = subprocess.run(
                 [sys.executable, "-B", str(reconciler), "linux", str(root)],
                 capture_output=True, text=True, timeout=10,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("JS: failed or skipped cases=['GHQ-JS-001']", result.stderr)
-            self.assertIn("GO: no native log, suite unavailable", result.stderr)
+            self.assertIn("GO: failed or skipped cases=['GHQ-GO-001']", result.stderr)
             self.assertIn("SH: no native log, suite unavailable", result.stderr)
 
 
