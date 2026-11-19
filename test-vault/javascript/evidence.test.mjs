@@ -226,6 +226,25 @@ test("GHQ-JS-022 matches each inventory anchor with its actual file", (t) => {
   assert.throws(() => inspectEvidence(dir, source), /Invalid located_in evidence edge/);
 });
 
+test("GHQ-JS-041 requires a source file for every referenced anchor", (t) => {
+  const original = inspectHandoff(handoff);
+  for (const id of [feature, "feature:preview"]) {
+    assert.deepEqual(implementationLocation(original, id, anchor), { path: "src/feature.py", line: 3 });
+  }
+  assert.equal(original.links.filter((edge) => edge.relation === "located_in" && edge.source === anchor).length, 1);
+  const anchors = original.links.filter((edge) => edge.source === feature).map((edge) => edge.target);
+  assert.ok(anchors.includes(anchor));
+  for (const target of anchors) {
+    const dir = copy(t);
+    changeGraph(dir, (graph) => {
+      graph.links = graph.links.filter((edge) => edge.relation !== "located_in" || edge.source !== target);
+      assert.equal(graph.links.length, original.links.length - 1);
+    });
+    change(dir, receiptFile, (receipt) => { receipt.edges--; });
+    assert.throws(() => inspectHandoff(dir), { message: "Missing source-file attachment: " + target });
+  }
+});
+
 test("GHQ-JS-023 rejects features without source-root attachments", (t) => {
   const dir = copy(t);
   changeGraph(dir, (graph) => {

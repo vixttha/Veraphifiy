@@ -174,6 +174,8 @@ function inspect(read, sourceCommit, {
   const uniqueEdges = new Set();
   const featured = new Set();
   const inventoried = new Set();
+  const referencedAnchors = new Set();
+  const attachedAnchors = new Set();
   const implementations = [];
   for (const edge of graph.links) {
     if (!nodes.has(edge?.source) || !nodes.has(edge?.target)) throw new Error("Missing edge endpoint");
@@ -204,6 +206,7 @@ function inspect(read, sourceCommit, {
           edge.source_file !== origin.source_file || ![...relations].some((kind) => source.startsWith(kind + ":"))) {
         throw new Error("Invalid located_in evidence edge");
       }
+      attachedAnchors.add(source);
     }
     if (relations.has(relation)) {
       if (!summaries.has(source) || !target.startsWith(relation + ":")) throw new Error("Invalid evidence anchor");
@@ -211,6 +214,7 @@ function inspect(read, sourceCommit, {
         throw new Error("Invalid implementation target category");
       }
       if (relation === "implemented_in") implementations.push(edge);
+      referencedAnchors.add(target);
       referenced.add(nodes.get(target).source_file);
       const counts = summaries.get(edge.source);
       counts.set(edge.relation, (counts.get(edge.relation) ?? 0) + 1);
@@ -218,6 +222,9 @@ function inspect(read, sourceCommit, {
   }
   if (featured.size !== summaries.size || inventoried.size !== inventory.size) {
     throw new Error("Missing source-root attachment");
+  }
+  for (const anchor of referencedAnchors) {
+    if (!attachedAnchors.has(anchor)) throw new Error("Missing source-file attachment: " + anchor);
   }
   for (const path of referenced) {
     const digest = receipt.source_sha256[path];
