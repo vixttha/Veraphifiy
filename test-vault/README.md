@@ -1,6 +1,38 @@
 # Graphify HQ Test Vault
 
-This branch is the Graphify HQ project's adoption of the Lydite Test Vault in `vixttha/Graphify-HQ`. The [case catalog](cases.md) starts at **0 cases**. See the [expanded test plan](PLAN.md) for the proposed Python, Bash, and JavaScript cases. Use the [case and run receipt form](case-and-receipt.md) when test work begins.
+This branch is the Graphify HQ project's adoption of the Lydite Test Vault in `vixttha/Graphify-HQ`. The [case catalog](cases.md) lists executable TypeScript, Go, and PowerShell checks. The [initial test plan](PLAN.md) describes the proposed Python, Bash, and JavaScript cases. Use the [case and run receipt form](case-and-receipt.md) to record verified runs.
+
+## Run the suites
+
+From the repository root, with Python 3.12 available, run `python test-vault/validate_catalog.py` to check the Lydite catalog. The [Test Vault workflow](../.github/workflows/test-vault.yml) runs the suites on standard public GitHub-hosted Ubuntu and Windows runners.
+
+For TypeScript and Go, use the [pinned BART archive checkout](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/6af3c2025be3f51e02dca4e4502088c526aae6d1). The Go staleness check needs the archive inside its Git checkout. The archive checkout SHA and the graph's original source SHA are separate.
+
+```bash
+git init _archive
+git -C _archive fetch --depth=1 https://github.com/vixttha/Blender-Agent-Refinement-Toolkit.git 6af3c2025be3f51e02dca4e4502088c526aae6d1
+git -C _archive checkout --detach FETCH_HEAD
+export GRAPHIFY_HQ_ARCHIVE="$PWD/_archive/graphify/v0.0.8"
+
+# Node 24 and the locked TypeScript compiler
+npm --prefix test-vault/typescript ci --ignore-scripts --no-audit --no-fund
+npm --prefix test-vault/typescript test
+
+# CPython 3.12 on Linux x64 and Go 1.25.5
+python -m venv .venv
+.venv/bin/python -m pip install --require-hashes --no-deps --only-binary=:all: -r _archive/versions/v0.0.8/requirements.txt
+.venv/bin/python -m pip check
+export GRAPHIFY_HQ_PYTHON="$PWD/.venv/bin/python"
+(cd test-vault/go && go test -v -count=1 -mod=readonly ./...)
+```
+
+Run the PowerShell suite with PowerShell 7, Git, and Python 3.12 on the path. It creates the manifest, receipts, and Git history in a temporary directory and calls the checked-in verifier. Its Actions summary files are fixture outputs.
+
+```powershell
+pwsh -NoProfile -File test-vault/powershell/verify-receipts.tests.ps1
+```
+
+The TypeScript code is a reference consumer for typed source navigation. Go talks to the real pinned Graphify server over stdio. PowerShell covers process arguments, status, environment, and shared evidence on Windows. Cases for an application viewer or Windows graph publishing need those entry points.
 
 ## Adoption audit
 
@@ -22,7 +54,7 @@ The following files were copied verbatim from the pinned Lydite commit:
 | [Catalog validator](validate_catalog.py) | [Lydite catalog validator](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/fe7b00aa17862d7a01dfd15481594be837bc6d9f/starter/test-vault/validate_catalog.py) |
 | [Receipt verifier](verify_receipts.py) | [Lydite receipt verifier](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/fe7b00aa17862d7a01dfd15481594be837bc6d9f/starter/test-vault/verify_receipts.py) |
 
-The starter validator requires at least one case. Run it after the catalog has its first case. The [upstream receipt guide](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/fe7b00aa17862d7a01dfd15481594be837bc6d9f/starter/test-vault/evidence.md) documents how to bind evidence to the actual checkout, runner, and attempt. Use standard GitHub-hosted public runners for future CI.
+The [upstream receipt guide](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/fe7b00aa17862d7a01dfd15481594be837bc6d9f/starter/test-vault/evidence.md) documents how to bind evidence to the actual checkout, runner, and attempt.
 
 ## Graphify HQ scope
 

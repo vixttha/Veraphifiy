@@ -1,6 +1,6 @@
 # Graphify HQ Test Vault plan
 
-**Status: Proposed.** The 40 cases below cover 22 Python, 6 Bash, and 12 JavaScript cases. The original 12 case IDs carry over from the original Vault plan. The [case catalog](cases.md) opens when implementation begins. Where a pinned source already has a regression, register or extend it when the corresponding code is adopted.
+**Status: Proposed.** The 40 cases below cover 22 Python, 6 Bash, and 12 JavaScript cases. The original 12 case IDs carry over from the original Vault plan. The [case catalog](cases.md) separately lists executable TypeScript, Go, and PowerShell checks. Where a pinned source already has a regression, register or extend it when the corresponding code is adopted.
 
 ## Python · unittest
 

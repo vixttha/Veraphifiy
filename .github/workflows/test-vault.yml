@@ -1,0 +1,71 @@
+name: Graphify HQ Test Vault
+
+on:
+  push:
+    branches: [graphify-hq-test-vault]
+    paths:
+      - 'test-vault/**'
+      - '.github/workflows/test-vault.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  graph-consumers:
+    name: TypeScript citations and Go MCP
+    if: toJSON(github.event.repository.private) == 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GRAPHIFY_HQ_ARCHIVE: ${{ github.workspace }}/_archive/graphify/v0.0.8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: vixttha/Blender-Agent-Refinement-Toolkit
+          ref: 6af3c2025be3f51e02dca4e4502088c526aae6d1
+          path: _archive
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '24.22.3'
+          package-manager-cache: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: '1.25.5'
+          cache: false
+      - name: Validate the Lydite case catalog
+        run: python test-vault/validate_catalog.py
+      - name: Check typed citation navigation
+        working-directory: test-vault/typescript
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm test
+      - name: Install pinned Graphify dependencies
+        run: |
+          python -m pip install --require-hashes --no-cache-dir --no-deps --only-binary=:all: -r _archive/versions/v0.0.8/requirements.txt
+          python -m pip check
+      - name: Query Graphify over MCP
+        working-directory: test-vault/go
+        run: go test -v -count=1 -mod=readonly ./...
+
+  windows-verifier:
+    name: PowerShell receipt verifier on Windows
+    if: toJSON(github.event.repository.private) == 'false'
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12'
+      - name: Check native paths, exit codes, and evidence receipts
+        shell: pwsh
+        run: ./test-vault/powershell/verify-receipts.tests.ps1
