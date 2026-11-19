@@ -124,11 +124,11 @@ function importVersion(options) {
   const { summary } = verifyEntry(entry, project, version);
   const bytes = Buffer.from(JSON.stringify(entry) + "\n");
   if (bytes.length > ENTRY_BYTES) throw new Error("Archive entry exceeds the total byte budget");
-  mkdirSync(archive, { recursive: true });
+  mkdirSync(archive, { recursive: true, mode: 0o700 });
   const staging = mkdtempSync(join(archive, ".import-"));
   try {
     const staged = join(staging, "entry.json");
-    writeFileSync(staged, bytes, { flag: "wx", flush: true });
+    writeFileSync(staged, bytes, { flag: "wx", flush: true, mode: 0o600 });
     const destination = entryPath(archive, project, version);
     try {
       linkSync(staged, destination);

@@ -9,6 +9,7 @@ import os
 import re
 import select
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -333,6 +334,37 @@ class BuilderTests(unittest.TestCase):
         self.assertEqual(entry.read_bytes(), archived_bytes)
         self.assertEqual(base64.b64decode(read_json(entry)["graph"]), graph_bytes)
         self.assertEqual(base64.b64decode(read_json(entry)["receipt"]), receipt_bytes)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX archive permissions")
+    def test_GHQ_PY_102_archive_is_private_under_normal_umask(self):
+        evidence = self.root / "permission evidence"
+        self.succeeds(self.invoke(evidence))
+        args = ("--source", self.source, "--checkout", str(self.repo), "--evidence", str(evidence))
+
+        archive = self.root / "new parent" / "new archive"
+        first = self.archive_command("import", archive, *args, umask=0o022)
+        self.succeeds(first)
+        entry, = archive.glob("*.json")
+        original = entry.stat()
+        contents = entry.read_bytes()
+        self.assertEqual(stat.S_IMODE(archive.parent.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(archive.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(original.st_mode), 0o600)
+
+        replay = self.archive_command("import", archive, *args, umask=0o022)
+        self.succeeds(replay)
+        self.assertEqual(json.loads(first.stdout), json.loads(replay.stdout))
+        self.assertEqual(entry.read_bytes(), contents)
+        self.assertEqual(entry.stat().st_ino, original.st_ino)
+        self.assertEqual(stat.S_IMODE(entry.stat().st_mode), 0o600)
+
+        existing = self.root / "managed archive"
+        existing.mkdir()
+        existing.chmod(0o750)
+        self.succeeds(self.archive_command("import", existing, *args, umask=0o022))
+        existing_entry, = existing.glob("*.json")
+        self.assertEqual(stat.S_IMODE(existing.stat().st_mode), 0o750)
+        self.assertEqual(stat.S_IMODE(existing_entry.stat().st_mode), 0o600)
 
     def test_GHQ_PY_002_rebuilds_identical_graph_and_receipt(self):
         first, second = self.root / "first", self.root / "second"
