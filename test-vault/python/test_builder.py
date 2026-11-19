@@ -1,6 +1,7 @@
 """Run the frozen Graphify builder against committed, disposable inputs."""
 
 import asyncio
+import base64
 import copy
 import hashlib
 import json
@@ -82,6 +83,14 @@ class BuilderTests(unittest.TestCase):
 
     def succeeds(self, result):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def archive_command(self, command, archive, *args, umask=-1):
+        cli = Path(__file__).resolve().parents[2] / "veraphifiy.mjs"
+        return subprocess.run(
+            ["node", str(cli), command, "--archive", str(archive),
+             "--project", self.manifest["repository"], "--version", "v1.0.0", *args],
+            cwd=self.root, capture_output=True, text=True, timeout=30, umask=umask,
+        )
 
     def unchanged_failure(self, manifest, message):
         output = self.root / "saved"
@@ -279,6 +288,51 @@ class BuilderTests(unittest.TestCase):
                                        env=dict(os.environ, **env_context))
         self.assertNotEqual(wrong_attempt.returncode, 0)
         self.assertIn("Archive handoff context mismatch: github_run_attempt", wrong_attempt.stderr)
+
+    def test_GHQ_PY_101_lookup_uses_physical_git_lines(self):
+        fixtures = {
+            "src/lf.py": b"# prefix\ndef test():\n    return 1\n",
+            "src/crlf.py": b"# prefix\r\ndef test():\r\n    return 1\r\n",
+            "src/unicode.py": "# prefix\u2028inside the same Git line\ndef test():\n    return 1\n".encode(),
+        }
+        for name, contents in fixtures.items():
+            self.write(name, contents)
+        self.git("-c", "core.autocrlf=false", "add", "--", *fixtures)
+        self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-qm", "Commit line ending controls")
+        source = self.git("rev-parse", "HEAD").strip()
+        for name, contents in fixtures.items():
+            self.assertEqual(subprocess.check_output(["git", "show", f"{source}:{name}"], cwd=self.repo), contents)
+        feature = dict(self.manifest["features"][0], implemented_in=[
+            {"path": name, "anchor": "return 1"} for name in fixtures
+        ])
+        export = self.root / "line evidence"
+        manifest = dict(self.manifest, source_commit=source, features=[feature], source_files=list(fixtures))
+        self.succeeds(self.invoke(export, manifest=manifest))
+        graph_bytes = (export / "graph.json").read_bytes()
+        receipt_bytes = (export / "receipt.json").read_bytes()
+        targets = {node["source_file"]: node["source_location"] for node in read_json(export / "graph.json")["nodes"]
+                   if node["id"].startswith("implemented_in:")}
+        self.assertEqual(targets, {"src/lf.py": "L3", "src/crlf.py": "L3", "src/unicode.py": "L4"})
+
+        archive = self.root / "line archive"
+        imported = self.archive_command("import", archive, "--source", source,
+                                        "--checkout", str(self.repo), "--evidence", str(export))
+        self.succeeds(imported)
+        entry = next(archive.glob("*.json"))
+        archived_bytes = entry.read_bytes()
+        looked_up = self.archive_command("lookup", archive, "--source", source, "--feature", FEATURE,
+                                         "--archive-sha256", json.loads(imported.stdout)["archive_sha256"])
+        self.succeeds(looked_up)
+        citations = {item["path"]: item for item in json.loads(looked_up.stdout)["citations"]}
+        for name in fixtures:
+            expected = {"path": name, "line": 3}
+            if name == "src/unicode.py":
+                expected["producer_line"] = 4
+            self.assertEqual(citations[name], expected)
+        self.assertEqual(entry.read_bytes(), archived_bytes)
+        self.assertEqual(base64.b64decode(read_json(entry)["graph"]), graph_bytes)
+        self.assertEqual(base64.b64decode(read_json(entry)["receipt"]), receipt_bytes)
 
     def test_GHQ_PY_002_rebuilds_identical_graph_and_receipt(self):
         first, second = self.root / "first", self.root / "second"

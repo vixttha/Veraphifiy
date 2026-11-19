@@ -32,4 +32,6 @@ node veraphifiy.mjs lookup --archive ./archive --project owner/repo --version v1
 
 The project name must match the receipt. Each archive entry preserves the graph, receipt and verified source blobs. Importing identical evidence is repeatable. An existing version can only be read or replayed. Record `source` and `archive_sha256` from a trusted import separately from the archive. To verify the exact approved entry, pass those values to `verify` or `lookup` as `--source` and `--archive-sha256`. The summary distinguishes the archived project version, archive format, Veraphifiy version and pinned producer version.
 
+Lookup citations use one-based physical lines in the pinned Git blob. LF advances the line, including the LF in CRLF. If the producer uses a different line because of an embedded separator, `producer_line` records its original coordinate. Archived graph and receipt bytes are preserved.
+
 Keep archives that contain private source on private storage. The public Test Vault uploads only disposable fixture archives. [Test Vault](test-vault/README.md) · [v0.0.9 tracker](https://github.com/vixttha/Veraphifiy/issues/21)

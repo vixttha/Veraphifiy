@@ -219,16 +219,6 @@ function inspect(read, sourceCommit, {
   if (featured.size !== summaries.size || inventoried.size !== inventory.size) {
     throw new Error("Missing source-root attachment");
   }
-  if (sourceBlobs !== undefined) {
-    const counts = new Map();
-    for (const edge of implementations) {
-      const location = matchedLocation(edge, nodes.get(edge.target));
-      if (!location) throw new Error("Invalid implementation location: " + edge.target);
-      const { path, line } = location;
-      if (!counts.has(path)) counts.set(path, sourceLineCount(sourceBlobs.get(path), path));
-      if (line > counts.get(path)) throw new Error("Implementation line is outside the pinned source: " + path);
-    }
-  }
   for (const path of referenced) {
     const digest = receipt.source_sha256[path];
     if (!repositoryPath(path) || typeof digest !== "string" || !digestPattern.test(digest)) {
@@ -253,7 +243,21 @@ function inspect(read, sourceCommit, {
       throw new Error("Feature summary mismatch: " + id);
     }
   }
-  return { nodes, links: graph.links, digest };
+  const physicalLines = new Map();
+  if (sourceBlobs !== undefined) {
+    const requestedLines = new Map();
+    for (const edge of implementations) {
+      const location = matchedLocation(edge, nodes.get(edge.target));
+      if (!location) throw new Error("Invalid implementation location: " + edge.target);
+      const { path, line } = location;
+      if (!requestedLines.has(path)) requestedLines.set(path, new Set());
+      requestedLines.get(path).add(line);
+    }
+    for (const [path, requested] of requestedLines) {
+      physicalLines.set(path, mapSourceLines(sourceBlobs.get(path), path, requested));
+    }
+  }
+  return { nodes, links: graph.links, digest, physicalLines };
 }
 
 export function inspectHandoff(directory, { limits = {}, maximum = profile.max_bundle_bytes } = {}) {
@@ -282,27 +286,46 @@ export function inspectHandoff(directory, { limits = {}, maximum = profile.max_b
   return { ...graph, bundleDigest: hash.digest("hex") };
 }
 
-function sourceLineCount(blob, path) {
+function mapSourceLines(blob, path, requested) {
   let text;
   try {
     text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(blob);
   } catch {
     throw new Error("Invalid UTF-8 in pinned source: " + path);
   }
-  // Match the frozen builder's UTF-8 decode and Python splitlines semantics.
-  const lines = text.split(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/u);
-  return lines.length - Number(lines.at(-1) === "");
+  const coordinates = new Map();
+  let producerLine = 1;
+  let physicalLine = 1;
+  let start = 0;
+  // The pinned producer uses Python splitlines. A Git line advances only at LF.
+  for (const boundary of text.matchAll(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/gu)) {
+    if (requested.has(producerLine)) coordinates.set(producerLine, physicalLine);
+    producerLine++;
+    if (boundary[0].endsWith("\n")) physicalLine++;
+    start = boundary.index + boundary[0].length;
+  }
+  if (start < text.length && requested.has(producerLine)) coordinates.set(producerLine, physicalLine);
+  if (coordinates.size !== requested.size) throw new Error("Implementation line is outside the pinned source: " + path);
+  return coordinates;
 }
 
-export function implementationLocation({ nodes, links }, feature, target) {
+export function implementationLocation({ nodes, links, physicalLines }, feature, target) {
   const edge = links.find((link) => link.source === feature && link.target === target &&
     link.relation === "implemented_in");
-  return matchedLocation(edge, nodes.get(target));
+  return citationLocation(edge, nodes.get(target), physicalLines);
 }
 
-export function implementationLocations({ nodes, links }, feature) {
+export function implementationLocations({ nodes, links, physicalLines }, feature) {
   return links.filter(link => link.source === feature && link.relation === "implemented_in")
-    .map(link => matchedLocation(link, nodes.get(link.target)));
+    .map(link => citationLocation(link, nodes.get(link.target), physicalLines));
+}
+
+function citationLocation(edge, node, physicalLines) {
+  const location = matchedLocation(edge, node);
+  if (!location) return null;
+  const line = physicalLines?.get(location.path)?.get(location.line);
+  if (line === undefined || line === location.line) return location;
+  return { path: location.path, line, producer_line: location.line };
 }
 
 function matchedLocation(edge, node) {
