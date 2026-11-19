@@ -155,7 +155,9 @@ jobs:
           }
           python -B test-vault/verify_receipts.py --case test-vault/javascript/case.json --receipts (Join-Path $handoff 'receipts') --evidence (Join-Path $handoff 'evidence.bin')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          'PASS GHQ-PS-015 reverifies the Ubuntu handoff on Windows' | Tee-Object -LiteralPath (Join-Path $env:RUNNER_TEMP 'ps.log') -Append
+          $result = 'PASS GHQ-PS-015 reverifies the Ubuntu handoff on Windows'
+          Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'ps.log') -Value $result
+          Write-Output $result
       - name: Match the Windows run to the catalog
         if: ${{ !cancelled() }}
         shell: pwsh
