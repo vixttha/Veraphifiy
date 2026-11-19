@@ -2,6 +2,9 @@ import { createHash } from "node:crypto";
 import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
 import { join } from "node:path";
 
+const profile = JSON.parse(readFileSync(new URL("../handoff-profile.json", import.meta.url), "utf8"));
+const bundleHeader = "graphify-handoff-v2\n";
+
 export function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
@@ -29,13 +32,13 @@ function rejectDuplicateKeys(text, filename) {
   }
 }
 
-function readBytes(path, maxBytes) {
-  if (maxBytes === undefined) return readFileSync(path);
+function readBytes(path, maxBytes, remaining = Infinity) {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error("Invalid artifact byte budget");
   const fd = openSync(path, "r");
   try {
     const stat = fstatSync(fd);
     if (!stat.isFile() || stat.size > maxBytes) throw new Error("Artifact exceeds byte budget or is not a regular file");
+    if (stat.size + String(stat.size).length + 1 > remaining) throw new Error("Remaining handoff byte budget exceeded");
     const buffer = Buffer.alloc(stat.size);
     let size = 0;
     while (size < buffer.length) {
@@ -43,7 +46,7 @@ function readBytes(path, maxBytes) {
       if (!read) break;
       size += read;
     }
-    if (readSync(fd, Buffer.alloc(1), 0, 1, null)) {
+    if (size !== stat.size || readSync(fd, Buffer.alloc(1), 0, 1, null)) {
       throw new Error("Artifact changed size during bounded read");
     }
     return buffer.subarray(0, size);
@@ -52,10 +55,10 @@ function readBytes(path, maxBytes) {
   }
 }
 
-function readJSON(directory, filename, maxBytes) {
+function readJSON(read, filename, maxBytes) {
   let raw;
   try {
-    raw = readBytes(join(directory, filename), maxBytes);
+    raw = read(filename, maxBytes);
   } catch (err) {
     throw new Error("Cannot read " + filename + ": " + (err.code ?? err.message));
   }
@@ -92,11 +95,16 @@ function repositoryPath(path) {
     path.split("/").every((part) => part !== "" && part !== "." && part !== ".." && part !== ".git");
 }
 
-export function inspectEvidence(directory, sourceCommit, {
-  repository, templateVersion, producerVersion, maxGraphBytes, sourceBlobs,
+export function inspectEvidence(directory, sourceCommit, options) {
+  return inspect((name, limit) => readBytes(join(directory, name), limit), sourceCommit, options);
+}
+
+function inspect(read, sourceCommit, {
+  repository, templateVersion, producerVersion, sourceBlobs,
+  maxGraphBytes = profile.files["graph.json"], maxReceiptBytes = profile.files["receipt.json"],
 } = {}) {
-  const [bytes, graph] = readJSON(directory, "graph.json", maxGraphBytes);
-  const [receiptBytes, receipt] = readJSON(directory, "receipt.json");
+  const [bytes, graph] = readJSON(read, "graph.json", maxGraphBytes);
+  const [, receipt] = readJSON(read, "receipt.json", maxReceiptBytes);
   if (receipt.schema_version !== 1) throw new Error("Unsupported receipt schema");
   if (!Array.isArray(graph.nodes) || !Array.isArray(graph.links)) throw new Error("Invalid graph shape");
   if (!/^[a-f0-9]{40}$/.test(sourceCommit) || graph.built_at_commit !== sourceCommit ||
@@ -150,6 +158,7 @@ export function inspectEvidence(directory, sourceCommit, {
   const uniqueEdges = new Set();
   const featured = new Set();
   const inventoried = new Set();
+  const implementations = [];
   for (const edge of graph.links) {
     if (!nodes.has(edge?.source) || !nodes.has(edge?.target)) throw new Error("Missing edge endpoint");
     const {source, target, relation, confidence_score, weight} = edge;
@@ -185,6 +194,7 @@ export function inspectEvidence(directory, sourceCommit, {
       if (relation === "implemented_in" && nodes.get(target).file_type !== "code") {
         throw new Error("Invalid implementation target category");
       }
+      if (relation === "implemented_in") implementations.push(edge);
       referenced.add(nodes.get(target).source_file);
       const counts = summaries.get(edge.source);
       counts.set(edge.relation, (counts.get(edge.relation) ?? 0) + 1);
@@ -192,6 +202,16 @@ export function inspectEvidence(directory, sourceCommit, {
   }
   if (featured.size !== summaries.size || inventoried.size !== inventory.size) {
     throw new Error("Missing source-root attachment");
+  }
+  if (sourceBlobs !== undefined) {
+    const counts = new Map();
+    for (const edge of implementations) {
+      const location = matchedLocation(edge, nodes.get(edge.target));
+      if (!location) throw new Error("Invalid implementation location: " + edge.target);
+      const { path, line } = location;
+      if (!counts.has(path)) counts.set(path, sourceLineCount(sourceBlobs.get(path), path));
+      if (line > counts.get(path)) throw new Error("Implementation line is outside the pinned source: " + path);
+    }
   }
   for (const path of referenced) {
     const digest = receipt.source_sha256[path];
@@ -217,18 +237,54 @@ export function inspectEvidence(directory, sourceCommit, {
       throw new Error("Feature summary mismatch: " + id);
     }
   }
-  const hash = createHash("sha256").update("graphify-handoff-v1\n");
-  for (const part of [bytes, receiptBytes, Buffer.from(sourceCommit + "\n", "ascii")]) {
-    hash.update(String(part.length) + "\n");
-    hash.update(part);
+  return { nodes, links: graph.links, digest };
+}
+
+export function inspectHandoff(directory, { limits = {}, maximum = profile.max_bundle_bytes } = {}) {
+  const hash = createHash("sha256").update(bundleHeader);
+  const parts = new Map();
+  const sourceBlobs = new Map();
+  let remaining = maximum - bundleHeader.length;
+  for (const [name, defaultLimit] of Object.entries(profile.files)) {
+    let bytes;
+    try {
+      bytes = readBytes(join(directory, name), limits[name] ?? defaultLimit, remaining);
+    } catch (error) {
+      throw new Error("Cannot read " + name + ": " + (error.code ?? error.message));
+    }
+    const prefix = String(bytes.length) + "\n";
+    remaining -= prefix.length + bytes.length;
+    hash.update(prefix).update(bytes);
+    parts.set(name, bytes);
+    if (name.startsWith("source-blobs/")) sourceBlobs.set(name.slice("source-blobs/".length), bytes);
   }
-  return { nodes, links: graph.links, digest, bundleDigest: hash.digest("hex") };
+  const source = parts.get("source.txt").toString("latin1");
+  if (source.length !== 41 || !/^[a-f0-9]{40}\n$/.test(source)) throw new Error("Invalid handoff source pin");
+  const graph = inspect((name) => parts.get(name), source.slice(0, -1), {
+    repository: "example/graphify-fixture", producerVersion: profile.producer_version, sourceBlobs,
+  });
+  return { ...graph, bundleDigest: hash.digest("hex") };
+}
+
+function sourceLineCount(blob, path) {
+  let text;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(blob);
+  } catch {
+    throw new Error("Invalid UTF-8 in pinned source: " + path);
+  }
+  // Match the frozen builder's UTF-8 decode and Python splitlines semantics.
+  const lines = text.split(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/u);
+  return lines.length - Number(lines.at(-1) === "");
 }
 
 export function implementationLocation({ nodes, links }, feature, target) {
   const edge = links.find((link) => link.source === feature && link.target === target &&
     link.relation === "implemented_in");
-  const node = nodes.get(target);
+  return matchedLocation(edge, nodes.get(target));
+}
+
+function matchedLocation(edge, node) {
   if (!edge || !repositoryPath(node?.source_file) || node.source_file !== edge.source_file ||
       typeof node.source_location !== "string" || node.source_location !== edge.source_location ||
       !/^L[1-9][0-9]*$/.test(node.source_location)) {

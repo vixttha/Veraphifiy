@@ -3,6 +3,7 @@ export type EvidenceGraph = {
   built_at_commit: string;
   nodes: readonly {
     id: string;
+    file_type: string;
     source_file: string;
     source_location: string | null;
   }[];
@@ -49,7 +50,7 @@ export function decodeEvidenceGraph(value: unknown): EvidenceGraph | null {
   if (!record(value) || !validPin(value.built_at_commit) ||
       !Array.isArray(value.nodes) || !Array.isArray(value.links)) return null;
   if (!value.nodes.every((node: unknown) => record(node) &&
-      typeof node.id === "string" && typeof node.source_file === "string" &&
+      typeof node.id === "string" && typeof node.file_type === "string" && typeof node.source_file === "string" &&
       validLocation(node.source_location))) return null;
   if (!value.links.every((edge: unknown) => record(edge) &&
       typeof edge.source === "string" && typeof edge.target === "string" &&
@@ -80,7 +81,7 @@ export function findImplementation(graph: EvidenceGraph, feature: string, expect
       continue;
     }
     const target = nodes.get(edge.target);
-    if (!target || !isRepositoryPath(target.source_file) ||
+    if (!target || target.file_type !== "code" || !isRepositoryPath(target.source_file) ||
         typeof target.source_location !== "string" || target.source_file !== edge.source_file ||
         target.source_location !== edge.source_location ||
         !/^L[1-9][0-9]*$/.test(target.source_location)) {

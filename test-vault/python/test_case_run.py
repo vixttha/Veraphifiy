@@ -10,7 +10,7 @@ from unittest import mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from evidence_bundle import write_observation
+from evidence_bundle import PROFILE, encode_bundle, write_observation
 from validate_catalog import HEADER, read_cases
 from verify_case_run import passed_cases, require_cases, require_complete_tap, typed_passes
 
@@ -69,7 +69,7 @@ class CaseRunTests(unittest.TestCase):
         vault = root / "test-vault"
         (vault / "javascript").mkdir(parents=True)
         for name in ("record_handoff.py", "evidence_bundle.py", "source_commit.py", "validate_catalog.py",
-                     "verify_receipts.py", "cases.md", "javascript/case.json"):
+                     "verify_receipts.py", "cases.md", "javascript/case.json", "handoff-profile.json"):
             shutil.copyfile(upstream / name, vault / name)
         for command in (
             ["init", "-q"], ["add", "test-vault"],
@@ -81,6 +81,11 @@ class CaseRunTests(unittest.TestCase):
         handoff.mkdir()
         for name, value in {"graph.json": b"{}\n", "receipt.json": b"{}\n", "source.txt": b"source\n"}.items():
             (handoff / name).write_bytes(value)
+        for name in PROFILE["files"]:
+            if name.startswith("source-blobs/"):
+                path = handoff / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b"synthetic source\n")
         with mock.patch.dict(os.environ, {"GITHUB_RUN_ID": "12", "GITHUB_RUN_ATTEMPT": "1"}):
             for observer in ("python", "node"):
                 write_observation(handoff, observer)
@@ -97,7 +102,7 @@ class CaseRunTests(unittest.TestCase):
     def test_GHQ_PY_032_binds_graph_receipt_and_independent_source_pin(self):
         with tempfile.TemporaryDirectory() as directory:
             recorder, handoff, receipts = self.handoff_fixture(Path(directory))
-            for name in ("receipt.json", "source.txt"):
+            for name in ("receipt.json", "source.txt", "source-blobs/src/feature.py"):
                 part = handoff / name
                 original = part.read_bytes()
                 part.write_bytes(original + b"changed")
@@ -262,6 +267,27 @@ class CaseRunTests(unittest.TestCase):
                     catalog.write_text(table + "\n" + suffix, encoding="utf-8")
                     with self.assertRaisesRegex(ValueError, diagnostic):
                         read_cases(catalog)
+
+    def test_GHQ_PY_059_bounds_the_bundle_before_recording_or_replaying_receipts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            recorder, handoff, receipts = self.handoff_fixture(Path(directory))
+            bundle = encode_bundle(handoff)
+            self.assertEqual(encode_bundle(handoff, maximum=len(bundle)), bundle)
+            with self.assertRaisesRegex(ValueError, "remaining handoff byte budget"):
+                encode_bundle(handoff, maximum=len(bundle) - 1)
+            for name in PROFILE["files"]:
+                with self.subTest(part=name), self.assertRaisesRegex(ValueError, "exceeds its byte budget"):
+                    encode_bundle(handoff, limits={name: 1})
+            pin = handoff / "source.txt"
+            original = pin.read_bytes()
+            pin.write_bytes(b"x" * (PROFILE["files"]["source.txt"] + 1))
+            failed = self.invoke_recorder(recorder, handoff, receipts, "1", "python-build")
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("source.txt exceeds its byte budget", failed.stderr)
+            self.assertFalse(receipts.exists())
+            pin.write_bytes(original)
+            valid = self.invoke_recorder(recorder, handoff, receipts, "1", "python-build")
+            self.assertEqual(valid.returncode, 0, valid.stderr)
 
     def test_GHQ_PY_041_rejects_malformed_environment_on_specific_receipts(self):
         with tempfile.TemporaryDirectory() as directory:

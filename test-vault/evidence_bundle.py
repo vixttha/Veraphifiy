@@ -4,17 +4,37 @@ import argparse
 import hashlib
 import json
 import os
+import stat
 from pathlib import Path
 
-FILES = ("graph.json", "receipt.json", "source.txt")
-HEADER = b"graphify-handoff-v1\n"
+PROFILE_PATH = Path(__file__).with_name("handoff-profile.json")
+PROFILE = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+HEADER = b"graphify-handoff-v2\n"
 
 
-def encode_bundle(directory):
+def read_part(path, maximum, remaining=None):
+    with path.open("rb") as stream:
+        details = os.fstat(stream.fileno())
+        size = details.st_size
+        if not stat.S_ISREG(details.st_mode) or size > maximum:
+            raise ValueError(f"{path.name} exceeds its byte budget or is not a regular file")
+        if remaining is not None and size + len(str(size)) + 1 > remaining:
+            raise ValueError(f"{path.name} exceeds the remaining handoff byte budget")
+        data = stream.read(size + 1)
+        if len(data) != size:
+            raise ValueError(f"{path.name} changed size during bounded read")
+        return data
+
+
+def encode_bundle(directory, *, limits=None, maximum=PROFILE["max_bundle_bytes"]):
+    limits = {} if limits is None else limits
     parts = [HEADER]
-    for name in FILES:
-        data = (directory / name).read_bytes()
-        parts.extend((str(len(data)).encode("ascii") + b"\n", data))
+    remaining = maximum - len(HEADER)
+    for name, default in PROFILE["files"].items():
+        data = read_part(directory / name, limits.get(name, default), remaining)
+        prefix = str(len(data)).encode("ascii") + b"\n"
+        parts.extend((prefix, data))
+        remaining -= len(prefix) + len(data)
     return b"".join(parts)
 
 
@@ -36,11 +56,11 @@ def main():
     try:
         expected = encode_bundle(args.directory)
         if args.check:
-            if evidence.read_bytes() != expected:
-                parser.error("transferred graph, receipt or source pin differs from the observed bundle")
+            if read_part(evidence, PROFILE["max_bundle_bytes"]) != expected:
+                parser.error("transferred graph, receipt, source pin or source bytes differs from the observed bundle")
         else:
             evidence.write_bytes(expected)
-    except OSError as error:
+    except (OSError, ValueError) as error:
         parser.error(str(error))
 
 

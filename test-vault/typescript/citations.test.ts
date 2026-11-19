@@ -154,8 +154,8 @@ test("GHQ-TS-020 returns a stale source result before exposing citations", () =>
 
 function featurePair(first: string, second: string, paths: [string, string]): EvidenceGraph {
   const nodes = paths.flatMap((source_file, index) => [
-    { id: index ? second : first, label: "Shared label", source_file: "", source_location: null },
-    { id: "anchor:" + index, source_file, source_location: "L1" },
+    { id: index ? second : first, file_type: "concept", label: "Shared label", source_file: "", source_location: null },
+    { id: "anchor:" + index, file_type: "code", source_file, source_location: "L1" },
   ]);
   const links = paths.map((source_file, index) => ({
     source: index ? second : first, target: "anchor:" + index, relation: "implemented_in",
@@ -203,4 +203,12 @@ test("the guarded caller can open first and last citations without opening an in
   assert.equal(open(0), result.citations[0].path);
   assert.equal(open(result.citations.length - 1), result.citations.at(-1)?.path);
   for (const index of [-1, result.citations.length, 0.5]) assert.equal(open(index), undefined);
+});
+
+test("GHQ-TS-037 withholds implementation navigation for a non-code graph node", () => {
+  const nodes = graph.nodes.map((node) => node.id === anchor ? { ...node, file_type: "concept" } : node);
+  const decoded = decodeEvidenceGraph({ ...graph, nodes });
+  assert.ok(decoded);
+  assert.deepEqual(findImplementation(decoded, feature), { status: "invalid-citation" });
+  assert.equal(findImplementation(graph, feature).status, "found");
 });

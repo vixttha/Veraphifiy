@@ -3,7 +3,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { implementationLocation, inspectEvidence, sha256 } from "./inspect-evidence.mjs";
+import { implementationLocation, inspectEvidence, inspectHandoff, sha256 } from "./inspect-evidence.mjs";
 
 const handoff = process.env.GRAPHIFY_HQ_HANDOFF;
 assert.ok(handoff, "Set GRAPHIFY_HQ_HANDOFF to the fresh Python build directory");
@@ -35,7 +35,7 @@ function changeGraph(dir, mutate) {
 }
 
 test("GHQ-JS-001 accepts the fresh Python graph and its receipt", () => {
-  const graph = inspectEvidence(handoff, source);
+  const graph = inspectHandoff(handoff);
   assert.ok(graph.nodes.has(feature));
   assert.ok(graph.nodes.has("source:" + source));
   assert.deepEqual(readFileSync(join(handoff, "source.txt")), Buffer.from(source + "\n", "ascii"));
@@ -363,18 +363,45 @@ test("GHQ-JS-034 validates confidence categories independently of valid scores",
 
 test("GHQ-JS-035 checks the producer version independently of the template schema", (t) => {
   const dir = copy(t);
-  const pinned = "0.9.109"; // Graphify producer in the frozen BART v0.0.8 lock.
-  inspectEvidence(dir, source, { producerVersion: pinned });
+  inspectHandoff(dir);
   change(dir, receiptFile, (receipt) => { receipt.graphify_version = "0.0.0"; });
-  assert.throws(() => inspectEvidence(dir, source, { producerVersion: pinned }), /Graphify producer version mismatch/);
+  assert.throws(() => inspectHandoff(dir), /Graphify producer version mismatch/);
 });
 
 test("GHQ-JS-038 validates the raw Git blobs against the receipt", (t) => {
   const dir = copy(t);
-  const receipt = JSON.parse(readFileSync(join(dir, receiptFile), "utf8"));
-  const sourceBlobs = new Map(Object.keys(receipt.source_sha256).map((path) =>
-    [path, readFileSync(join(dir, ".source-blobs", path))]));
-  assert.ok(inspectEvidence(dir, source, { sourceBlobs }).nodes.has(feature));
+  assert.ok(inspectHandoff(dir).nodes.has(feature));
+  const path = join(dir, "source-blobs", "src", "feature.py");
+  const original = readFileSync(path);
+  writeFileSync(path, Buffer.concat([original, Buffer.from("\n")]));
+  assert.throws(() => inspectHandoff(dir), /Pinned source bytes do not match digest/);
+  writeFileSync(path, original);
   change(dir, receiptFile, (value) => { value.source_sha256["src/feature.py"] = "f".repeat(64); });
-  assert.throws(() => inspectEvidence(dir, source, { sourceBlobs }), /Pinned source bytes do not match digest/);
+  assert.throws(() => inspectHandoff(dir), /Pinned source bytes do not match digest/);
+});
+
+test("GHQ-JS-039 rejects implementation lines past the last pinned source line", (t) => {
+  const dir = copy(t);
+  const path = "src/feature.py";
+  assert.equal(readFileSync(join(dir, "source-blobs", path), "utf8").trimEnd().split("\n").length, 3);
+  assert.deepEqual(implementationLocation(inspectHandoff(dir), feature, anchor), { path, line: 3 });
+  changeGraph(dir, (graph) => {
+    const newAnchor = "implemented_in:src/feature.py:L4";
+    const node = graph.nodes.find(({ id }) => id === anchor);
+    Object.assign(node, { id: newAnchor, source_location: "L4" });
+    for (const edge of graph.links) {
+      if (edge.source === anchor) edge.source = newAnchor;
+      if (edge.target === anchor) Object.assign(edge, { target: newAnchor, source_location: "L4" });
+    }
+  });
+  assert.throws(() => inspectHandoff(dir), /Implementation line is outside the pinned source/);
+});
+
+test("GHQ-JS-040 bounds ordinary graph, receipt and total handoff inputs", () => {
+  assert.ok(inspectHandoff(handoff).bundleDigest);
+  for (const name of [graphFile, receiptFile, "source-blobs/src/feature.py"]) {
+    assert.throws(() => inspectHandoff(handoff, { limits: { [name]: 1 } }),
+      { message: `Cannot read ${name}: Artifact exceeds byte budget or is not a regular file` });
+  }
+  assert.throws(() => inspectHandoff(handoff, { maximum: 64 }), /Remaining handoff byte budget exceeded/);
 });

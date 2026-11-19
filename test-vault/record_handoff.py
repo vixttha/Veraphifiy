@@ -7,7 +7,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from evidence_bundle import encode_bundle
+from evidence_bundle import PROFILE_PATH, encode_bundle, read_part
 from source_commit import source_commit
 from verify_receipts import RUN_ID
 
@@ -32,9 +32,8 @@ def main():
         parser.error("set GITHUB_RUN_ID and GITHUB_RUN_ATTEMPT to positive decimal strings")
     try:
         actual = hashlib.sha256(encode_bundle(args.handoff)).hexdigest()
-        observation = json.loads(
-            (args.handoff / (CHECKS[args.check] + ".observation.json")).read_text(encoding="utf-8"),
-        )
+        observation_file = args.handoff / (CHECKS[args.check] + ".observation.json")
+        observation = json.loads(read_part(observation_file, 8192))
     except (OSError, ValueError) as error:
         parser.error(f"cannot read observed bundle: {error}")
     if not isinstance(observation, dict) or observation.keys() != {"run_id", "attempt", "bundle_sha256"}:
@@ -47,7 +46,8 @@ def main():
         "schema_version": 2,
         "case_id": "GHQ-JS-001",
         "check_id": args.check,
-        "checkout_sha": source_commit(Path.cwd(), (Path(__file__), PLAN, VAULT / "cases.md", VAULT / "evidence_bundle.py")),
+        "checkout_sha": source_commit(Path.cwd(), (Path(__file__), PLAN, VAULT / "cases.md",
+                                                    VAULT / "evidence_bundle.py", PROFILE_PATH)),
         "run_id": run,
         "attempt": attempt,
         "case_plan_sha256": hashlib.sha256(PLAN.read_bytes()).hexdigest(),

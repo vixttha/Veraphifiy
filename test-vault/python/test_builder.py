@@ -18,7 +18,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from evidence_bundle import write_observation
+from evidence_bundle import PROFILE, write_observation
 
 KIT = Path(os.environ["GRAPHIFY_HQ_ARCHIVE"]).resolve().parents[1] / "versions/v0.0.8"
 HANDOFF = Path(os.environ["GRAPHIFY_HQ_HANDOFF"]).resolve()
@@ -120,8 +120,10 @@ class BuilderTests(unittest.TestCase):
         (output / "python.sha256").write_text(observed + "\n", encoding="ascii")
         # Pass the independently known Git identity to the downstream consumer.
         (output / "source.txt").write_text(self.source + "\n", encoding="ascii")
-        for name in receipt["source_sha256"]:
-            target = output / ".source-blobs" / name
+        source_files = {name.removeprefix("source-blobs/") for name in PROFILE["files"] if name.startswith("source-blobs/")}
+        self.assertEqual(set(receipt["source_sha256"]), source_files)
+        for name in sorted(source_files):
+            target = output / "source-blobs" / name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(subprocess.check_output(
                 ["git", "show", f"{self.source}:{name}"], cwd=self.repo,
