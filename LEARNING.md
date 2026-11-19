@@ -26,3 +26,7 @@ The first and third rows reinforce the product’s value together. The example m
 ## Record the trial outcome
 
 For each technique used, record the reader problem, the existing registry ID, the source link or pinned source line, the Veraphify draft commit, and the observed result. Reader outcomes and build outcomes can be recorded independently. Use the [upstream intake fields](https://github.com/vixttha/README-HQ/blob/8d50caec2bc6fcb998994a1fd302294a029325f9/learning/README.md) when submitting a shared observation. Match an existing ID by problem, intervention, and result before proposing a new one.
+
+## Veraphify preview trial observation
+
+The [README draft](https://github.com/vixttha/Veraphify/pull/55) pairs a relative verification guide with commit-pinned product records and exact runner evidence. The guide gives the expected two-version citation results, separates Linux walkthrough coverage from Windows replay coverage, and records a rerun path alongside the artifact ID and digest. The [public Ubuntu run](https://github.com/vixttha/Veraphify/actions/runs/44641675869/attempts/1) confirmed exact-tree navigation and independently executed the draft’s quickstart and the pinned walkthrough. Graphify MCP resolved the same README revision’s claim and proof anchors. Reader behavior and GitHub viewport layout remain unmeasured in this trial.

@@ -2,6 +2,7 @@
 
 This branch is the workspace for designing and validating Veraphify’s repository homepage.
 
+- [Veraphify v0.0.9 README draft and public-run evidence](https://github.com/vixttha/Veraphify/pull/55)
 - [README template](TEMPLATE.md)
 - [Veraphify main-branch README plan and project facts](VERAPHIFY-MAIN-PLAN.md)
 - [README technique learning log](LEARNING.md)
