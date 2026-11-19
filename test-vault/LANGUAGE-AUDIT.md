@@ -55,7 +55,7 @@ The proposed cases describe the target behavior. The reproduced cases are queued
 
 The pinned released builder, candidate code, and staged workflow are distinct audit targets. Fresh builds use the [BART v0.0.8 release fixture](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/6af3c2025be3f51e02dca4e4502088c526aae6d1). The evidence-loss probe concerns the [BART draft candidate](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/d227b202c7cce1b86a1ee06596d709f3dfee1039/candidate/evidence_map.py). Bash uses bodies from the [pinned OBJ/MTL workflow](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/2680e03a3d1a7216666554c5baca43b2ec93b944/.github/workflows/obj-mtl-evidence.yml). Live private dispatch and live GitHub PR provenance remain unverified. The eight adopter tracks remain conditional on a real entry point and native named outcome reconciliation.
 
-See the [expanded language plan](LANGUAGE-PLAN.md) for fixtures and expected outcomes.
+See the [expanded language plan](LANGUAGE-PLAN.md) for fixtures and expected outcomes. The [assertion durability audit](ASSERTION-AUDIT.md) records the controlled regression probes, maintenance findings, and proposal decisions.
 
 ## Verified sources by language
 
