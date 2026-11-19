@@ -16,14 +16,18 @@ const DIGEST = /^[a-f0-9]{64}$/;
 const PROJECT = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/;
 const VERSION = /^v(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*)){2,3}$/;
 
+function projectKey(project) {
+  return typeof project === "string" && PROJECT.test(project) ? project.toLowerCase() : null;
+}
+
 function requireIdentity(project, version) {
-  if (!PROJECT.test(project ?? "") || !VERSION.test(version ?? "") || version.length > 64) {
+  if (!projectKey(project) || !VERSION.test(version ?? "") || version.length > 64) {
     throw new Error("Specify an exact owner/repository and a version such as v1.2.3");
   }
 }
 
 function entryPath(archive, project, version) {
-  return join(archive, sha256(JSON.stringify([project.toLowerCase(), version])) + ".json");
+  return join(archive, sha256(JSON.stringify([projectKey(project), version])) + ".json");
 }
 
 function readArchiveFile(path) {
@@ -37,11 +41,10 @@ function git(checkout, args, maxBuffer = 32 * 1024) {
   });
 }
 
-function readGitBlobs(checkout, commit, receipt) {
+function readGitBlobs(checkout, commit, manifest) {
   if (!COMMIT.test(commit ?? "") || git(checkout, ["cat-file", "-t", commit]).toString().trim() !== "commit") {
     throw new Error("Source must be a full commit SHA in the selected Git checkout");
   }
-  const manifest = parseEvidenceObject(receipt, "receipt.json").source_sha256;
   if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) {
     throw new Error("Invalid source inventory");
   }
@@ -75,7 +78,7 @@ function decodeBytes(value, budget) {
 }
 
 function verifyEntry(entry, project, version) {
-  if (entry.format !== ARCHIVE_FORMAT || entry.project !== project || entry.version !== version ||
+  if (entry.format !== ARCHIVE_FORMAT || projectKey(entry.project) !== projectKey(project) || entry.version !== version ||
       !COMMIT.test(entry.source ?? "") || !Array.isArray(entry.blobs)) {
     throw new Error("Archive entry does not match the selected project and version");
   }
@@ -98,10 +101,10 @@ function verifyEntry(entry, project, version) {
     throw new Error("Archived source inventory does not match the receipt");
   }
   const evidence = inspectEvidenceBytes(graph, receipt, entry.source, {
-    repository: project, producerVersion: PINNED_PRODUCER, sourceBlobs,
+    repository: entry.project, producerVersion: PINNED_PRODUCER, sourceBlobs,
   });
   return { evidence, summary: {
-    project, version, source: entry.source, format: ARCHIVE_FORMAT,
+    project: entry.project, version, source: entry.source, format: ARCHIVE_FORMAT,
     veraphifiy_version: TOOL_VERSION, producer: PINNED_PRODUCER,
     graph_sha256: evidence.digest, receipt_sha256: entry.receipt_sha256,
   } };
@@ -114,12 +117,14 @@ function importVersion(options) {
   }
   const graph = readBytes(join(evidence, "graph.json"), GRAPH_BYTES);
   const receipt = readBytes(join(evidence, "receipt.json"), RECEIPT_BYTES);
-  // Reject an unmatching graph before consulting the Git checkout.
-  inspectEvidenceBytes(graph, receipt, source, { repository: project, producerVersion: PINNED_PRODUCER });
+  const { repository, source_sha256: inventory } = parseEvidenceObject(receipt, "receipt.json");
+  if (projectKey(repository) !== projectKey(project)) throw new Error("Evidence scope or repository mismatch");
+  // Store the producer's spelling so a case-only alias imports the same bytes.
+  inspectEvidenceBytes(graph, receipt, source, { repository, producerVersion: PINNED_PRODUCER });
   const entry = {
-    format: ARCHIVE_FORMAT, project, version, source,
+    format: ARCHIVE_FORMAT, project: repository, version, source,
     graph: graph.toString("base64"), receipt: receipt.toString("base64"), receipt_sha256: sha256(receipt),
-    blobs: readGitBlobs(checkout, source, receipt),
+    blobs: readGitBlobs(checkout, source, inventory),
   };
   const { summary } = verifyEntry(entry, project, version);
   const bytes = Buffer.from(JSON.stringify(entry) + "\n");
@@ -171,6 +176,7 @@ function readVersion(command, { archive, project, version, feature, source, "arc
 const usage = "Usage: node veraphifiy.mjs <import|verify|lookup> --archive DIR --project OWNER/REPO --version vX.Y.Z\n"
   + "  import requires --source SHA --checkout DIR --evidence DIR\n"
   + "  lookup requires --feature feature:ID\n"
+  + "  project casing is ignored for selection; results keep the receipt spelling\n"
   + "  verify and lookup accept --source SHA and --archive-sha256 HASH to check independently recorded pins";
 
 try {

@@ -85,11 +85,12 @@ class BuilderTests(unittest.TestCase):
     def succeeds(self, result):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-    def archive_command(self, command, archive, *args, umask=-1):
+    def archive_command(self, command, archive, *args, umask=-1, project=None):
         cli = Path(__file__).resolve().parents[2] / "veraphifiy.mjs"
         return subprocess.run(
             ["node", str(cli), command, "--archive", str(archive),
-             "--project", self.manifest["repository"], "--version", "v1.0.0", *args],
+             "--project", project if project is not None else self.manifest["repository"],
+             "--version", "v1.0.0", *args],
             cwd=self.root, capture_output=True, text=True, timeout=30, umask=umask,
         )
 
@@ -289,6 +290,45 @@ class BuilderTests(unittest.TestCase):
                                        env=dict(os.environ, **env_context))
         self.assertNotEqual(wrong_attempt.returncode, 0)
         self.assertIn("Archive handoff context mismatch: github_run_attempt", wrong_attempt.stderr)
+
+    def test_GHQ_PY_103_case_alias_preserves_archived_identity(self):
+        evidence = self.root / "case evidence"
+        archive = self.root / "case archive"
+        alias_archive = self.root / "case alias archive"
+        project = self.manifest["repository"]
+        alias = project.upper()
+        self.succeeds(self.invoke(evidence))
+        args = ("--source", self.source, "--checkout", str(self.repo), "--evidence", str(evidence))
+        first = self.archive_command("import", archive, *args)
+        self.succeeds(first)
+        entry, = archive.glob("*.json")
+        original = entry.read_bytes()
+        result = json.loads(first.stdout)
+
+        replay = self.archive_command("import", archive, *args, project=alias)
+        self.succeeds(replay)
+        self.assertEqual(json.loads(replay.stdout), result)
+        self.assertEqual(entry.read_bytes(), original)
+        self.assertEqual(list(archive.glob("*.json")), [entry])
+
+        fresh = self.archive_command("import", alias_archive, *args, project=alias)
+        self.succeeds(fresh)
+        self.assertEqual(json.loads(fresh.stdout), result)
+        alias_entry, = alias_archive.glob("*.json")
+        self.assertEqual(alias_entry.name, entry.name)
+        self.assertEqual(alias_entry.read_bytes(), original)
+
+        verified = self.archive_command("verify", archive, "--source", self.source,
+                                        "--archive-sha256", result["archive_sha256"], project=alias)
+        self.succeeds(verified)
+        self.assertEqual(json.loads(verified.stdout), result)
+        wrong_digest = self.archive_command("verify", archive, "--archive-sha256", "0" * 64, project=alias)
+        self.assertNotEqual(wrong_digest.returncode, 0)
+        self.assertIn("Archive SHA-256 mismatch", wrong_digest.stderr)
+        for other_project in ("other/graphify-fixture", "example/other-fixture"):
+            rejected = self.archive_command("import", archive, *args, project=other_project)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("repository mismatch", rejected.stderr)
 
     def test_GHQ_PY_101_lookup_uses_physical_git_lines(self):
         fixtures = {

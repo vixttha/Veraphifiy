@@ -30,13 +30,19 @@ assert.notEqual(expected.versions[0].source, expected.versions[1].source);
 for (const { version, source, line, archive_sha256 } of expected.versions) {
   assert.match(archive_sha256, /^[a-f0-9]{64}$/);
   const args = [entry, "lookup", "--archive", join(handoff, "veraphifiy-archive"),
-    "--project", expected.project, "--version", version, "--source", source,
+    "--version", version, "--source", source,
     "--archive-sha256", archive_sha256, "--feature", expected.feature];
-  const result = JSON.parse(execFileSync(process.execPath, args, { encoding: "utf8", timeout: 15_000 }));
+  const replay = (project) => JSON.parse(execFileSync(process.execPath, [...args, "--project", project],
+    { encoding: "utf8", timeout: 15_000 }));
+  const result = replay(expected.project);
   assert.equal(result.project, expected.project);
   assert.equal(result.version, version);
   assert.equal(result.source, source);
   assert.equal(result.archive_sha256, archive_sha256);
   assert.deepEqual(result.citations, [{ path: "src/feature.py", line }]);
   console.log(`Replayed ${result.project} ${version} at ${source}, citation src/feature.py:${line}`);
+  const alias = expected.project.toUpperCase();
+  assert.notEqual(alias, expected.project);
+  assert.deepEqual(replay(alias), result);
+  console.log(`Verified case-only project alias for ${version}`);
 }
