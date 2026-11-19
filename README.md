@@ -3,7 +3,8 @@
 This branch is the workspace for designing and validating Veraphify’s repository homepage.
 
 - [README template](TEMPLATE.md)
-- [Veraphify main-branch README plan](VERAPHIFY-MAIN-PLAN.md)
+- [Veraphify main-branch README plan and project facts](VERAPHIFY-MAIN-PLAN.md)
+- [README technique learning log](LEARNING.md)
 
 ## Trial baseline
 
@@ -17,5 +18,6 @@ The template here is an original adaptation of the [pinned README guide](https:/
 
 1. Record the product ref and full commit SHA. Read the product files, entry point, and workflows at that revision.
 2. Use the template to draft a homepage in a review branch containing the product files. Use the plan for the first reader task and supporting evidence.
-3. Validate the draft against the selected product checkout. Use the pinned README HQ audit as one check and record the observed result of running the actual first-use commands on public GitHub-hosted runners.
-4. After homepage approval, check the published GitHub view and record its commit and supporting runs.
+3. Record observations from the trial in the learning log and reuse the upstream technique IDs.
+4. Validate the draft against the selected product checkout. Use the pinned README HQ audit as one check and record the observed result of running the actual first-use commands on public GitHub-hosted runners.
+5. After homepage approval, check the published GitHub view and record its commit and supporting runs.
