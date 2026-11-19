@@ -11,7 +11,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from evidence_bundle import write_observation
-from verify_case_run import passed_cases, require_cases, typed_passes
+from validate_catalog import HEADER, read_cases
+from verify_case_run import passed_cases, require_cases, require_complete_tap, typed_passes
 
 
 class CaseRunTests(unittest.TestCase):
@@ -212,6 +213,55 @@ class CaseRunTests(unittest.TestCase):
             self.assertIn("JS: failed or skipped cases=['GHQ-JS-001']", result.stderr)
             self.assertIn("GO: failed or skipped cases=['GHQ-GO-001']", result.stderr)
             self.assertIn("SH: no native log, suite unavailable", result.stderr)
+
+    def test_GHQ_PY_057_requires_complete_native_tap_and_rejects_unnamed_failures(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "fixture.test.mjs"
+            command = ["node", "--test", "--test-reporter=tap", str(fixture)]
+            for assertion in ("", 'throw new Error("fixture failure");'):
+                with self.subTest(assertion=assertion):
+                    fixture.write_text(
+                        'import { test } from "node:test";\n'
+                        'test("GHQ-JS-001 registered control", () => {});\n'
+                        f'test("ordinary assertion", () => {{ {assertion} }});\n',
+                        encoding="utf-8",
+                    )
+                    result = subprocess.run(command, capture_output=True, text=True, timeout=15)
+                    self.assertEqual(result.returncode, int(bool(assertion)), result.stderr)
+                    require_cases({"GHQ-JS-001"}, passed_cases("JS", result.stdout))
+                    if assertion:
+                        with self.assertRaisesRegex(ValueError, "uncataloged TAP failure: ordinary assertion"):
+                            require_complete_tap(result.stdout)
+                    else:
+                        require_complete_tap(result.stdout)
+                        with self.assertRaisesRegex(ValueError, "incomplete native TAP summary"):
+                            require_complete_tap(result.stdout.split("# tests", 1)[0])
+                        with self.assertRaisesRegex(ValueError, "plan does not match"):
+                            require_complete_tap(result.stdout.replace("1..2\n", "1..3\n"))
+
+    def test_GHQ_PY_058_keeps_only_visible_well_formed_case_tables(self):
+        heading = "| " + " | ".join(HEADER) + " |\n"
+        divider = "| --- | --- | --- | --- | --- |\n"
+        row = "| GHQ-JS-001 | Graph | P0 | Read graph | Source verified |\n"
+        second = row.replace("JS-001", "JS-002")
+        table = heading + divider + row
+        with tempfile.TemporaryDirectory() as directory:
+            catalog = Path(directory) / "cases.md"
+            example = '<PRE class="example">\n' + heading + divider + second + "</pRe>\n"
+            catalog.write_text(example + "\n" + table, encoding="utf-8")
+            self.assertEqual(read_cases(catalog)[0], {"GHQ-JS-001"})
+            catalog.write_text(table + "\n" + heading + divider + second, encoding="utf-8")
+            self.assertEqual(read_cases(catalog)[0], {"GHQ-JS-001", "GHQ-JS-002"})
+            for suffix, diagnostic in (
+                (heading.replace("Area", "Scope").replace("Expected outcome", "Proof") + divider + second,
+                 "invalid case table header"),
+                (second, "case row outside a case table"),
+                (heading + divider + second.replace("Source verified", "<!-- Source verified -->"), "invalid case row"),
+            ):
+                with self.subTest(diagnostic=diagnostic):
+                    catalog.write_text(table + "\n" + suffix, encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, diagnostic):
+                        read_cases(catalog)
 
     def test_GHQ_PY_041_rejects_malformed_environment_on_specific_receipts(self):
         with tempfile.TemporaryDirectory() as directory:

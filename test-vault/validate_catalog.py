@@ -11,6 +11,9 @@ TOPIC_ID = re.compile(r"[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*")
 HEADER = ["Case", "Area", "Priority", "Suggested implementation", "Expected outcome"]
 SEPARATOR = re.compile(r":?-{3,}:?")
 FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+PRE_START = re.compile(r"^<pre(?:\s[^>]*|)>", re.IGNORECASE)
+PRE_END = re.compile(r"</pre\s*>", re.IGNORECASE)
+INLINE_COMMENT = re.compile(r"<!--.*?(?:-->|$)")
 PRIORITIES = {"P0", "P1", "P2"}
 
 
@@ -32,6 +35,7 @@ def read_cases(path):
     pending_divider = None
     fence = None
     comment = False
+    preformatted = False
     for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         if comment:
             comment = "-->" not in raw
@@ -45,7 +49,10 @@ def read_cases(path):
         indented_code = raw.expandtabs(4).startswith("    ")
         line = raw.strip()
         starts_comment = not indented_code and line.startswith("<!--")
-        cells = table_cells(line) if not (marker or indented_code or starts_comment) and "|" in line else []
+        pre_line = preformatted or (not indented_code and PRE_START.match(line))
+        if pre_line:
+            preformatted = not PRE_END.search(line)
+        cells = table_cells(line) if not (marker or indented_code or starts_comment or pre_line) and "|" in line else []
         if pending_divider is not None:
             if len(cells) != len(HEADER) or not all(SEPARATOR.fullmatch(cell) for cell in cells):
                 raise ValueError(f"{path}:{pending_divider}: expected a Markdown table divider after the header")
@@ -63,10 +70,15 @@ def read_cases(path):
         if cells == HEADER:
             pending_divider = number
             continue
+        if len(cells) == len(HEADER) and cells[0] == "Case" and len(set(HEADER) & set(cells)) >= 2:
+            raise ValueError(f"{path}:{number}: invalid case table header")
+        match = CASE_ID.fullmatch(cells[0])
         if not in_table:
+            if match and (len(cells) == len(HEADER) or len(cells) >= 3 and cells[2] in PRIORITIES):
+                raise ValueError(f"{path}:{number}: case row outside a case table")
             continue
-        match = CASE_ID.fullmatch(cells[0]) if cells else None
-        if len(cells) != len(HEADER) or not all(cells) or not match or cells[2] not in PRIORITIES:
+        if (len(cells) != len(HEADER) or not all(INLINE_COMMENT.sub("", cell).strip() for cell in cells)
+                or not match or cells[2] not in PRIORITIES):
             raise ValueError(f"{path}:{number}: invalid case row")
         case_id = match.group()
         if case_id in cases:

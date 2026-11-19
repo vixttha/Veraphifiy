@@ -12,6 +12,12 @@ VAULT = Path(__file__).resolve().parent
 LINUX = frozenset({"PY", "SH", "JS", "TS", "GO"})
 WINDOWS = frozenset({"PS"})
 ID = r"GHQ-[A-Z]+-\d{3,}"
+TAP_RESULT = re.compile(r"^(ok|not ok) (\d+)(?: - (.*))?$")
+TAP_SUMMARY = re.compile(
+    r"(?m)^1\.\.(\d+)\n# tests (\d+)\n# suites \d+\n# pass (\d+)\n"
+    r"# fail (\d+)\n# cancelled (\d+)\n# skipped (\d+)\n# todo (\d+)\n"
+    r"# duration_ms \d+(?:\.\d+)?\s*\Z"
+)
 
 
 def typed_passes(log, source):
@@ -99,6 +105,27 @@ def require_cases(expected, actual):
         raise ValueError(f"missing={missing}, unexpected={unexpected}, duplicate={duplicate}")
 
 
+def require_complete_tap(log):
+    lines = log.splitlines()
+    results = [match for line in lines if (match := TAP_RESULT.fullmatch(line))]
+    for mode, _, title in (match.groups() for match in results):
+        if mode == "not ok" and not re.search(r"\s#\s*TODO\b", title or "", re.IGNORECASE):
+            name = title or "unnamed result"
+            if not re.match(ID + r"(?:\s|$)", name):
+                raise ValueError(f"uncataloged TAP failure: {name}")
+    summary = TAP_SUMMARY.search(log)
+    if lines.count("TAP version 13") != 1 or summary is None:
+        raise ValueError("missing or incomplete native TAP summary")
+    plan, tests, passed, failed, cancelled, skipped, todo = map(int, summary.groups())
+    if failed or cancelled:
+        raise ValueError(f"native TAP suite failed: failures={failed}, cancelled={cancelled}")
+    if not plan or len(results) != plan or any(int(match[2]) != index for index, match in enumerate(results, 1)):
+        raise ValueError("native TAP plan does not match the terminal results")
+    # Node counts nested tests in its summary and only top-level results in its plan.
+    if tests < plan or tests != passed + skipped + todo:
+        raise ValueError("native TAP summary totals do not reconcile")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("platform", choices=("linux", "windows"))
@@ -116,6 +143,8 @@ def main():
             try:
                 log = (args.logs / (kind.lower() + ".log")).read_text(encoding="utf-8")
                 actual = passed_cases(kind, log, failed_cases=failed_cases)
+                if kind in {"TS", "JS"}:
+                    require_complete_tap(log)
                 if kind == "TS":
                     actual += typed_passes(log, (VAULT / "typescript/citations.types.ts").read_text(encoding="utf-8"))
                 require_cases(expected, actual)

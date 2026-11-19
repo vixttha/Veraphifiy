@@ -66,17 +66,17 @@ The TypeScript code is a reference consumer for typed source navigation. Go talk
 
 ## Installed files
 
-The following files were copied verbatim from the pinned Lydite commit:
+These files originate at the pinned Lydite commit:
 
-| File | Source |
-| --- | --- |
-| [MIT notice](LICENSE) | [Lydite license](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/LICENSE) |
-| [Case and run receipt](case-and-receipt.md) | [Lydite case and receipt form](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/case-and-receipt.md) |
-| [Catalog validator](validate_catalog.py) | [Lydite catalog validator](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/validate_catalog.py) |
-| [Receipt verifier](verify_receipts.py) | [Lydite receipt verifier](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/verify_receipts.py) |
-| [Checkout identity helper](source_commit.py) | [Lydite source commit helper](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/source_commit.py) |
+| File | Installed copy | Source |
+| --- | --- | --- |
+| [MIT notice](LICENSE) | Verbatim | [Lydite license](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/LICENSE) |
+| [Case and run receipt](case-and-receipt.md) | Verbatim | [Lydite case and receipt form](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/case-and-receipt.md) |
+| [Catalog validator](validate_catalog.py) | Veraphifiy validates visible case rows and malformed table headers ([#33](https://github.com/vixttha/Veraphifiy/issues/33)). | [Lydite catalog validator](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/validate_catalog.py) |
+| [Receipt verifier](verify_receipts.py) | Veraphifiy requires lowercase receipt extensions (GHQ-PS-035), tracked verifier modules and a tracked plan in CI ([#32](https://github.com/vixttha/Veraphifiy/issues/32)). | [Lydite receipt verifier](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/verify_receipts.py) |
+| [Checkout identity helper](source_commit.py) | Verbatim | [Lydite source commit helper](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/source_commit.py) |
 
-Run the receipt verifier from the intended Git checkout root with a tracked catalog and clean tracked files. For new evidence, use schema v2 and record the SHA-256 of the exact case manifest bytes. Matching v1 manifests and receipts remain supported.
+Run the receipt verifier from the intended Git checkout root with a tracked catalog, tracked verifier modules, and clean tracked files. Both CI jobs pass `--require-tracked-case` for the committed handoff plan. Disposable fixture checks can supply an external plan, and their verdict identifies it as caller-supplied. For new evidence, use schema v2 and record the SHA-256 of the exact case manifest bytes. Matching v1 manifests and receipts remain supported.
 
 The [upstream receipt guide](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/evidence.md) documents how to bind evidence to the actual checkout, runner, and attempt.
 

@@ -82,12 +82,14 @@ function Invoke-Verifier {
         [string]$WorkingDirectory = $checkout,
         [string]$VerifierPath = $verifier,
         [string]$Interpreter = $Python,
+        [switch]$RequireTrackedCase,
         [string]$LogPath
     )
 
     $arguments = @('-B', '-X', 'utf8', $VerifierPath, '--catalog', $CatalogPath, '--case', $Fixture.CaseFile,
         '--receipts', $Fixture.Receipts)
     if (-not $NoFlags) { $arguments += @('--run-id', $runId, '--attempt', $attempt) }
+    if ($RequireTrackedCase) { $arguments += '--require-tracked-case' }
     if ($Fixture.Evidence) { $arguments += @('--evidence', $Fixture.Evidence) }
     $variables = @{
         GITHUB_RUN_ID = $EnvironmentRun
@@ -516,6 +518,38 @@ try {
         Write-FixtureReceipt $other 'build'
         Write-FixtureReceipt $other 'read'
         Assert-Verdict (Invoke-Verifier $other) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-039 binds published receipts to the tracked plan and verifier modules' {
+        $fixture = New-Fixture 'tracked receipt plan'
+        $externalPlan = $fixture.CaseFile
+        $trackedPlan = Join-Path $fixtureVault 'published [case].json'
+        Copy-Item -LiteralPath $externalPlan -Destination $trackedPlan
+        Invoke-FixtureGit add -- 'test-vault/published [case].json'
+        Invoke-FixtureGit -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit -qm 'Track the published plan'
+        $script:fixtureHead = Invoke-FixtureGit rev-parse HEAD
+        foreach ($check in @('build', 'read')) { Write-FixtureReceipt $fixture $check }
+        Assert-Verdict (Invoke-Verifier $fixture) 0 'Case plan source: caller-supplied path'
+        Assert-Verdict (Invoke-Verifier $fixture -RequireTrackedCase) 1 'case plan must be tracked'
+        $fixture.CaseFile = $trackedPlan
+        Assert-Verdict (Invoke-Verifier $fixture -RequireTrackedCase) 0 'Case plan source: tracked checkout'
+
+        foreach ($helper in @('test-vault/source_commit.py', 'test-vault/validate_catalog.py')) {
+            Invoke-FixtureGit rm -q --cached -- $helper
+            Invoke-FixtureGit -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit -qm 'Untrack installed helper'
+            $script:fixtureHead = Invoke-FixtureGit rev-parse HEAD
+            try {
+                foreach ($check in @('build', 'read')) { Write-FixtureReceipt $fixture $check }
+                Assert-Verdict (Invoke-Verifier $fixture -RequireTrackedCase) 1 'receipt source must be tracked'
+            }
+            finally {
+                Invoke-FixtureGit add -- $helper
+                Invoke-FixtureGit -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit -qm 'Restore tracked helper'
+                $script:fixtureHead = Invoke-FixtureGit rev-parse HEAD
+            }
+        }
+        foreach ($check in @('build', 'read')) { Write-FixtureReceipt $fixture $check }
+        Assert-Verdict (Invoke-Verifier $fixture -RequireTrackedCase) 0 '**Overall: PASS**'
     }
 
     Test-Case 'GHQ-PS-011 rejects tracked checkout changes before accepting receipts' {

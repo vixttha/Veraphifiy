@@ -8,8 +8,8 @@ import re
 import subprocess
 from pathlib import Path
 
-from source_commit import source_commit
-from validate_catalog import read_cases
+import source_commit
+import validate_catalog
 
 
 CHECK_ID = re.compile(r"[a-z][a-z0-9-]{0,63}")
@@ -47,7 +47,7 @@ def read_case(path, catalog):
     case = read_object(path, raw)
     expect_fields(case, ("schema_version", "case_id", "required_checks", "shared_evidence"), {1, 2})
     case_id, checks = case["case_id"], case["required_checks"]
-    if not isinstance(case_id, str) or case_id not in read_cases(catalog)[0]:
+    if not isinstance(case_id, str) or case_id not in validate_catalog.read_cases(catalog)[0]:
         raise ValueError("case ID must be registered in the selected catalog")
     if (not isinstance(checks, list) or not checks
             or any(not isinstance(check, str) or not CHECK_ID.fullmatch(check) for check in checks)
@@ -111,7 +111,7 @@ def verdict(directory, checks, expected):
     return rows, list(dict.fromkeys(issues))
 
 
-def render(case_id, expected, rows, issues):
+def render(case_id, expected, rows, issues, *, tracked_case):
     passed = not issues and all(status == "PASS" for _, status, _ in rows)
     lines = [
         f"### Test Vault execution evidence · {case_id}",
@@ -119,6 +119,7 @@ def render(case_id, expected, rows, issues):
         f"Checkout: {expected['checkout_sha']} · Run: {expected['run_id']} · Attempt: {expected['attempt']}",
         *([f"Case plan SHA-256: {expected['case_plan_sha256']}"] if "case_plan_sha256" in expected
           else ["Legacy receipt v1 · case plan binding unavailable"]),
+        f"Case plan source: {'tracked checkout' if tracked_case else 'caller-supplied path'}",
         "",
         "| Required check | Result | Evidence |",
         "|---|---|---|",
@@ -135,6 +136,7 @@ def render(case_id, expected, rows, issues):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", type=Path, required=True, help="Case manifest JSON")
+    parser.add_argument("--require-tracked-case", action="store_true", help="Bind the case plan to the Git checkout")
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--receipts", type=Path, required=True)
     parser.add_argument("--evidence", type=Path, help="Shared observation file, if required by the case")
@@ -143,10 +145,16 @@ def main():
     args = parser.parse_args()
 
     try:
-        case, plan_sha = read_case(args.case, args.catalog)
         if not RUN_ID.fullmatch(args.run_id or "") or not RUN_ID.fullmatch(args.attempt or ""):
             raise ValueError("run ID and attempt must be positive decimal strings")
-        checkout = source_commit(Path.cwd(), (Path(__file__), args.catalog))
+        root = Path.cwd().resolve()
+        inputs = [Path(__file__), Path(source_commit.__file__), Path(validate_catalog.__file__), args.catalog]
+        if args.require_tracked_case:
+            if not args.case.resolve().is_relative_to(root):
+                raise ValueError("case plan must be tracked in the intended Git checkout")
+            inputs.append(args.case)
+        checkout = source_commit.source_commit(root, inputs)
+        case, plan_sha = read_case(args.case, args.catalog)
         if not SHA.fullmatch(checkout):
             raise ValueError("checkout must be a full Git SHA")
         if case["shared_evidence"] != (args.evidence is not None):
@@ -162,7 +170,7 @@ def main():
             with args.evidence.open("rb") as stream:
                 expected["evidence_sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
         rows, issues = verdict(args.receipts, case["required_checks"], expected)
-        passed, summary = render(case["case_id"], expected, rows, issues)
+        passed, summary = render(case["case_id"], expected, rows, issues, tracked_case=args.require_tracked_case)
     except (OSError, ValueError, RecursionError, subprocess.CalledProcessError) as error:
         print(f"Test Vault execution evidence failed: {error}")
         passed = False

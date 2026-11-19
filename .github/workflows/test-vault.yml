@@ -95,7 +95,7 @@ jobs:
           python -B test-vault/record_handoff.py python-build "$GRAPHIFY_HQ_HANDOFF" "$receipts" --runtime "$(python --version)"
           python -B test-vault/record_handoff.py node-consume "$GRAPHIFY_HQ_HANDOFF" "$receipts" --runtime "Node $(node --version)"
           python -B test-vault/evidence_bundle.py "$GRAPHIFY_HQ_HANDOFF"
-          python -B test-vault/verify_receipts.py --case test-vault/javascript/case.json \
+          python -B test-vault/verify_receipts.py --require-tracked-case --case test-vault/javascript/case.json \
             --receipts "$receipts" --evidence "$GRAPHIFY_HQ_HANDOFF/evidence.bin" | tee "$GRAPHIFY_HQ_HANDOFF/verdict.md"
       - name: Retain the verified public fixture handoff
         id: handoff
@@ -153,7 +153,7 @@ jobs:
           finally {
             [IO.File]::WriteAllBytes($source, $original)
           }
-          python -B test-vault/verify_receipts.py --case test-vault/javascript/case.json --receipts (Join-Path $handoff 'receipts') --evidence (Join-Path $handoff 'evidence.bin')
+          python -B test-vault/verify_receipts.py --require-tracked-case --case test-vault/javascript/case.json --receipts (Join-Path $handoff 'receipts') --evidence (Join-Path $handoff 'evidence.bin')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $result = 'PASS GHQ-PS-015 reverifies the Ubuntu handoff on Windows'
           Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'ps.log') -Value $result
