@@ -19,8 +19,8 @@
 - [Graphify HQ Test Vault adoption record](https://github.com/vixttha/Graphify-HQ/blob/3651503ad22a9db480dc8eb31c17599803f35ae8/test-vault/README.md) documents the builder, MCP readback, archive and provenance scope on the separate Vault branch.
 - [Graphify Labs upstream](https://github.com/Graphify-Labs/graphify) supplies the engine. Use its repository as a comparison for naming and mark similarity and as the source for attribution.
 
-**Owner direction.** Develop a separate identity on a dedicated branch. The owner selected [GEvidence](../02-naming/naming.md) as the product name.
+**Owner direction.** Develop a separate identity on a dedicated branch. The owner locked the exact spelling [Veraphifiy](../02-naming/naming.md) as the product name.
 
-**Working proposal.** Lead with the [Filed Edge](../04-logo/logo.md) symbol and describe GEvidence as a repository evidence kit built with Graphify. The positioning copy and artwork are draft.
+**Working proposal.** Lead with the [Filed Edge](../04-logo/logo.md) symbol and describe Veraphifiy as an independent repository evidence kit built with Graphify. The visual treatment is draft.
 
 See the [visual system](../06-visual-system/system.md) and [review record](../08-review/review.md).
