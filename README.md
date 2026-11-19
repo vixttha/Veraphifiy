@@ -14,6 +14,10 @@ cd Veraphifiy
 node veraphifiy.mjs --help
 ```
 
+## Build and verify two versions
+
+Follow the [adopter walkthrough](docs/adopter-walkthrough.md) to build two maps with the pinned producer, import both versions, and verify their citations from a clean checkout.
+
 ## Archive and find evidence
 
 Supply the paired `graph.json` and `receipt.json` produced by the existing pinned Graphify feature-evidence builder (Graphify `0.9.109`). The source checkout must contain the exact commit claimed by the receipt.
