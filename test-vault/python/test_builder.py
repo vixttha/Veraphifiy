@@ -144,7 +144,7 @@ class BuilderTests(unittest.TestCase):
     def test_GHQ_PY_100_archives_and_replays_two_pinned_versions(self):
         cli = Path(__file__).resolve().parents[2] / "veraphifiy.mjs"
         project = self.manifest["repository"]
-        archive = self.root / "Veraphifiy archive"
+        archive = self.root / "Veraphify archive"
         first = self.root / "first evidence"
         second = self.root / "second evidence"
 

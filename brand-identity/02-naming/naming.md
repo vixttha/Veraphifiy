@@ -1,14 +1,14 @@
 # Naming
 
-**Locked product name.** Veraphifiy, with a capital V and the ending `-fiy`. The owner chose this exact spelling on November 19, 2026. See the [creative decision](../01-strategy/creative-decision.json) for the exact product name and draft wordmark lettering.
+**Locked product name.** Veraphify, with a capital V and the ending `-ify`. The owner chose this exact spelling on November 19, 2026 to follow the spelling of Graphify. It supersedes the earlier spelling Veraphifiy. See the [creative decision](../01-strategy/creative-decision.json) for the exact product name and draft wordmark lettering.
 
-**Veraphifiy** plays on *verify* and *Graphify*. Graphify supplies the graph. Veraphifiy uses it as code memory for coding agents, with a map for each archived project version tied to the source commit it describes. An agent can follow a feature claim to a source line, a test, or a verification receipt for that version.
+**Veraphify** plays on *verify* and *Graphify*. Graphify supplies the graph. Veraphify uses it as code memory for coding agents, with a map for each archived project version tied to the source commit it describes. An agent can follow a feature claim to a source line, a test, or a verification receipt for that version.
 
 ## Public screening
 
 The November 19, 2026 screen found no exact software brand in the public results reviewed for Veraphifiy or Veraphify. Exact GitHub, npm, and PyPI checks found no match, and the corresponding .com, .dev, .org, .io, .ai, and .app registry lookups returned no registration record. The spelling decision covers the product identity. Trademark clearance remains open. [Exact .com registry lookup](https://rdap.verisign.com/com/v1/domain/veraphifiy.com)
 
-The owner kept the deliberate Graphify echo because the integration is central to the product. First-use copy identifies Veraphifiy as independently developed and maintained and credits Graphify Labs for the upstream engine. Verafy and Veriphy are similar names found in the public screen. [Graphify](https://graphify.com/) · [Verafy for developers](https://www.verafy.ai/developers) · [Veriphy claim verification project](https://github.com/vaibh-pra/veriphy)
+The owner kept the deliberate Graphify echo because the integration is central to the product. First-use copy identifies Veraphify as independently developed and maintained and credits Graphify Labs for the upstream engine. Verafy and Veriphy are similar names found in the public screen. [Graphify](https://graphify.com/) · [Verafy for developers](https://www.verafy.ai/developers) · [Veriphy claim verification project](https://github.com/vaibh-pra/veriphy)
 
 ## Earlier shortlist
 
@@ -33,8 +33,8 @@ GEvidence was retired after exact-name software uses and a registered .com surfa
 
 ## Usage
 
-- **Product and wordmark.** Use Veraphifiy in product copy and as the lettering for the draft wordmark. Use “Code memory for each project version” as the descriptor.
-- **Upstream attribution.** “We use and support the open-source Graphify project. Veraphifiy is developed and maintained independently of Graphify Labs.” [Graphify upstream repository](https://github.com/Graphify-Labs/graphify)
-- **Historical label.** “Graphify HQ” identifies earlier archived work and legacy branch labels. Veraphifiy is the product name.
+- **Product and wordmark.** Use Veraphify in product copy and as the lettering for the draft wordmark. Use “Code memory for each project version” as the descriptor.
+- **Upstream attribution.** “We use and support the open-source Graphify project. Veraphify is developed and maintained independently of Graphify Labs.” [Graphify upstream repository](https://github.com/Graphify-Labs/graphify)
+- **Historical label.** “Graphify HQ” identifies earlier archived work and legacy branch labels. Veraphify is the product name.
 
 See [voice and slogan](../03-messaging/voice.md) and [wordmark](../05-wordmark/wordmark.md).

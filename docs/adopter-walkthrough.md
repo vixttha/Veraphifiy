@@ -1,8 +1,8 @@
 # Build and verify two project versions
 
-Start in a clean Veraphifiy checkout. Use Bash, Git, Node.js 24, and CPython 3.12 with venv support on Linux x86-64. The walkthrough creates a disposable Git project, fetches the existing Graphify evidence builder at a fixed commit, and installs its hash-locked wheels into a temporary environment.
+Start in a clean Veraphify checkout. Use Bash, Git, Node.js 24, and CPython 3.12 with venv support on Linux x86-64. The walkthrough creates a disposable Git project, fetches the existing Graphify evidence builder at a fixed commit, and installs its hash-locked wheels into a temporary environment.
 
-Run the block from the Veraphifiy repository root. Build output and archives stay under a temporary directory and are removed at exit.
+Run the block from the Veraphify repository root. Build output and archives stay under a temporary directory and are removed at exit.
 
 ```bash
 set -euo pipefail
@@ -53,7 +53,7 @@ feature = {
 Path(path).write_text(json.dumps({
     "repository": project,
     "source_commit": source,
-    "title": "Veraphifiy adopter walkthrough",
+    "title": "Veraphify adopter walkthrough",
     "source_files": ["src/feature.py"],
     "features": [feature],
 }), encoding="utf-8")

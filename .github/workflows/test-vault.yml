@@ -1,4 +1,4 @@
-name: Veraphifiy Test Vault
+name: Veraphify Test Vault
 
 on:
   push:
@@ -73,9 +73,9 @@ jobs:
           (Path(os.environ["RUNNER_TEMP"]) / "adopter-walkthrough.sh").write_text(script, encoding="utf-8")
           PYCODE
           bash "$RUNNER_TEMP/adopter-walkthrough.sh"
-      - name: Verify the Veraphifiy brand records and approval checks
+      - name: Verify the Veraphify brand records and approval checks
         run: |
-          python -B brand-identity/verify.py
+          python -B brand-identity/verify.py --ready-for-artwork
           python -B -m unittest discover -s brand-identity -v
       - name: Validate the Lydite case catalog
         run: python -B test-vault/validate_catalog.py

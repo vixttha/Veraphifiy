@@ -29,10 +29,10 @@ class ArtworkGateTests(unittest.TestCase):
     def test_ambiguous_approval_and_name_fields_are_rejected(self):
         with TemporaryDirectory() as directory:
             path = Path(directory) / "decision.json"
-            path.write_text('{"names":{"product":"Veraphifiy"}}', encoding="utf-8")
-            self.assertEqual(read_record(path)["names"]["product"], "Veraphifiy")
+            path.write_text('{"names":{"product":"Veraphify"}}', encoding="utf-8")
+            self.assertEqual(read_record(path)["names"]["product"], "Veraphify")
             for text in (
-                '{"names":{"product":"Old","product":"Veraphifiy"}}',
+                '{"names":{"product":"Old","product":"Veraphify"}}',
                 '{"assets":[{"status":"draft","status":"approved"}]}',
             ):
                 path.write_text(text, encoding="utf-8")

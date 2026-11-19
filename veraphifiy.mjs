@@ -195,6 +195,6 @@ try {
     console.log(JSON.stringify(result));
   }
 } catch (error) {
-  console.error("Veraphifiy: " + error.message);
+  console.error("Veraphify: " + error.message);
   process.exitCode = 1;
 }

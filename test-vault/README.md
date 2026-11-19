@@ -74,8 +74,8 @@ These files originate at the pinned Lydite commit:
 | --- | --- | --- |
 | [MIT notice](LICENSE) | Verbatim | [Lydite license](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/LICENSE) |
 | [Case and run receipt](case-and-receipt.md) | Verbatim | [Lydite case and receipt form](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/case-and-receipt.md) |
-| [Catalog validator](validate_catalog.py) | Veraphifiy validates visible case rows and malformed table headers ([#33](https://github.com/vixttha/Veraphifiy/issues/33)). | [Lydite catalog validator](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/validate_catalog.py) |
-| [Receipt verifier](verify_receipts.py) | Veraphifiy requires lowercase receipt extensions (GHQ-PS-035), tracked verifier modules and a tracked plan in CI ([#32](https://github.com/vixttha/Veraphifiy/issues/32)). | [Lydite receipt verifier](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/verify_receipts.py) |
+| [Catalog validator](validate_catalog.py) | Veraphify validates visible case rows and malformed table headers ([#33](https://github.com/vixttha/Veraphify/issues/33)). | [Lydite catalog validator](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/validate_catalog.py) |
+| [Receipt verifier](verify_receipts.py) | Veraphify requires lowercase receipt extensions (GHQ-PS-035), tracked verifier modules and a tracked plan in CI ([#32](https://github.com/vixttha/Veraphify/issues/32)). | [Lydite receipt verifier](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/verify_receipts.py) |
 | [Checkout identity helper](source_commit.py) | Verbatim | [Lydite source commit helper](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/source_commit.py) |
 
 Run the receipt verifier from the intended Git checkout root with a tracked catalog, tracked verifier modules, and clean tracked files. Both CI jobs pass `--require-tracked-case` for the committed handoff plan. Disposable fixture checks can supply an external plan, and their verdict identifies it as caller-supplied. For new evidence, use schema v2 and record the SHA-256 of the exact case manifest bytes. Matching v1 manifests and receipts remain supported.
@@ -84,30 +84,30 @@ The [upstream receipt guide](https://github.com/vixttha/Lydite-Test-Vault-Templa
 
 ## Graphify HQ scope
 
-The [case catalog](cases.md) is the executable inventory. The [language plan](LANGUAGE-PLAN.md) preserves the original 320-case planning baseline. Implemented proposal IDs appear in both files. [The adoption issue](https://github.com/vixttha/Veraphifiy/issues/15) tracks the eight language tracks that require integrations and active-lane cases awaiting a deployed boundary.
+The [case catalog](cases.md) is the executable inventory. The [language plan](LANGUAGE-PLAN.md) preserves the original 320-case planning baseline. Implemented proposal IDs appear in both files. [The adoption issue](https://github.com/vixttha/Veraphify/issues/15) tracks the eight language tracks that require integrations and active-lane cases awaiting a deployed boundary.
 
 Use this Vault for the reusable kit's map generation, Graphify MCP readback, archive reproducibility, GitHub source provenance, and evidence publication. The [checkpoint tracker](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/provenistem/graphify-hq/provenistem) links the project changes to their existing issues, PRs and CI runs. Add only project cases backed by a defined behavior, and attach results once they are run.
 
 
 ## Proposal checkpoint
 
-The executable catalog accounts for 114 of the 320 proposals. The original proposals remain visible in the language plan. The remaining 47 active-lane cases include additional fixture work, pinned upstream behavior, and hosted deployment checks. The 159 adopter cases depend on the project integrations described in their individual plan rows. [Implementation tracker](https://github.com/vixttha/Veraphifiy/issues/15)
+The executable catalog accounts for 114 of the 320 proposals. The original proposals remain visible in the language plan. The remaining 47 active-lane cases include additional fixture work, pinned upstream behavior, and hosted deployment checks. The 159 adopter cases depend on the project integrations described in their individual plan rows. [Implementation tracker](https://github.com/vixttha/Veraphify/issues/15)
 
 The Go protocol checks use the pinned SDK and an isolated stdio subprocess when the frozen Graphify server cannot produce a particular protocol response. Server lifecycle, checkout freshness, and simultaneous archive identity are also exercised against the real pinned Graphify runtime. The Node source-blob check reads exact Git bytes from the disposable builder fixture. The Bash wheel checks use an isolated local wheelhouse and the real pinned install step. The PowerShell verifier considers lowercase `.json` receipt files on both hosts and uses literal paths for native logs.
 
-## Veraphifiy candidate and historical identifiers
+## Veraphify candidate and historical identifiers
 
-The workflow uses the Veraphifiy display name. The current Vault branch remains
+The workflow uses the Veraphify display name. The current Vault branch remains
 `graphify-hq-test-vault`, and `work/veraphifiy-v0.0.9` is the draft product branch.
 The `GRAPHIFY_HQ_*` fixture inputs, `GHQ-*` case IDs, current artifact naming prefix,
 original case-plan bytes and archived receipt identities are compatibility contracts.
-New product commands use the Veraphifiy name. The pinned Graphify producer version
-is recorded separately from the Veraphifiy release and each archived project version.
+New product commands use the Veraphify name. The pinned Graphify producer version
+is recorded separately from the Veraphify release and each archived project version.
 
-A delivery checkpoint identifies `vixttha/Veraphifiy`, its owning issue and the
-reviewed commit when it exists. For example, [`v0.0.8.3` belongs to #22](https://github.com/vixttha/Veraphifiy/issues/22)
-and [`v0.0.8.5` belongs to #17](https://github.com/vixttha/Veraphifiy/issues/17).
-Use the [first-party release tracker](https://github.com/vixttha/Veraphifiy/issues/21)
+A delivery checkpoint identifies `vixttha/Veraphify`, its owning issue and the
+reviewed commit when it exists. For example, [`v0.0.8.3` belongs to #22](https://github.com/vixttha/Veraphify/issues/22)
+and [`v0.0.8.5` belongs to #17](https://github.com/vixttha/Veraphify/issues/17).
+Use the [first-party release tracker](https://github.com/vixttha/Veraphify/issues/21)
 to resolve these labels. An application's archived version is selected with the
 application repository and its version, as shown in the [candidate README](../README.md).
 

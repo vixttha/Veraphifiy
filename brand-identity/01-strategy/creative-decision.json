@@ -44,8 +44,12 @@
   "selected_concept": "filed-edge",
   "selection_reason": "Filed Edge leads at 95 / 100. Its single path and index tab combine navigation and verification in the smallest proposed silhouette.",
   "names": {
-    "product": "Veraphifiy",
-    "wordmark": "Veraphifiy"
+    "product": "Veraphify",
+    "wordmark": "Veraphify"
   },
-  "confirmation": null
+  "confirmation": {
+    "product": "Veraphify",
+    "wordmark": "Veraphify",
+    "reference": "Owner spelling decision, November 19, 2026. https://github.com/vixttha/Veraphify/issues/21#product-name-decision"
+  }
 }
