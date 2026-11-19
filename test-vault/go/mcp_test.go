@@ -199,6 +199,16 @@ func TestGraphifyMCP(t *testing.T) {
 		}
 		requireText(t, full, "[implemented_in]", "[documented_in]", "[changed_in]", "[tested_by]")
 	})
+	t.Run("GHQ-GO-030 ping the pinned session without changing its evidence", func(t *testing.T) {
+		before := call(t, "graph_stats", nil)
+		if err := session.Ping(ctx, nil); err != nil {
+			t.Fatal(err)
+		}
+		if after := call(t, "graph_stats", nil); after != before {
+			t.Fatalf("graph stats changed after ping: %q != %q", before, after)
+		}
+	})
+
 }
 
 func callText(ctx context.Context, session *mcp.ClientSession, name string, args map[string]any) (string, error) {

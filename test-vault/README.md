@@ -44,7 +44,9 @@ node --test test-vault/javascript/evidence.test.mjs
 bash test-vault/bash/workflow.tests.sh
 ```
 
-The workflow compares case-level results with the catalog. The Linux run also verifies the two Lydite v2 receipts for the fresh graph handoff using the run ID and attempt supplied by GitHub.
+The workflow compares named native results with the catalog, including the TypeScript diagnostic code and token position and the final Go package result. Install the locked TypeScript dependencies before running the Python suite because its compiler regression invokes the pinned compiler.
+
+Ubuntu records two Lydite v2 receipts for the independently observed graph, source pin, and Graphify receipt. The Windows job downloads the exact artifact by ID and verifies the same bundle against the current checkout, run, and attempt. It also checks that newline conversion invalidates the bundle. The public synthetic fixture artifacts are retained for seven days. For a local shared receipt test, set positive decimal `GITHUB_RUN_ID` and `GITHUB_RUN_ATTEMPT` before running both observer suites, then use the workflow's recorder and verification commands.
 
 Run the PowerShell suite with PowerShell 7, Git, and Python 3.12 on the path. It copies the pinned verifier and its helpers into a temporary Git checkout with a tracked catalog. Its synthetic manifests, receipts, and Actions summary files live beside that checkout.
 
@@ -79,5 +81,7 @@ Run the receipt verifier from the intended Git checkout root with a tracked cata
 The [upstream receipt guide](https://github.com/vixttha/Lydite-Test-Vault-Template/blob/87d25d80d3154d295052412b64b29a0f0f152c27/starter/test-vault/evidence.md) documents how to bind evidence to the actual checkout, runner, and attempt.
 
 ## Graphify HQ scope
+
+The [case catalog](cases.md) is the executable inventory. The [language plan](LANGUAGE-PLAN.md) preserves the original 320-case planning baseline. Implemented proposal IDs appear in both files. [The adoption issue](https://github.com/vixttha/Veraphifiy/issues/15) tracks the eight language tracks that require integrations and active-lane cases awaiting a deployed boundary.
 
 Use this Vault for the reusable kit's map generation, Graphify MCP readback, archive reproducibility, GitHub source provenance, and evidence publication. The [checkpoint tracker](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/provenistem/graphify-hq/provenistem) links the project changes to their existing issues, PRs and CI runs. Add only project cases backed by a defined behavior, and attach results once they are run.

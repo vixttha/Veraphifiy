@@ -7,6 +7,12 @@ on:
       - 'test-vault/**'
       - '.github/workflows/test-vault.yml'
 
+  pull_request:
+    branches: [graphify-hq-test-vault]
+    paths:
+      - 'test-vault/**'
+      - '.github/workflows/test-vault.yml'
+
 permissions:
   contents: read
 
@@ -15,6 +21,8 @@ jobs:
     name: Graph build, consumers, and Bash workflow
     if: toJSON(github.event.repository.private) == 'false'
     runs-on: ubuntu-24.04
+    outputs:
+      artifact-id: ${{ steps.handoff.outputs.artifact-id }}
     timeout-minutes: 10
     defaults:
       run:
@@ -77,18 +85,29 @@ jobs:
       - name: Exercise the pinned Bash workflow steps
         run: bash test-vault/bash/workflow.tests.sh | tee "$VAULT_LOGS/sh.log"
       - name: Match the Linux run to the catalog
+        if: ${{ !cancelled() && env.VAULT_LOGS != '' }}
         run: python -B test-vault/verify_case_run.py linux "$VAULT_LOGS"
       - name: Verify the shared graph with Lydite v2 receipts
         run: |
-          receipts="$RUNNER_TEMP/handoff-receipts"
+          receipts="$GRAPHIFY_HQ_HANDOFF/receipts"
           python -B test-vault/record_handoff.py python-build "$GRAPHIFY_HQ_HANDOFF" "$receipts" --runtime "$(python --version)"
           python -B test-vault/record_handoff.py node-consume "$GRAPHIFY_HQ_HANDOFF" "$receipts" --runtime "Node $(node --version)"
+          python -B test-vault/evidence_bundle.py "$GRAPHIFY_HQ_HANDOFF"
           python -B test-vault/verify_receipts.py --case test-vault/javascript/case.json \
-            --receipts "$receipts" --evidence "$GRAPHIFY_HQ_HANDOFF/graph.json"
+            --receipts "$receipts" --evidence "$GRAPHIFY_HQ_HANDOFF/evidence.bin" | tee "$GRAPHIFY_HQ_HANDOFF/verdict.md"
+      - name: Retain the verified public fixture handoff
+        id: handoff
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: graphify-vault-handoff-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.GRAPHIFY_HQ_HANDOFF }}
+          if-no-files-found: error
+          retention-days: 7
 
   windows-verifier:
     name: PowerShell receipt verifier on Windows
-    if: toJSON(github.event.repository.private) == 'false'
+    needs: graph-consumers
+    if: ${{ !cancelled() && toJSON(github.event.repository.private) == 'false' }}
     runs-on: windows-2025
     timeout-minutes: 10
     steps:
@@ -104,4 +123,38 @@ jobs:
           $log = Join-Path $env:RUNNER_TEMP 'ps.log'
           ./test-vault/powershell/verify-receipts.tests.ps1 | Tee-Object -FilePath $log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -B test-vault/verify_case_run.py windows $env:RUNNER_TEMP
+      - name: Download the Linux handoff by artifact ID
+        if: ${{ needs.graph-consumers.result == 'success' }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.graph-consumers.outputs.artifact-id }}
+          path: ${{ runner.temp }}/linux-handoff
+          digest-mismatch: error
+      - name: Reverify the same bundle on Windows
+        if: ${{ needs.graph-consumers.result == 'success' }}
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          $handoff = Join-Path $env:RUNNER_TEMP 'linux-handoff'
+          python -B test-vault/evidence_bundle.py $handoff --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $source = Join-Path $handoff 'source.txt'
+          $original = [IO.File]::ReadAllBytes($source)
+          try {
+            $converted = [Text.Encoding]::ASCII.GetString($original).Replace("`n", "`r`n")
+            [IO.File]::WriteAllBytes($source, [Text.Encoding]::ASCII.GetBytes($converted))
+            $rejected = python -B test-vault/evidence_bundle.py $handoff --check 2>&1
+            if ($LASTEXITCODE -ne 2 -or ($rejected -join ' ') -notmatch 'differs from the observed bundle') {
+              throw 'Changed source-pin bytes did not trigger the bundle mismatch'
+            }
+          }
+          finally {
+            [IO.File]::WriteAllBytes($source, $original)
+          }
+          python -B test-vault/verify_receipts.py --case test-vault/javascript/case.json --receipts (Join-Path $handoff 'receipts') --evidence (Join-Path $handoff 'evidence.bin')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          'PASS GHQ-PS-015 reverifies the Ubuntu handoff on Windows' | Tee-Object -FilePath (Join-Path $env:RUNNER_TEMP 'ps.log') -Append
+      - name: Match the Windows run to the catalog
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: python -B test-vault/verify_case_run.py windows $env:RUNNER_TEMP

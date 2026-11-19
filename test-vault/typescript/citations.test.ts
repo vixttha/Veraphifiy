@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { findImplementation, type EvidenceGraph } from "./citations.ts";
+import { decodeEvidenceGraph, findImplementation, type EvidenceGraph } from "./citations.ts";
 
 const archive = process.env.GRAPHIFY_HQ_ARCHIVE;
 assert.ok(archive, "Set GRAPHIFY_HQ_ARCHIVE to the pinned v0.0.8 graph directory");
@@ -59,4 +59,89 @@ test("GHQ-TS-010 withholds paths the Graphify builder would never emit", () => {
     const nodes = graph.nodes.map((node) => node.id === anchor ? { ...node, source_file } : node);
     assert.deepEqual(findImplementation({ ...graph, nodes }, feature), { status: "invalid-citation" }, source_file);
   }
+});
+
+test("GHQ-TS-011 decodes external graph data before using the typed lookup", () => {
+  const external: unknown = structuredClone(graph);
+  const checked = decodeEvidenceGraph(external);
+  assert.ok(checked);
+  assert.deepEqual(findImplementation(checked, feature), findImplementation(graph, feature));
+  assert.equal(decodeEvidenceGraph({ ...graph, nodes: [null] }), null);
+  assert.equal(decodeEvidenceGraph({ ...graph, links: [{ ...graph.links[0], target: 42 }] }), null);
+});
+
+test("GHQ-TS-013 rejects contradictory edge and node coordinates", () => {
+  const links = graph.links.map((edge) => edge.target === anchor ? { ...edge, source_location: "L31" } : edge);
+  assert.deepEqual(findImplementation({ ...graph, links }, feature), { status: "invalid-citation" });
+});
+
+function remapAnchor(source_file: string, source_location: string): EvidenceGraph {
+  return {
+    ...graph,
+    nodes: graph.nodes.map((node) => node.id === anchor ? { ...node, source_file, source_location } : node),
+    links: graph.links.map((edge) => edge.target === anchor ? { ...edge, source_file, source_location } : edge),
+  };
+}
+
+test("GHQ-TS-014 preserves Unicode and whitespace in repository paths", () => {
+  const path = "docs/évidence map.py";
+  const result = findImplementation(remapAnchor(path, "L42"), feature);
+  assert.equal(result.status, "found");
+  assert.ok(result.citations.some((citation) => citation.path === path && citation.line === 42));
+});
+
+test("GHQ-TS-015 rejects a non-string coordinate without coercion", () => {
+  const coordinate = ["L30"] as unknown as string;
+  const invalid = remapAnchor("tools/verify_archive.py", coordinate);
+  assert.equal(decodeEvidenceGraph(invalid), null);
+  assert.deepEqual(findImplementation(invalid, feature), { status: "invalid-citation" });
+});
+
+test("GHQ-TS-016 refuses a repeated evidence node identity", () => {
+  const target = graph.nodes.find((node) => node.id === anchor);
+  assert.ok(target);
+  const nodes = [...graph.nodes, { ...target, source_location: "L31" }];
+  assert.deepEqual(findImplementation({ ...graph, nodes }, feature), { status: "invalid-citation" });
+});
+
+test("GHQ-TS-017 keeps distinct coordinates in the same implementation file", () => {
+  const target = graph.nodes.find((node) => node.id === anchor);
+  const edge = graph.links.find((entry) => entry.source === feature && entry.target === anchor);
+  assert.ok(target && edge);
+  const newId = "implemented_in:tools/verify_archive.py:L31";
+  const result = findImplementation({
+    ...graph,
+    nodes: [...graph.nodes, { ...target, id: newId, source_location: "L31" }],
+    links: [...graph.links, { ...edge, target: newId, source_location: "L31" }],
+  }, feature);
+  assert.equal(result.status, "found");
+  assert.deepEqual(result.citations.filter((citation) => citation.path === target.source_file).map(({ line }) => line), [30, 31]);
+});
+
+test("GHQ-TS-018 returns a stable citation order for equivalent graph exports", () => {
+  assert.deepEqual(findImplementation({ ...graph, links: [...graph.links].reverse() }, feature),
+    findImplementation(graph, feature));
+});
+
+test("GHQ-TS-019 keeps a returned citation independent of later input changes", () => {
+  const original = structuredClone(graph);
+  const previous = findImplementation(original, feature);
+  const node = original.nodes.find((entry) => entry.id === anchor);
+  assert.ok(node);
+  node.source_file = "different.py";
+  assert.deepEqual(previous, findImplementation(graph, feature));
+  assert.deepEqual(findImplementation(original, feature), { status: "invalid-citation" });
+});
+
+test("GHQ-TS-027 rejects mixed valid and invalid implementation citations", () => {
+  const links = graph.links.map((edge) => edge.target === anchor ? { ...edge, source_file: "unrelated.py" } : edge);
+  assert.deepEqual(findImplementation({ ...graph, links }, feature), { status: "invalid-citation" });
+  assert.equal(findImplementation(graph, feature).status, "found");
+});
+
+test("GHQ-TS-031 withholds navigable results for an invalid graph source pin", () => {
+  for (const built_at_commit of ["short-sha", "", sourceCommit.toUpperCase()]) {
+    assert.deepEqual(findImplementation({ ...graph, built_at_commit }, feature), { status: "invalid-citation" });
+  }
+  assert.equal(findImplementation(graph, feature).status, "found");
 });

@@ -5,6 +5,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,9 @@ from pathlib import Path
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from evidence_bundle import write_observation
 
 KIT = Path(os.environ["GRAPHIFY_HQ_ARCHIVE"]).resolve().parents[1] / "versions/v0.0.8"
 HANDOFF = Path(os.environ["GRAPHIFY_HQ_HANDOFF"]).resolve()
@@ -86,7 +90,10 @@ class BuilderTests(unittest.TestCase):
             (output / name).write_bytes(data)
         result = self.invoke(output, manifest=manifest)
         self.assertNotEqual(result.returncode, 0, result.stdout)
-        self.assertIn(message, result.stderr)
+        if isinstance(message, str):
+            self.assertIn(message, result.stderr)
+        else:
+            self.assertRegex(result.stderr, message)
         self.assertEqual({name: (output / name).read_bytes() for name in PARTS}, saved)
 
     async def neighbors(self, output):
@@ -112,6 +119,7 @@ class BuilderTests(unittest.TestCase):
         (output / "python.sha256").write_text(observed + "\n", encoding="ascii")
         # Pass the independently known Git identity to the downstream consumer.
         (output / "source.txt").write_text(self.source + "\n", encoding="ascii")
+        write_observation(output, "python")
         shutil.copytree(output, HANDOFF)
 
     def test_GHQ_PY_002_rebuilds_identical_graph_and_receipt(self):
@@ -170,7 +178,7 @@ class BuilderTests(unittest.TestCase):
         for path, error in (
             ("missing.md", "missing.md"), ("src", "Expected a source blob"),
             ("empty.txt", "blob is empty"), ("large.txt", "exceeds the size limit"),
-            ("invalid.txt", "UnicodeDecodeError"),
+            ("invalid.txt", re.compile(r"utf-8", re.IGNORECASE)),
         ):
             with self.subTest(path=path):
                 manifest = copy.deepcopy(self.manifest)

@@ -160,3 +160,29 @@ PIP_FAIL=check PATH="$root/bin:$PATH" must_fail install
 grep -qx 'install' "$PIP_LOG"
 grep -qx 'check' "$PIP_LOG"
 echo 'PASS GHQ-SH-006 fails when either locked dependency step fails'
+
+# Exercise the pinned final step using a deterministic provenance response and
+# a sentry for the archive-check call. The ordinary evidence pair stays intact.
+cat > "$RUNNER_TEMP/candidate/github_provenance.py" <<'PY'
+import os
+
+def verify_pull_request(repository, source, review):
+    return {"pull_request": "https://github.com/" + os.environ["FIXTURE_PR_REPOSITORY"] + "/pull/1"}
+PY
+cat > "$RUNNER_TEMP/versions/v0.0.8/evidence_map.py" <<'PY'
+import os
+import sys
+from pathlib import Path
+
+assert sys.argv[-1] == "--check"
+Path(os.environ["ARCHIVE_CHECK_MARKER"]).touch()
+PY
+export ARCHIVE_CHECK_MARKER="$root/checked"
+export GITHUB_REPOSITORY=example/graphify
+printf '{"source_commit":"%s","repository":"example/graphify","pull_request":{}}\n' "$source" > "$checkout/$EVIDENCE_PATH/manifest.json"
+FIXTURE_PR_REPOSITORY=example/unrelated must_fail check
+grep -q 'PR belongs to a different repository' "$root/stderr"
+[[ ! -e "$ARCHIVE_CHECK_MARKER" ]]
+FIXTURE_PR_REPOSITORY=example/graphify step check > "$root/repository-check"
+[[ -f "$ARCHIVE_CHECK_MARKER" && "$(hashes)" == "$before" ]]
+echo 'PASS GHQ-SH-031 rejects an unrelated PR repository before archive checking'

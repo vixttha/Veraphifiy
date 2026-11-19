@@ -50,7 +50,7 @@ function New-Fixture([string]$Name, [switch]$Shared, [int]$SchemaVersion = 2) {
     $paths
 }
 
-function Write-FixtureReceipt([hashtable]$Fixture, [string]$Check) {
+function Write-FixtureReceipt([hashtable]$Fixture, [string]$Check, [hashtable]$Override = @{}) {
     $path = Join-Path $Fixture.Receipts "$Check.json"
     $receipt = @{
         schema_version = $Fixture.SchemaVersion
@@ -66,6 +66,7 @@ function Write-FixtureReceipt([hashtable]$Fixture, [string]$Check) {
     if ($Fixture.SchemaVersion -eq 2) {
         $receipt.case_plan_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $Fixture.CaseFile).Hash.ToLowerInvariant()
     }
+    foreach ($name in $Override.Keys) { $receipt[$name] = $Override[$name] }
     Write-JsonFile $path $receipt
 }
 
@@ -234,6 +235,84 @@ try {
         $result = Invoke-Verifier $fixture
         Assert-Verdict $result 0 '**Overall: PASS**'
         Assert-Verdict $result 0 'Legacy receipt v1'
+    }
+
+
+
+    Test-Case 'GHQ-PS-012 rejects evidence from a different run or attempt' {
+        $fixture = New-Fixture 'run and attempt'
+        Write-FixtureReceipt $fixture 'read'
+        foreach ($field in @('run_id', 'attempt')) {
+            Write-FixtureReceipt $fixture 'build' @{ $field = '91' }
+            Assert-Verdict (Invoke-Verifier $fixture) 1 "$field does not match"
+        }
+        Write-FixtureReceipt $fixture 'build'
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-016 rejects duplicate receipts with different filenames' {
+        $fixture = New-Fixture 'duplicate record'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $extra = Join-Path $fixture.Receipts 'other.json'
+        Copy-Item -LiteralPath (Join-Path $fixture.Receipts 'build.json') -Destination $extra
+        Assert-Verdict (Invoke-Verifier $fixture) 1 '| build | DUPLICATE |'
+        Remove-Item -LiteralPath $extra
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-017 rejects valid nonpassing receipt statuses' {
+        $fixture = New-Fixture 'nonpassing receipt'
+        Write-FixtureReceipt $fixture 'read'
+        foreach ($outcome in @('skip', 'blocked', 'fail')) {
+            Write-FixtureReceipt $fixture 'build' @{ status = $outcome }
+            Assert-Verdict (Invoke-Verifier $fixture) 1 "**Overall: FAIL**"
+            Assert-Verdict (Invoke-Verifier $fixture) 1 "| build | $($outcome.ToUpperInvariant()) |"
+        }
+    }
+
+    Test-Case 'GHQ-PS-024 rejects mixed v1 and v2 receipts in a v2 case' {
+        $fixture = New-Fixture 'mixed versions'
+        Write-FixtureReceipt $fixture 'read'
+        $fixture.SchemaVersion = 1
+        Write-FixtureReceipt $fixture 'build'
+        Assert-Verdict (Invoke-Verifier $fixture) 1 '| build | INVALID |'
+        $fixture.SchemaVersion = 2
+        Write-FixtureReceipt $fixture 'build'
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-025 rejects noncanonical execution identity strings' {
+        $fixture = New-Fixture 'noncanonical run metadata'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        foreach ($invalid in @('0', '01', 'text')) {
+            Assert-Verdict (Invoke-Verifier $fixture -NoFlags -EnvironmentRun $invalid -EnvironmentAttempt $attempt) 1 'run ID and attempt must be positive'
+            Assert-Verdict (Invoke-Verifier $fixture -NoFlags -EnvironmentRun $runId -EnvironmentAttempt $invalid) 1 'run ID and attempt must be positive'
+        }
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-026 rejects a complete but undeclared check receipt' {
+        $fixture = New-Fixture 'undeclared record'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        Write-FixtureReceipt $fixture 'other'
+        Assert-Verdict (Invoke-Verifier $fixture) 1 'Found an undeclared check receipt.'
+        Remove-Item -LiteralPath (Join-Path $fixture.Receipts 'other.json')
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-027 rejects a partially written receipt without losing the prior check' {
+        $fixture = New-Fixture 'partial receipt'
+        Write-FixtureReceipt $fixture 'build'
+        $build = Join-Path $fixture.Receipts 'build.json'
+        $digest = (Get-FileHash -LiteralPath $build).Hash
+        Set-Content -LiteralPath (Join-Path $fixture.Receipts 'read.json') -Value '{"case_id":'
+        Assert-Verdict (Invoke-Verifier $fixture) 1 'Found an unreadable or invalid receipt.'
+        if ((Get-FileHash -LiteralPath $build).Hash -ne $digest) { throw 'Previous evidence changed.' }
+        Write-FixtureReceipt $fixture 'read'
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
     }
 
     Test-Case 'GHQ-PS-011 rejects tracked checkout changes before accepting receipts' {
