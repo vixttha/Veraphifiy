@@ -138,16 +138,16 @@ class BuilderTests(unittest.TestCase):
         first = self.root / "first evidence"
         second = self.root / "second evidence"
 
-        def call(command, version, *extra, project_id=project):
+        def call(command, version, *extra, project_id=project, archive_dir=archive):
             return subprocess.run(
-                ["node", str(cli), command, "--archive", str(archive),
+                ["node", str(cli), command, "--archive", str(archive_dir),
                  "--project", project_id, "--version", version, *extra],
                 cwd=self.root, capture_output=True, text=True, timeout=30,
             )
 
-        def import_version(version, source, output, project_id=project):
+        def import_version(version, source, output, project_id=project, archive_dir=archive):
             return call("import", version, "--source", source, "--checkout", str(self.repo),
-                        "--evidence", str(output), project_id=project_id)
+                        "--evidence", str(output), project_id=project_id, archive_dir=archive_dir)
 
         def result(command, version, *extra):
             run = call(command, version, *extra)
@@ -156,10 +156,38 @@ class BuilderTests(unittest.TestCase):
 
         first_source = self.source
         self.succeeds(self.invoke(first))
-        self.succeeds(import_version("v1.0.0", first_source, first))
-        self.succeeds(import_version("v1.0.0", first_source, first))
+        imported_first = import_version("v1.0.0", first_source, first)
+        self.succeeds(imported_first)
+        repeated = import_version("v1.0.0", first_source, first)
+        self.succeeds(repeated)
+        self.assertEqual(json.loads(repeated.stdout), json.loads(imported_first.stdout))
         old_entry = next(archive.glob("*.json"))
         old_bytes = old_entry.read_bytes()
+        first_digest = hashlib.sha256(old_bytes).hexdigest()
+        self.assertEqual(json.loads(imported_first.stdout)["archive_sha256"], first_digest)
+
+        # Two distinct version labels may legitimately point to the same source commit.
+        shared_archive = self.root / "shared source versions"
+        for version in ("v1.0.0", "v1.0.1"):
+            self.succeeds(import_version(version, first_source, first, archive_dir=shared_archive))
+        shared = {read_json(path)["version"]: path for path in shared_archive.glob("*.json")}
+        archived = call("verify", "v1.0.1", "--source", first_source, archive_dir=shared_archive)
+        self.succeeds(archived)
+        self.assertNotEqual(json.loads(archived.stdout)["archive_sha256"], first_digest)
+        shared["v1.0.1"].write_bytes(shared["v1.0.0"].read_bytes())
+        swapped = call("verify", "v1.0.1", "--source", first_source, archive_dir=shared_archive)
+        self.assertNotEqual(swapped.returncode, 0)
+        self.assertIn("does not match the selected project and version", swapped.stderr)
+
+        companion = "example/companion-fixture"
+        companion_export = self.root / "companion evidence"
+        self.succeeds(self.invoke(companion_export, manifest=dict(self.manifest, repository=companion)))
+        self.succeeds(import_version("v1.0.0", first_source, companion_export, project_id=companion,
+                                     archive_dir=shared_archive))
+        distinct_project = call("verify", "v1.0.0", "--source", first_source, project_id=companion,
+                                archive_dir=shared_archive)
+        self.succeeds(distinct_project)
+        self.assertEqual(json.loads(distinct_project.stdout)["project"], companion)
 
         self.write("src/feature.py", b"# implementation\n# second version\ndef export():\n    return 'ready-v2'\n")
         self.write("test_sample.py", b"# v2 behavior\ndef test_export():\n    assert True\n")
@@ -172,13 +200,20 @@ class BuilderTests(unittest.TestCase):
             for feature in self.manifest["features"]
         ])
         self.succeeds(self.invoke(second, manifest=newer_manifest))
-        self.succeeds(import_version("v1.1.0", second_source, second))
+        imported_second = import_version("v1.1.0", second_source, second)
+        self.succeeds(imported_second)
+        second_digest = json.loads(imported_second.stdout)["archive_sha256"]
 
-        for version, source, line in (("v1.0.0", first_source, 3), ("v1.1.0", second_source, 4)):
-            looked_up = result("lookup", version, "--source", source, "--feature", FEATURE)
+        for version, source, line, digest in (
+            ("v1.0.0", first_source, 3, first_digest), ("v1.1.0", second_source, 4, second_digest),
+        ):
+            looked_up = result("lookup", version, "--source", source, "--archive-sha256", digest,
+                               "--feature", FEATURE)
             self.assertEqual((looked_up["project"], looked_up["version"], looked_up["source"]),
                              (project, version, source))
             self.assertEqual(looked_up["citations"], [{"path": "src/feature.py", "line": line}])
+            self.assertEqual(looked_up["archive_sha256"], digest)
+            self.assertEqual((looked_up["veraphifiy_version"], looked_up["format"]), ("v0.0.9", 1))
             self.assertEqual(result("verify", version)["graph_sha256"], looked_up["graph_sha256"])
 
         missing = call("verify", "v1.2.0")
@@ -195,6 +230,22 @@ class BuilderTests(unittest.TestCase):
         self.assertIn("cannot be replaced", replace.stderr)
         self.assertEqual(old_entry.read_bytes(), old_bytes)
 
+        old_entry.write_bytes(old_bytes + b"\n")
+        self.succeeds(call("verify", "v1.0.0", "--source", first_source))
+        changed_pin = call("verify", "v1.0.0", "--source", first_source, "--archive-sha256", first_digest)
+        self.assertNotEqual(changed_pin.returncode, 0)
+        self.assertIn("Archive SHA-256 mismatch", changed_pin.stderr)
+        old_entry.write_bytes(old_bytes)
+
+        regular_file = old_entry.with_suffix(".saved")
+        old_entry.rename(regular_file)
+        old_entry.symlink_to(regular_file)
+        link_entry = call("verify", "v1.0.0", "--source", first_source)
+        self.assertNotEqual(link_entry.returncode, 0)
+        self.assertIn("Archive entry must be a regular file", link_entry.stderr)
+        old_entry.unlink()
+        regular_file.rename(old_entry)
+
         damaged = read_json(old_entry)
         damaged["receipt_sha256"] = "0" * 64
         old_entry.write_text(json.dumps(damaged), encoding="utf-8")
@@ -207,10 +258,27 @@ class BuilderTests(unittest.TestCase):
             "project": project,
             "feature": FEATURE,
             "versions": [
-                {"version": "v1.0.0", "source": first_source, "line": 3},
-                {"version": "v1.1.0", "source": second_source, "line": 4},
+                {"version": "v1.0.0", "source": first_source, "line": 3, "archive_sha256": first_digest},
+                {"version": "v1.1.0", "source": second_source, "line": 4, "archive_sha256": second_digest},
             ],
         }) + "\n", encoding="utf-8")
+
+        replay = cli.parent / "test-vault/javascript/verify-archive-replay.mjs"
+        fixture = self.root / "replay context"
+        fixture.mkdir()
+        env_context = {
+            "GITHUB_SHA": first_source, "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/example",
+            "GITHUB_WORKFLOW_REF": "example/project/.github/workflows/test.yml@refs/heads/example",
+            "GITHUB_WORKFLOW_SHA": first_source, "GITHUB_RUN_ID": "12", "GITHUB_RUN_ATTEMPT": "2",
+        }
+        context = {key.lower(): value for key, value in env_context.items() if key != "GITHUB_SHA"}
+        context.update(checkout_sha=first_source, github_run_attempt="1")
+        (fixture / "evidence-context.json").write_text(json.dumps(context), encoding="utf-8")
+        wrong_attempt = subprocess.run(["node", str(replay), str(fixture), "--actions"],
+                                       capture_output=True, text=True, timeout=15,
+                                       env=dict(os.environ, **env_context))
+        self.assertNotEqual(wrong_attempt.returncode, 0)
+        self.assertIn("Archive handoff context mismatch: github_run_attempt", wrong_attempt.stderr)
 
     def test_GHQ_PY_002_rebuilds_identical_graph_and_receipt(self):
         first, second = self.root / "first", self.root / "second"

@@ -1,16 +1,18 @@
 import { execFileSync } from "node:child_process";
-import { linkSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { linkSync, lstatSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import {
-  GRAPH_BYTES, PINNED_PRODUCER, RECEIPT_BYTES, implementationLocation, inspectEvidenceBytes,
+  GRAPH_BYTES, PINNED_PRODUCER, RECEIPT_BYTES, implementationLocations, inspectEvidenceBytes,
   parseEvidenceObject, readBytes, repositoryPath, sha256,
 } from "./test-vault/javascript/inspect-evidence.mjs";
 
 const ARCHIVE_FORMAT = 1;
+const TOOL_VERSION = "v0.0.9";
 const SOURCE_BYTES = 8 * 1024 * 1024;
 const ENTRY_BYTES = 40 * 1024 * 1024;
 const COMMIT = /^[a-f0-9]{40}$/;
+const DIGEST = /^[a-f0-9]{64}$/;
 const PROJECT = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/;
 const VERSION = /^v(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*)){2,3}$/;
 
@@ -22,6 +24,11 @@ function requireIdentity(project, version) {
 
 function entryPath(archive, project, version) {
   return join(archive, sha256(JSON.stringify([project.toLowerCase(), version])) + ".json");
+}
+
+function readArchiveFile(path) {
+  if (!lstatSync(path).isFile()) throw new Error("Archive entry must be a regular file");
+  return readBytes(path, ENTRY_BYTES);
 }
 
 function git(checkout, args, maxBuffer = 32 * 1024) {
@@ -94,7 +101,8 @@ function verifyEntry(entry, project, version) {
     repository: project, producerVersion: PINNED_PRODUCER, sourceBlobs,
   });
   return { evidence, summary: {
-    project, version, source: entry.source, format: ARCHIVE_FORMAT, producer: PINNED_PRODUCER,
+    project, version, source: entry.source, format: ARCHIVE_FORMAT,
+    veraphifiy_version: TOOL_VERSION, producer: PINNED_PRODUCER,
     graph_sha256: evidence.digest, receipt_sha256: entry.receipt_sha256,
   } };
 }
@@ -126,50 +134,58 @@ function importVersion(options) {
       linkSync(staged, destination);
     } catch (error) {
       if (error.code !== "EEXIST") throw error;
-      if (!readBytes(destination, ENTRY_BYTES).equals(bytes)) {
+      if (!readArchiveFile(destination).equals(bytes)) {
         throw new Error("An existing project version cannot be replaced");
       }
     }
   } finally {
     rmSync(staging, { recursive: true, force: true });
   }
-  return summary;
+  return { ...summary, archive_sha256: sha256(bytes) };
 }
 
-function readVersion(command, { archive, project, version, feature, source }) {
+function readVersion(command, { archive, project, version, feature, source, "archive-sha256": expectedDigest }) {
+  if (source !== undefined && !COMMIT.test(source)) throw new Error("Expected source must be a full commit SHA");
+  if (expectedDigest !== undefined && !DIGEST.test(expectedDigest)) {
+    throw new Error("Expected archive digest must be a lowercase SHA-256");
+  }
   let bytes;
   try {
-    bytes = readBytes(entryPath(archive, project, version), ENTRY_BYTES);
+    bytes = readArchiveFile(entryPath(archive, project, version));
   } catch (error) {
     if (error.code === "ENOENT") throw new Error("Project version is not archived");
     throw error;
   }
+  const digest = sha256(bytes);
+  if (expectedDigest !== undefined && digest !== expectedDigest) throw new Error("Archive SHA-256 mismatch");
   const { evidence, summary } = verifyEntry(parseEvidenceObject(bytes, "archive entry"), project, version);
   if (source !== undefined && summary.source !== source) throw new Error("Archive source commit mismatch");
-  if (command === "verify") return summary;
+  const result = { ...summary, archive_sha256: digest };
+  if (command === "verify") return result;
   if (!feature?.startsWith("feature:") || !evidence.nodes.has(feature)) {
     throw new Error("Feature is not present in the selected version");
   }
-  const citations = evidence.links.filter(edge => edge.source === feature && edge.relation === "implemented_in")
-    .map(edge => implementationLocation(evidence, feature, edge.target));
-  return { ...summary, feature, citations };
+  return { ...result, feature, citations: implementationLocations(evidence, feature) };
 }
 
 const usage = "Usage: node veraphifiy.mjs <import|verify|lookup> --archive DIR --project OWNER/REPO --version vX.Y.Z\n"
   + "  import requires --source SHA --checkout DIR --evidence DIR\n"
-  + "  verify accepts --source SHA to check an independently known pin\n"
-  + "  lookup requires --feature feature:ID and accepts --source SHA";
+  + "  lookup requires --feature feature:ID\n"
+  + "  verify and lookup accept --source SHA and --archive-sha256 HASH to check independently recorded pins";
 
 try {
   const [command, ...args] = process.argv.slice(2);
   if (command === "--help") {
     console.log(usage);
+  } else if (command === "--version") {
+    console.log(TOOL_VERSION);
   } else {
     if (!["import", "verify", "lookup"].includes(command)) throw new Error(usage);
     const validOptions = {
       archive: { type: "string" }, project: { type: "string" }, version: { type: "string" },
       source: { type: "string" },
       ...(command === "import" ? { checkout: { type: "string" }, evidence: { type: "string" } } : {}),
+      ...(command !== "import" ? { "archive-sha256": { type: "string" } } : {}),
       ...(command === "lookup" ? { feature: { type: "string" } } : {}),
     };
     const { values } = parseArgs({ args, options: validOptions });

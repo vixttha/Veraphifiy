@@ -223,7 +223,7 @@ jobs:
           }
           python -B test-vault/verify_receipts.py --require-tracked-case --case test-vault/javascript/case.json --receipts (Join-Path $handoff 'receipts') --evidence (Join-Path $handoff 'evidence.bin')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node test-vault/javascript/verify-archive-replay.mjs $handoff
+          node test-vault/javascript/verify-archive-replay.mjs $handoff --actions
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $result = 'PASS GHQ-PS-015 reverifies the Ubuntu handoff on Windows'
           Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'ps.log') -Value $result
@@ -261,4 +261,4 @@ jobs:
         shell: bash
         env:
           HANDOFF: ${{ runner.temp }}/linux-handoff
-        run: node test-vault/javascript/verify-archive-replay.mjs "$HANDOFF"
+        run: node test-vault/javascript/verify-archive-replay.mjs "$HANDOFF" --actions

@@ -115,7 +115,8 @@ The Linux producer exports a disposable two-version repository and uses the
 supported entry point to import both revisions. Windows and a clean Ubuntu job
 download the same artifact ID and independently replay both versions. The exact
 tracked case plan is retained with the graph and receipts, and Windows checks it
-against its checkout. The evidence context records the event, tested checkout,
-workflow reference and run attempt. Candidate PR results are review evidence.
+against its checkout. Both replay jobs verify the expected archive SHA-256 for
+each version and compare the handoff's event, checkout, workflow and run attempt
+with their GitHub Actions context. Candidate PR results are review evidence.
 Release acceptance uses the approved exact revision and the corresponding public
 runner results documented in the release tracker.

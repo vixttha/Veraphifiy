@@ -14,7 +14,10 @@ CHECKS = {"python-build": "python", "node-consume": "node"}
 
 
 def read_part(path, maximum, remaining=None):
-    with path.open("rb") as stream:
+    if not stat.S_ISREG(path.stat().st_mode):
+        raise ValueError(f"{path.name} is not a regular file")
+    flags = os.O_RDONLY | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_BINARY", 0)
+    with os.fdopen(os.open(path, flags), "rb") as stream:
         details = os.fstat(stream.fileno())
         size = details.st_size
         if not stat.S_ISREG(details.st_mode) or size > maximum:

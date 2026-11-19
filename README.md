@@ -26,6 +26,6 @@ node veraphifiy.mjs lookup --archive ./archive --project owner/repo --version v1
   --feature feature:export
 ```
 
-The project name must match the receipt. Each archive entry preserves the graph, receipt and verified source blobs. Importing identical evidence is repeatable. An existing version can only be read or replayed. To check against a separately known commit, include `--source` when reading an archive.
+The project name must match the receipt. Each archive entry preserves the graph, receipt and verified source blobs. Importing identical evidence is repeatable. An existing version can only be read or replayed. Record `source` and `archive_sha256` from a trusted import separately from the archive. To verify the exact approved entry, pass those values to `verify` or `lookup` as `--source` and `--archive-sha256`. The summary distinguishes the archived project version, archive format, Veraphifiy version and pinned producer version.
 
 Keep archives that contain private source on private storage. The public Test Vault uploads only disposable fixture archives. [Test Vault](test-vault/README.md) · [v0.0.9 tracker](https://github.com/vixttha/Veraphifiy/issues/21)

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
+import { closeSync, constants, fstatSync, openSync, readFileSync, readSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const profile = JSON.parse(readFileSync(new URL("../handoff-profile.json", import.meta.url), "utf8"));
@@ -37,7 +37,8 @@ function rejectDuplicateKeys(text, filename) {
 
 export function readBytes(path, maxBytes, remaining = Infinity) {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error("Invalid artifact byte budget");
-  const fd = openSync(path, "r");
+  if (!statSync(path).isFile()) throw new Error("Artifact is not a regular file");
+  const fd = openSync(path, constants.O_RDONLY | (constants.O_NONBLOCK ?? 0));
   try {
     const stat = fstatSync(fd);
     if (!stat.isFile() || stat.size > maxBytes) throw new Error("Artifact exceeds byte budget or is not a regular file");
@@ -297,6 +298,11 @@ export function implementationLocation({ nodes, links }, feature, target) {
   const edge = links.find((link) => link.source === feature && link.target === target &&
     link.relation === "implemented_in");
   return matchedLocation(edge, nodes.get(target));
+}
+
+export function implementationLocations({ nodes, links }, feature) {
+  return links.filter(link => link.source === feature && link.relation === "implemented_in")
+    .map(link => matchedLocation(link, nodes.get(link.target)));
 }
 
 function matchedLocation(edge, node) {
