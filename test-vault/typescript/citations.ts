@@ -46,6 +46,13 @@ function validLocation(value: unknown): value is string | null {
   return value === null || typeof value === "string";
 }
 
+function indexEvidence(graph: EvidenceGraph): Map<string, EvidenceGraph["nodes"][number]> | null {
+  const nodes = new Map(graph.nodes.map((node) => [node.id, node]));
+  if (nodes.size !== graph.nodes.length) return null;
+  const edges = new Set(graph.links.map((edge) => JSON.stringify([edge.source, edge.relation, edge.target])));
+  return edges.size === graph.links.length ? nodes : null;
+}
+
 export function decodeEvidenceGraph(value: unknown): EvidenceGraph | null {
   if (!record(value) || !validPin(value.built_at_commit) ||
       !Array.isArray(value.nodes) || !Array.isArray(value.links)) return null;
@@ -56,7 +63,8 @@ export function decodeEvidenceGraph(value: unknown): EvidenceGraph | null {
       typeof edge.source === "string" && typeof edge.target === "string" &&
       typeof edge.relation === "string" && typeof edge.source_file === "string" &&
       validLocation(edge.source_location))) return null;
-  return { built_at_commit: value.built_at_commit, nodes: value.nodes, links: value.links };
+  const graph = { built_at_commit: value.built_at_commit, nodes: value.nodes, links: value.links };
+  return indexEvidence(graph) ? graph : null;
 }
 
 export function selectCitation(result: ImplementationLookup, index: number): Citation | undefined {
@@ -69,8 +77,8 @@ export function findImplementation(graph: EvidenceGraph, feature: string, expect
   if (expectedSource !== undefined && graph.built_at_commit !== expectedSource) {
     return { status: "stale-source", sourceCommit: graph.built_at_commit };
   }
-  const nodes = new Map(graph.nodes.map((node) => [node.id, node]));
-  if (nodes.size !== graph.nodes.length) return { status: "invalid-citation" };
+  const nodes = indexEvidence(graph);
+  if (!nodes) return { status: "invalid-citation" };
   if (!feature.startsWith("feature:") || !nodes.has(feature)) {
     return { status: "feature-not-found" };
   }

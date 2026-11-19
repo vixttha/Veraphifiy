@@ -94,3 +94,28 @@ Use this Vault for the reusable kit's map generation, Graphify MCP readback, arc
 The executable catalog accounts for 114 of the 320 proposals. The original proposals remain visible in the language plan. The remaining 47 active-lane cases include additional fixture work, pinned upstream behavior, and hosted deployment checks. The 159 adopter cases depend on the project integrations described in their individual plan rows. [Implementation tracker](https://github.com/vixttha/Veraphifiy/issues/15)
 
 The Go protocol checks use the pinned SDK and an isolated stdio subprocess when the frozen Graphify server cannot produce a particular protocol response. Server lifecycle, checkout freshness, and simultaneous archive identity are also exercised against the real pinned Graphify runtime. The Node source-blob check reads exact Git bytes from the disposable builder fixture. The Bash wheel checks use an isolated local wheelhouse and the real pinned install step. The PowerShell verifier considers lowercase `.json` receipt files on both hosts and uses literal paths for native logs.
+
+## Veraphifiy candidate and historical identifiers
+
+The workflow uses the Veraphifiy display name. The current Vault branch remains
+`graphify-hq-test-vault`, and `work/veraphifiy-v0.0.9` is the draft product branch.
+The `GRAPHIFY_HQ_*` fixture inputs, `GHQ-*` case IDs, current artifact naming prefix,
+original case-plan bytes and archived receipt identities are compatibility contracts.
+New product commands use the Veraphifiy name. The pinned Graphify producer version
+is recorded separately from the Veraphifiy release and each archived project version.
+
+A delivery checkpoint identifies `vixttha/Veraphifiy`, its owning issue and the
+reviewed commit when it exists. For example, [`v0.0.8.3` belongs to #22](https://github.com/vixttha/Veraphifiy/issues/22)
+and [`v0.0.8.5` belongs to #17](https://github.com/vixttha/Veraphifiy/issues/17).
+Use the [first-party release tracker](https://github.com/vixttha/Veraphifiy/issues/21)
+to resolve these labels. An application's archived version is selected with the
+application repository and its version, as shown in the [candidate README](../README.md).
+
+The Linux producer exports a disposable two-version repository and uses the
+supported entry point to import both revisions. Windows and a clean Ubuntu job
+download the same artifact ID and independently replay both versions. The exact
+tracked case plan is retained with the graph and receipts, and Windows checks it
+against its checkout. The evidence context records the event, tested checkout,
+workflow reference and run attempt. Candidate PR results are review evidence.
+Release acceptance uses the approved exact revision and the corresponding public
+runner results documented in the release tracker.

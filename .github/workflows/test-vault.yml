@@ -100,6 +100,24 @@ jobs:
           python -B test-vault/evidence_bundle.py "$GRAPHIFY_HQ_HANDOFF"
           python -B test-vault/verify_receipts.py --require-tracked-case --case test-vault/javascript/case.json \
             --receipts "$receipts" --evidence "$GRAPHIFY_HQ_HANDOFF/evidence.bin" | tee "$GRAPHIFY_HQ_HANDOFF/verdict.md"
+      - name: Retain the exact plan and evidence context
+        run: |
+          cp test-vault/javascript/case.json "$GRAPHIFY_HQ_HANDOFF/case-plan.json"
+          python -B - <<'PYCODE'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          context = {key.lower(): os.environ[key] for key in (
+              "GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_EVENT_NAME", "GITHUB_REF",
+              "GITHUB_WORKFLOW_REF", "GITHUB_WORKFLOW_SHA",
+          )}
+          context["checkout_sha"] = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          (Path(os.environ["GRAPHIFY_HQ_HANDOFF"]) / "evidence-context.json").write_text(
+              json.dumps(context, indent=2) + "\n", encoding="utf-8",
+          )
+          PYCODE
       - name: Record the public handoff attempt
         id: handoff-context
         run: printf 'attempt=%s\n' "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
@@ -123,6 +141,8 @@ jobs:
             ${{ env.GRAPHIFY_HQ_HANDOFF }}/receipts/node-consume.json
             ${{ env.GRAPHIFY_HQ_HANDOFF }}/evidence.bin
             ${{ env.GRAPHIFY_HQ_HANDOFF }}/verdict.md
+            ${{ env.GRAPHIFY_HQ_HANDOFF }}/case-plan.json
+            ${{ env.GRAPHIFY_HQ_HANDOFF }}/evidence-context.json
             ${{ env.GRAPHIFY_HQ_HANDOFF }}/veraphifiy-archive/*.json
             ${{ env.GRAPHIFY_HQ_HANDOFF }}/veraphifiy-archive-expectations.json
           if-no-files-found: error
@@ -189,6 +209,11 @@ jobs:
           }
           finally {
             [IO.File]::WriteAllBytes($source, $original)
+          }
+          $uploadedPlan = Get-FileHash -LiteralPath (Join-Path $handoff 'case-plan.json') -Algorithm SHA256
+          $trackedPlan = Get-FileHash -LiteralPath 'test-vault/javascript/case.json' -Algorithm SHA256
+          if ($uploadedPlan.Hash -ne $trackedPlan.Hash) {
+            throw 'Uploaded case plan does not match the exact tracked case plan'
           }
           python -B test-vault/verify_receipts.py --require-tracked-case --case test-vault/javascript/case.json --receipts (Join-Path $handoff 'receipts') --evidence (Join-Path $handoff 'evidence.bin')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -289,6 +289,25 @@ class CaseRunTests(unittest.TestCase):
             valid = self.invoke_recorder(recorder, handoff, receipts, "1", "python-build")
             self.assertEqual(valid.returncode, 0, valid.stderr)
 
+    def test_GHQ_PY_060_rejects_an_executable_case_outside_the_supported_namespaces(self):
+        with tempfile.TemporaryDirectory() as directory:
+            vault = Path(directory)
+            actual_vault = Path(__file__).resolve().parents[1]
+            for name in ("verify_case_run.py", "validate_catalog.py", "cases.md"):
+                shutil.copyfile(actual_vault / name, vault / name)
+            catalog = vault / "cases.md"
+            original = catalog.read_text(encoding="utf-8")
+            for foreign_id in ("ALT-PY-001", "GHQ-JAVA-001", "GHQ-PY-SUB-001"):
+                with self.subTest(case=foreign_id):
+                    catalog.write_text(original + f"| {foreign_id} | Fixture | P1 | Invoke | Pass |\n", encoding="utf-8")
+                    self.assertIn(foreign_id, read_cases(catalog)[0])
+                    result = subprocess.run(
+                        [sys.executable, "-B", str(vault / "verify_case_run.py"), "linux", str(vault)],
+                        capture_output=True, text=True, timeout=10,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(f"catalog case has no supported runner: {foreign_id}", result.stderr)
+
     def test_GHQ_PY_041_rejects_malformed_environment_on_specific_receipts(self):
         with tempfile.TemporaryDirectory() as directory:
             recorder, handoff, receipts = self.handoff_fixture(Path(directory))

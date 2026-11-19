@@ -126,6 +126,16 @@ def require_complete_tap(log):
         raise ValueError("native TAP summary totals do not reconcile")
 
 
+def catalog_lanes(cases):
+    lanes = defaultdict(set)
+    for case in sorted(cases):
+        match = re.fullmatch(r"GHQ-([A-Z]+)-\d{3,}", case)
+        if not match or match[1] not in LINUX | WINDOWS:
+            raise ValueError(f"catalog case has no supported runner: {case}")
+        lanes[match[1]].add(case)
+    return lanes
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("platform", choices=("linux", "windows"))
@@ -134,11 +144,10 @@ def main():
     try:
         catalog, _ = read_cases(VAULT / "cases.md")
         kinds = WINDOWS if args.platform == "windows" else LINUX
-        if any(case.split("-")[1] not in LINUX | WINDOWS for case in catalog):
-            raise ValueError("catalog has a case with no runner")
+        lanes = catalog_lanes(catalog)
         failures = []
         for kind in sorted(kinds):
-            expected = {case for case in catalog if case.startswith("GHQ-" + kind + "-")}
+            expected = lanes[kind]
             failed_cases = set()
             try:
                 log = (args.logs / (kind.lower() + ".log")).read_text(encoding="utf-8")

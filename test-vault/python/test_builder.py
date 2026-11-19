@@ -131,7 +131,7 @@ class BuilderTests(unittest.TestCase):
         write_observation(output, "python")
         shutil.copytree(output, HANDOFF)
 
-    def test_GHQ_PY_060_archives_and_replays_two_pinned_versions(self):
+    def test_GHQ_PY_100_archives_and_replays_two_pinned_versions(self):
         cli = Path(__file__).resolve().parents[2] / "veraphifiy.mjs"
         project = self.manifest["repository"]
         archive = self.root / "Veraphifiy archive"
@@ -161,12 +161,16 @@ class BuilderTests(unittest.TestCase):
         old_entry = next(archive.glob("*.json"))
         old_bytes = old_entry.read_bytes()
 
-        self.write("src/feature.py", b"# implementation\n# second version\ndef export():\n    return 'ready'\n")
-        self.git("add", "src/feature.py")
+        self.write("src/feature.py", b"# implementation\n# second version\ndef export():\n    return 'ready-v2'\n")
+        self.write("test_sample.py", b"# v2 behavior\ndef test_export():\n    assert True\n")
+        self.git("add", "src/feature.py", "test_sample.py")
         self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
                  "-c", "commit.gpgsign=false", "commit", "-qm", "Change the second fixture version")
         second_source = self.git("rev-parse", "HEAD").strip()
-        newer_manifest = dict(self.manifest, source_commit=second_source)
+        newer_manifest = dict(self.manifest, source_commit=second_source, features=[
+            dict(feature, implemented_in=[{"path": "src/feature.py", "anchor": "return 'ready-v2'"}])
+            for feature in self.manifest["features"]
+        ])
         self.succeeds(self.invoke(second, manifest=newer_manifest))
         self.succeeds(import_version("v1.1.0", second_source, second))
 
