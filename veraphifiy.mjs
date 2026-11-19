@@ -3,11 +3,10 @@ import { linkSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import {
-  GRAPH_BYTES, RECEIPT_BYTES, implementationLocation, inspectEvidenceBytes,
+  GRAPH_BYTES, PINNED_PRODUCER, RECEIPT_BYTES, implementationLocation, inspectEvidenceBytes,
   parseEvidenceObject, readBytes, repositoryPath, sha256,
 } from "./test-vault/javascript/inspect-evidence.mjs";
 
-const PINNED_PRODUCER = "0.9.109";
 const ARCHIVE_FORMAT = 1;
 const SOURCE_BYTES = 8 * 1024 * 1024;
 const ENTRY_BYTES = 40 * 1024 * 1024;
@@ -43,7 +42,7 @@ function readGitBlobs(checkout, commit, receipt) {
   let total = 0;
   for (const path of Object.keys(manifest).sort()) {
     if (!repositoryPath(path)) throw new Error("Invalid source path: " + path);
-    const listing = git(checkout, ["ls-tree", "-z", "--full-tree", commit, "--", ":(literal)" + path]);
+    const listing = git(checkout, ["ls-tree", "-r", "-z", "--full-tree", commit, "--", ":(literal)" + path]);
     const match = /^(100644|100755) blob ([a-f0-9]{40})\t([^\0]+)\0$/.exec(listing.toString("utf8"));
     if (!match || match[3] !== path) throw new Error("Not an ordinary committed source file: " + path);
     const size = Number(git(checkout, ["cat-file", "-s", match[2]]).toString().trim());
