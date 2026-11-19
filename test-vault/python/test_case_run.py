@@ -12,7 +12,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from evidence_bundle import PROFILE, encode_bundle, write_observation
 from validate_catalog import HEADER, read_cases
-from verify_case_run import passed_cases, require_cases, require_complete_tap, typed_passes
+from verify_case_run import (
+    passed_cases, require_cases, require_complete_tap, require_complete_unittest, typed_passes,
+)
 
 
 class CaseRunTests(unittest.TestCase):
@@ -265,6 +267,46 @@ class CaseRunTests(unittest.TestCase):
                             require_complete_tap(result.stdout.split("# tests", 1)[0])
                         with self.assertRaisesRegex(ValueError, "plan does not match"):
                             require_complete_tap(result.stdout.replace("1..2\n", "1..3\n"))
+
+    def test_GHQ_PY_104_requires_complete_native_unittest_output(self):
+        fixture = """
+import unittest
+
+class Fixture(unittest.TestCase):
+    def test_GHQ_PY_001_control(self):
+        pass
+
+    def test_ordinary_assertion(self):
+        OUTCOME
+
+    @unittest.skip("optional fixture")
+    def test_optional_assertion(self):
+        pass
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+"""
+        command = [sys.executable, "-B", "-"]
+        for outcome in ("pass", "self.fail('ordinary assertion')"):
+            with self.subTest(outcome=outcome):
+                native = subprocess.run(command, input=fixture.replace("OUTCOME", outcome),
+                                        capture_output=True, text=True, timeout=15)
+                self.assertEqual(native.returncode, int(outcome != "pass"), native.stderr)
+                log = native.stderr
+                require_cases({"GHQ-PY-001"}, passed_cases("PY", log))
+                if outcome != "pass":
+                    with self.assertRaisesRegex(ValueError, "native unittest suite failed"):
+                        require_complete_unittest(log)
+                else:
+                    require_complete_unittest(log)
+                    for incomplete, error in (
+                        (log.split("Ran ", 1)[0], "unittest summary"),
+                        (log.split("OK (", 1)[0], "unittest verdict"),
+                        (log.replace("Ran 3 tests", "Ran 4 tests"), "does not match"),
+                        (log + log, "unittest summary"),
+                    ):
+                        with self.assertRaisesRegex(ValueError, error):
+                            require_complete_unittest(incomplete)
 
     def test_GHQ_PY_058_keeps_only_visible_well_formed_case_tables(self):
         heading = "| " + " | ".join(HEADER) + " |\n"
