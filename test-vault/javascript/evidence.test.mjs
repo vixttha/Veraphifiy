@@ -226,15 +226,22 @@ test("GHQ-JS-022 matches each inventory anchor with its actual file", (t) => {
   assert.throws(() => inspectEvidence(dir, source), /Invalid located_in evidence edge/);
 });
 
-test("GHQ-JS-041 requires a source file for every referenced anchor", (t) => {
+test("GHQ-JS-041 requires source-file links for inventoried anchors", (t) => {
   const original = inspectHandoff(handoff);
   for (const id of [feature, "feature:preview"]) {
     assert.deepEqual(implementationLocation(original, id, anchor), { path: "src/feature.py", line: 3 });
   }
   assert.equal(original.links.filter((edge) => edge.relation === "located_in" && edge.source === anchor).length, 1);
   const anchors = original.links.filter((edge) => edge.source === feature).map((edge) => edge.target);
-  assert.ok(anchors.includes(anchor));
-  for (const target of anchors) {
+  const hasFileNode = (id) => original.nodes.has("file:" + original.nodes.get(id).source_file);
+  const linkedOnly = anchors.filter((id) => !hasFileNode(id));
+  assert.ok(linkedOnly.length > 0);
+  for (const id of linkedOnly) {
+    assert.ok(!original.links.some((edge) => edge.relation === "located_in" && edge.source === id));
+  }
+  const inventoried = anchors.filter(hasFileNode);
+  assert.ok(inventoried.includes(anchor));
+  for (const target of inventoried) {
     const dir = copy(t);
     changeGraph(dir, (graph) => {
       graph.links = graph.links.filter((edge) => edge.relation !== "located_in" || edge.source !== target);

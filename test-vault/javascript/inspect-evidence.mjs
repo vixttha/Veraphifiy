@@ -174,7 +174,7 @@ function inspect(read, sourceCommit, {
   const uniqueEdges = new Set();
   const featured = new Set();
   const inventoried = new Set();
-  const referencedAnchors = new Set();
+  const inventoriedAnchors = new Set();
   const attachedAnchors = new Set();
   const implementations = [];
   for (const edge of graph.links) {
@@ -214,8 +214,10 @@ function inspect(read, sourceCommit, {
         throw new Error("Invalid implementation target category");
       }
       if (relation === "implemented_in") implementations.push(edge);
-      referencedAnchors.add(target);
-      referenced.add(nodes.get(target).source_file);
+      const path = nodes.get(target).source_file;
+      // Linked-only source paths have digests but no file nodes in the pinned producer.
+      if (inventory.has(path)) inventoriedAnchors.add(target);
+      referenced.add(path);
       const counts = summaries.get(edge.source);
       counts.set(edge.relation, (counts.get(edge.relation) ?? 0) + 1);
     }
@@ -223,7 +225,7 @@ function inspect(read, sourceCommit, {
   if (featured.size !== summaries.size || inventoried.size !== inventory.size) {
     throw new Error("Missing source-root attachment");
   }
-  for (const anchor of referencedAnchors) {
+  for (const anchor of inventoriedAnchors) {
     if (!attachedAnchors.has(anchor)) throw new Error("Missing source-file attachment: " + anchor);
   }
   for (const path of referenced) {
