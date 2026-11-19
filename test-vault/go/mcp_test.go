@@ -30,26 +30,7 @@ func TestGraphifyMCP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	python := os.Getenv("GRAPHIFY_HQ_PYTHON")
-	if python == "" {
-		python = "python"
-	}
-	command := exec.Command(python, "-m", "graphify.serve", filepath.Join(archive, "graph.json"))
-	command.Dir = t.TempDir()
-	command.Env = append(command.Environ(), "GRAPHIFY_QUERY_LOG_DISABLE=1")
-	command.Stderr = os.Stderr
-	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
-	defer cancel()
-	client := mcp.NewClient(&mcp.Implementation{Name: "graphify-hq-test-vault", Version: "1"}, nil)
-	session, err := client.Connect(ctx, &mcp.CommandTransport{Command: command}, nil)
-	if err != nil {
-		t.Fatalf("connect to the pinned Graphify MCP server: %v", err)
-	}
-	defer func() {
-		if err := session.Close(); err != nil {
-			t.Errorf("close Graphify MCP session: %v", err)
-		}
-	}()
+	ctx, session, _ := openGraph(t, archive)
 
 	call := func(t *testing.T, name string, args map[string]any) string {
 		t.Helper()
@@ -61,13 +42,13 @@ func TestGraphifyMCP(t *testing.T) {
 	}
 
 	t.Run("GHQ-GO-001 discover tools and input schema", func(t *testing.T) {
-		result, err := session.ListTools(ctx, nil)
+		result, err := listAllTools(ctx, session)
 		if err != nil {
 			t.Fatal(err)
 		}
 		var neighbors *mcp.Tool
 		names := make(map[string]bool)
-		for _, tool := range result.Tools {
+		for _, tool := range result {
 			names[tool.Name] = true
 			if tool.Name == "get_neighbors" {
 				neighbors = tool
@@ -209,6 +190,29 @@ func TestGraphifyMCP(t *testing.T) {
 		}
 	})
 
+	serverCases(t, archive)
+	protocolCases(t)
+}
+
+func openGraph(t *testing.T, archive string) (context.Context, *mcp.ClientSession, *exec.Cmd) {
+	t.Helper()
+	python := os.Getenv("GRAPHIFY_HQ_PYTHON")
+	if python == "" {
+		python = "python"
+	}
+	command := exec.Command(python, "-m", "graphify.serve", filepath.Join(archive, "graph.json"))
+	command.Dir = t.TempDir()
+	command.Env = append(command.Environ(), "GRAPHIFY_QUERY_LOG_DISABLE=1")
+	command.Stderr = os.Stderr
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+	t.Cleanup(cancel)
+	client := mcp.NewClient(&mcp.Implementation{Name: "graphify-hq-test-vault", Version: "1"}, nil)
+	session, err := client.Connect(ctx, &mcp.CommandTransport{Command: command}, nil)
+	if err != nil {
+		t.Fatalf("connect to the pinned Graphify MCP server: %v", err)
+	}
+	t.Cleanup(func() { _ = session.Close() })
+	return ctx, session, command
 }
 
 func callText(ctx context.Context, session *mcp.ClientSession, name string, args map[string]any) (string, error) {

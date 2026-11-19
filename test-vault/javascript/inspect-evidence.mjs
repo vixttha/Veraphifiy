@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
 import { join } from "node:path";
 
 export function sha256(bytes) {
@@ -29,12 +29,35 @@ function rejectDuplicateKeys(text, filename) {
   }
 }
 
-function readJSON(directory, filename) {
+function readBytes(path, maxBytes) {
+  if (maxBytes === undefined) return readFileSync(path);
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error("Invalid artifact byte budget");
+  const fd = openSync(path, "r");
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.size > maxBytes) throw new Error("Artifact exceeds byte budget or is not a regular file");
+    const buffer = Buffer.alloc(stat.size);
+    let size = 0;
+    while (size < buffer.length) {
+      const read = readSync(fd, buffer, size, buffer.length - size, null);
+      if (!read) break;
+      size += read;
+    }
+    if (readSync(fd, Buffer.alloc(1), 0, 1, null)) {
+      throw new Error("Artifact changed size during bounded read");
+    }
+    return buffer.subarray(0, size);
+  } finally {
+    closeSync(fd);
+  }
+}
+
+function readJSON(directory, filename, maxBytes) {
   let raw;
   try {
-    raw = readFileSync(join(directory, filename));
+    raw = readBytes(join(directory, filename), maxBytes);
   } catch (err) {
-    throw new Error("Cannot read " + filename + ": " + err.code);
+    throw new Error("Cannot read " + filename + ": " + (err.code ?? err.message));
   }
   let text;
   try {
@@ -69,8 +92,10 @@ function repositoryPath(path) {
     path.split("/").every((part) => part !== "" && part !== "." && part !== ".." && part !== ".git");
 }
 
-export function inspectEvidence(directory, sourceCommit, {repository, templateVersion} = {}) {
-  const [bytes, graph] = readJSON(directory, "graph.json");
+export function inspectEvidence(directory, sourceCommit, {
+  repository, templateVersion, producerVersion, maxGraphBytes, sourceBlobs,
+} = {}) {
+  const [bytes, graph] = readJSON(directory, "graph.json", maxGraphBytes);
   const [receiptBytes, receipt] = readJSON(directory, "receipt.json");
   if (receipt.schema_version !== 1) throw new Error("Unsupported receipt schema");
   if (!Array.isArray(graph.nodes) || !Array.isArray(graph.links)) throw new Error("Invalid graph shape");
@@ -90,6 +115,11 @@ export function inspectEvidence(directory, sourceCommit, {repository, templateVe
   if (typeof receipt.template_version !== "string" || receipt.template_version !== graph.graph.template_version ||
       (templateVersion !== undefined && receipt.template_version !== templateVersion)) {
     throw new Error("Evidence template version mismatch");
+  }
+  if (producerVersion !== undefined &&
+      (receipt.graphify_version !== producerVersion ||
+       (graph.graph.graphify_version !== undefined && graph.graph.graphify_version !== producerVersion))) {
+    throw new Error("Graphify producer version mismatch");
   }
   if (!Array.isArray(receipt.source_files) || !ordinaryRecord(receipt.source_sha256)) {
     throw new Error("Invalid source inventory");
@@ -127,6 +157,8 @@ export function inspectEvidence(directory, sourceCommit, {repository, templateVe
       throw new Error("Unsupported evidence relation");
     }
     if (!Number.isFinite(confidence_score) || !Number.isFinite(weight)) throw new Error("Nonfinite evidence number");
+    if (confidence_score < 0 || confidence_score > 1) throw new Error("Confidence score outside the unit interval");
+    if (edge.confidence !== "EXTRACTED") throw new Error("Expected extracted evidence confidence");
     const identity = JSON.stringify([source, relation, target]);
     if (uniqueEdges.has(identity)) throw new Error("Duplicate evidence edge");
     uniqueEdges.add(identity);
@@ -165,6 +197,12 @@ export function inspectEvidence(directory, sourceCommit, {repository, templateVe
     const digest = receipt.source_sha256[path];
     if (!repositoryPath(path) || typeof digest !== "string" || !digestPattern.test(digest)) {
       throw new Error("Invalid or missing source digest");
+    }
+    if (sourceBlobs !== undefined) {
+      const blob = sourceBlobs.get(path);
+      if (!(blob instanceof Uint8Array) || sha256(blob) !== digest) {
+        throw new Error("Pinned source bytes do not match digest: " + path);
+      }
     }
   }
   if (!receipt.feature_links || typeof receipt.feature_links !== "object" ||

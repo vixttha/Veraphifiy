@@ -335,3 +335,46 @@ test("GHQ-JS-036 preserves exact graph identities across Unicode normalization",
   });
   assert.throws(() => inspectEvidence(dir, source), /Missing edge endpoint/);
 });
+
+test("GHQ-JS-030 enforces both confidence score boundaries", (t) => {
+  for (const [score, valid] of [[0, true], [1, true], [-0.01, false], [1.01, false]]) {
+    const dir = copy(t);
+    changeGraph(dir, (graph) => { graph.links[0].confidence_score = score; });
+    if (valid) inspectEvidence(dir, source);
+    else assert.throws(() => inspectEvidence(dir, source), /Confidence score outside the unit interval/);
+  }
+});
+
+test("GHQ-JS-032 bounds the reference consumer graph read by bytes", (t) => {
+  const dir = copy(t);
+  const bytes = readFileSync(join(dir, graphFile)).length;
+  assert.ok(inspectEvidence(dir, source, { maxGraphBytes: bytes }).nodes.has(feature));
+  // Also make the input invalid JSON. The byte budget must reject it before parsing.
+  writeFileSync(join(dir, graphFile), Buffer.alloc(bytes + 1, 0x78));
+  assert.throws(() => inspectEvidence(dir, source, { maxGraphBytes: bytes }), /Artifact exceeds byte budget/);
+});
+
+test("GHQ-JS-034 validates confidence categories independently of valid scores", (t) => {
+  const dir = copy(t);
+  inspectEvidence(dir, source);
+  changeGraph(dir, (graph) => { graph.links[0].confidence = "UNKNOWN_CATEGORY"; });
+  assert.throws(() => inspectEvidence(dir, source), /Expected extracted evidence confidence/);
+});
+
+test("GHQ-JS-035 checks the producer version independently of the template schema", (t) => {
+  const dir = copy(t);
+  const pinned = "0.9.109"; // Graphify producer in the frozen BART v0.0.8 lock.
+  inspectEvidence(dir, source, { producerVersion: pinned });
+  change(dir, receiptFile, (receipt) => { receipt.graphify_version = "0.0.0"; });
+  assert.throws(() => inspectEvidence(dir, source, { producerVersion: pinned }), /Graphify producer version mismatch/);
+});
+
+test("GHQ-JS-038 validates the raw Git blobs against the receipt", (t) => {
+  const dir = copy(t);
+  const receipt = JSON.parse(readFileSync(join(dir, receiptFile), "utf8"));
+  const sourceBlobs = new Map(Object.keys(receipt.source_sha256).map((path) =>
+    [path, readFileSync(join(dir, ".source-blobs", path))]));
+  assert.ok(inspectEvidence(dir, source, { sourceBlobs }).nodes.has(feature));
+  change(dir, receiptFile, (value) => { value.source_sha256["src/feature.py"] = "f".repeat(64); });
+  assert.throws(() => inspectEvidence(dir, source, { sourceBlobs }), /Pinned source bytes do not match digest/);
+});

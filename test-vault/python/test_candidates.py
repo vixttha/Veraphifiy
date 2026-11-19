@@ -5,6 +5,7 @@ import copy
 import io
 import json
 import os
+import select
 import subprocess
 import sys
 import tempfile
@@ -302,6 +303,99 @@ class CandidateTests(unittest.TestCase):
                     self.assertEqual([call[-2:] for call in calls], [("graphify/v1.0.0", "--check")])
                 else:
                     self.assertEqual([call[-1] for call in calls], [str(root / "candidate"), "--check"])
+
+    def test_GHQ_PY_034_rejects_malformed_paginated_provenance(self):
+        fixture = upstream.ProvenanceTests()
+        fixture.setUp()
+        fixture.commits = [{"sha": fixture.head}] * 100
+        page = "pulls/3/commits?per_page=100&page=2"
+        original = fixture.fetch
+        for body in (json.dumps([{"sha": fixture.source}]), "{", "{}"):
+            def read(route):
+                return json.loads(body) if route == page else original(route)
+
+            with self.subTest(body=body), patch.object(fixture, "fetch", read):
+                if body.startswith("["):
+                    self.assertEqual(fixture.verify()["source_relation"], "historical PR commit")
+                else:
+                    with self.assertRaisesRegex(ValueError, r"(?i)Expecting|expected.*list"):
+                        fixture.verify()
+
+    def test_GHQ_PY_039_preserves_existing_pair_after_a_provenance_error(self):
+        fixture = upstream.ManifestTests()
+        fixture.setUp()
+        manifest = dict(fixture.manifest, pull_request={"number": 3, "source_branch": "topic"})
+        proof = upstream.ProvenanceTests()
+        proof.setUp()
+        proof.repo = manifest["repository"]
+        proof.identity["full_name"] = proof.repo
+        proof.pr["base"]["repo"]["full_name"] = proof.repo
+        proof.pr["head"]["repo"]["full_name"] = proof.repo
+        proof.pr["head"]["sha"] = manifest["source_commit"]
+
+        def upstream_response(repository, route):
+            self.assertEqual(repository, proof.repo)
+            if route.startswith("pulls/3/reviews"):
+                raise ValueError("review page unavailable")
+            return proof.fetch(route)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = root / "manifest.json"
+            config.write_text(json.dumps(manifest), encoding="utf-8")
+            saved = {"graph.json": b"last graph", "receipt.json": b"last receipt"}
+            for name, content in saved.items():
+                (root / name).write_bytes(content)
+            with (
+                patch.object(sys, "argv", ["builder", str(config), str(root), "--verify-pr"]),
+                patch("github_provenance.github_json", side_effect=upstream_response),
+                patch.object(evidence_map, "build") as build,
+                redirect_stdout(io.StringIO()) as output,
+                self.assertRaisesRegex(ValueError, "review page unavailable"),
+            ):
+                evidence_map.main()
+            build.assert_not_called()
+            self.assertNotIn("GitHub pull request provenance:", output.getvalue())
+            self.assertEqual({name: (root / name).read_bytes() for name in saved}, saved)
+
+    def test_GHQ_PY_042_excludes_readers_during_an_active_file_replacement(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            previous = {"graph.json": b"old graph", "receipt.json": b"old receipt"}
+            current = {"graph.json": b"new graph", "receipt.json": b"new receipt"}
+            evidence_map.publish_pair(root, previous)
+            writer = """
+import evidence_map, os, sys
+from pathlib import Path
+replace = os.replace
+def hold_after_graph(source, target):
+    replace(source, target)
+    if target.name == "graph.json":
+        print("replaced graph", flush=True)
+        if not sys.stdin.readline():
+            raise RuntimeError("fixture did not release the publication")
+evidence_map.os.replace = hold_after_graph
+evidence_map.publish_pair(Path(sys.argv[1]), {"graph.json": b"new graph", "receipt.json": b"new receipt"})
+"""
+            with subprocess.Popen(
+                [sys.executable, "-c", writer, str(root)], cwd=candidate / "candidate",
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            ) as process:
+                try:
+                    ready, _, _ = select.select([process.stdout], [], [], 10)
+                    self.assertTrue(ready, "publication did not reach the first replacement")
+                    self.assertEqual(process.stdout.readline().strip(), b"replaced graph")
+                    with self.assertRaises(BlockingIOError):
+                        evidence_map.read_published_pair(root)
+                    self.assertEqual((root / "graph.json").read_bytes(), current["graph.json"])
+                    self.assertEqual((root / "receipt.json").read_bytes(), previous["receipt.json"])
+                    _, error = process.communicate(b"continue\n", timeout=10)
+                    self.assertEqual(process.returncode, 0, error.decode())
+                finally:
+                    if process.poll() is None:
+                        process.kill()
+                        process.communicate(timeout=10)
+            self.assertEqual(evidence_map.read_published_pair(root), current)
 
 
 if __name__ == "__main__":

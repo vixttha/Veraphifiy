@@ -25,9 +25,10 @@ function Write-JsonFile([string]$Path, [hashtable]$Value) {
     $Value | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $Path -Encoding utf8NoBOM
 }
 
-function New-Fixture([string]$Name, [switch]$Shared, [int]$SchemaVersion = 2) {
+function New-Fixture([string]$Name, [switch]$Shared, [int]$SchemaVersion = 2, [string]$Case = $caseId) {
     $directory = Join-Path $root "$Name [case files]"
     $paths = @{
+        CaseId = $Case
         CaseFile = Join-Path $directory 'case [definition].json'
         Receipts = Join-Path $directory 'receipt [output]'
         Summary = Join-Path $directory 'job [summary].md'
@@ -38,7 +39,7 @@ function New-Fixture([string]$Name, [switch]$Shared, [int]$SchemaVersion = 2) {
     [void][IO.Directory]::CreateDirectory($paths.Receipts)
     Write-JsonFile $paths.CaseFile @{
         schema_version = $SchemaVersion
-        case_id = $caseId
+        case_id = $paths.CaseId
         required_checks = @('build', 'read')
         shared_evidence = [bool]$Shared
     }
@@ -54,7 +55,7 @@ function Write-FixtureReceipt([hashtable]$Fixture, [string]$Check, [hashtable]$O
     $path = Join-Path $Fixture.Receipts "$Check.json"
     $receipt = @{
         schema_version = $Fixture.SchemaVersion
-        case_id = $caseId
+        case_id = $Fixture.CaseId
         check_id = $Check
         checkout_sha = $script:fixtureHead
         run_id = $runId
@@ -78,10 +79,13 @@ function Invoke-Verifier {
         [string]$EnvironmentAttempt,
         [switch]$WriteSummary,
         [string]$CatalogPath = $catalog,
-        [string]$WorkingDirectory = $checkout
+        [string]$WorkingDirectory = $checkout,
+        [string]$VerifierPath = $verifier,
+        [string]$Interpreter = $Python,
+        [string]$LogPath
     )
 
-    $arguments = @('-B', '-X', 'utf8', $verifier, '--catalog', $CatalogPath, '--case', $Fixture.CaseFile,
+    $arguments = @('-B', '-X', 'utf8', $VerifierPath, '--catalog', $CatalogPath, '--case', $Fixture.CaseFile,
         '--receipts', $Fixture.Receipts)
     if (-not $NoFlags) { $arguments += @('--run-id', $runId, '--attempt', $attempt) }
     if ($Fixture.Evidence) { $arguments += @('--evidence', $Fixture.Evidence) }
@@ -99,7 +103,12 @@ function Invoke-Verifier {
         foreach ($name in $variables.Keys) {
             [Environment]::SetEnvironmentVariable($name, $variables[$name])
         }
-        $output = & $Python @arguments
+        $output = if ($LogPath) {
+            & $Interpreter @arguments 2>&1 | Tee-Object -LiteralPath $LogPath
+        }
+        else {
+            & $Interpreter @arguments 2>&1
+        }
         $exitCode = $LASTEXITCODE
         @{ ExitCode = $exitCode; Text = ($output -join [Environment]::NewLine) }
     }
@@ -138,6 +147,7 @@ try {
 | Case | Area | Priority | Suggested implementation | Expected outcome |
 |---|---|---|---|---|
 | $caseId | Vault fixture | P1 | Invoke verifier | Check portable invocation |
+| FIXTURE-002 | Vault fixture | P1 | Verify other case | Distinguish case identity |
 "@ | Set-Content -LiteralPath $catalog -Encoding utf8NoBOM
     Invoke-FixtureGit add -- test-vault
     Invoke-FixtureGit -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit -qm 'Receipt fixture'
@@ -346,6 +356,142 @@ try {
         $bytes = [IO.File]::ReadAllBytes($receiptPath)
         [IO.File]::WriteAllBytes($receiptPath, $bytes[0..($bytes.Length - 2)])
         Assert-Verdict (Invoke-Verifier $fixture) 1 'Found an unreadable or invalid receipt.'
+    }
+
+    Test-Case 'GHQ-PS-013 verifies from a real Unicode checkout path' {
+        $clone = Join-Path $root 'café [git checkout]'
+        Invoke-FixtureGit worktree add --quiet --detach $clone
+        $fixture = New-Fixture 'événement [fixture]'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $catalogCopy = Join-Path $clone 'test-vault/catalog [cases].md'
+        $verifierCopy = Join-Path $clone 'test-vault/verify_receipts.py'
+        Assert-Verdict (Invoke-Verifier $fixture -WorkingDirectory $clone -CatalogPath $catalogCopy -VerifierPath $verifierCopy) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-019 distinguishes CRLF and LF plan bytes' {
+        $fixture = New-Fixture 'case line endings'
+        $lf = [IO.File]::ReadAllText($fixture.CaseFile).Replace("`r`n", "`n")
+        [IO.File]::WriteAllText($fixture.CaseFile, $lf.Replace("`n", "`r`n"))
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+        [IO.File]::WriteAllText($fixture.CaseFile, $lf)
+        Assert-Verdict (Invoke-Verifier $fixture) 1 'case_plan_sha256 does not match'
+    }
+
+    Test-Case 'GHQ-PS-020 preserves a native verifier failure through Tee-Object' {
+        $fixture = New-Fixture 'native exit through tee'
+        Write-FixtureReceipt $fixture 'build'
+        $log = Join-Path $root 'native-failure.log'
+        Assert-Verdict (Invoke-Verifier $fixture -LogPath $log) 1 '| read | MISSING |'
+        if (-not (Get-Content -LiteralPath $log -Raw).Contains('**Overall: FAIL**')) { throw 'Native failure was lost' }
+        Write-FixtureReceipt $fixture 'read'
+        Assert-Verdict (Invoke-Verifier $fixture -LogPath $log) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-021 restores the caller location and metadata after native launch fails' {
+        $fixture = New-Fixture 'environment restore'
+        $location = (Get-Location).Path
+        $savedRun = $env:GITHUB_RUN_ID
+        $savedAttempt = $env:GITHUB_RUN_ATTEMPT
+        $env:GITHUB_RUN_ID = '321'
+        $env:GITHUB_RUN_ATTEMPT = '7'
+        try {
+            $failed = $false
+            try {
+                Invoke-Verifier $fixture -EnvironmentRun '888' -EnvironmentAttempt '6' -Interpreter (Join-Path $root 'missing-runtime.exe')
+            }
+            catch [System.Management.Automation.CommandNotFoundException] {
+                $failed = $true
+            }
+            if (-not $failed -or (Get-Location).Path -ne $location -or
+                $env:GITHUB_RUN_ID -ne '321' -or $env:GITHUB_RUN_ATTEMPT -ne '7') { throw 'Caller context was not restored' }
+            Write-FixtureReceipt $fixture 'build'
+            Write-FixtureReceipt $fixture 'read'
+            Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+        }
+        finally {
+            $env:GITHUB_RUN_ID = $savedRun
+            $env:GITHUB_RUN_ATTEMPT = $savedAttempt
+        }
+    }
+
+    Test-Case 'GHQ-PS-022 diagnoses a receipt directory that was replaced with a file' {
+        $fixture = New-Fixture 'invalid receipt directory'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $valid = $fixture.Receipts
+        $path = Join-Path $root 'file-instead-of-receipt-directory'
+        [IO.File]::WriteAllText($path, 'unchanged')
+        $fixture.Receipts = $path
+        Assert-Verdict (Invoke-Verifier $fixture) 1 'Receipt directory is missing or invalid'
+        if ([IO.File]::ReadAllText($path) -ne 'unchanged') { throw 'Unexpected write to invalid receipt target' }
+        $fixture.Receipts = $valid
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-023 binds the receipt to a linked worktree HEAD' {
+        $linked = Join-Path $root 'alternate worktree'
+        Invoke-FixtureGit worktree add --quiet --detach $linked
+        $fixture = New-Fixture 'linked worktree identity'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        Invoke-FixtureGit -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit --allow-empty -qm 'Advance main worktree only'
+        $script:fixtureHead = Invoke-FixtureGit rev-parse HEAD
+        Assert-Verdict (Invoke-Verifier $fixture) 1 'checkout_sha'
+        Assert-Verdict (Invoke-Verifier $fixture -WorkingDirectory $linked -CatalogPath (Join-Path $linked 'test-vault/catalog [cases].md') -VerifierPath (Join-Path $linked 'test-vault/verify_receipts.py')) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-029 treats a failed step-summary write as a native failure' {
+        $fixture = New-Fixture 'summary write failure'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $regular = $fixture.Summary
+        $fixture.Summary = $fixture.Receipts
+        $failure = Invoke-Verifier $fixture -WriteSummary
+        if ($failure.ExitCode -eq 0) { throw 'An invalid summary target returned success' }
+        $fixture.Summary = $regular
+        Assert-Verdict (Invoke-Verifier $fixture -WriteSummary) 0 '**Overall: PASS**'
+        if (-not (Get-Content -LiteralPath $regular -Raw).Contains('**Overall: PASS**')) { throw 'Missing valid summary evidence' }
+    }
+
+    Test-Case 'GHQ-PS-031 distinguishes launch failure from a verifier verdict' {
+        $fixture = New-Fixture 'missing runtime'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        $failed = $false
+        try {
+            Invoke-Verifier $fixture -WriteSummary -Interpreter (Join-Path $root 'does-not-exist.exe')
+        }
+        catch [System.Management.Automation.CommandNotFoundException] {
+            $failed = $true
+        }
+        if (-not $failed -or (Test-Path -LiteralPath $fixture.Summary)) { throw 'A missing interpreter produced a verdict' }
+        Assert-Verdict (Invoke-Verifier $fixture -WriteSummary) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-035 discovers lowercase receipt extensions consistently' {
+        $fixture = New-Fixture 'receipt extension'
+        Write-FixtureReceipt $fixture 'build'
+        Write-FixtureReceipt $fixture 'read'
+        Move-Item -LiteralPath (Join-Path $fixture.Receipts 'read.json') -Destination (Join-Path $fixture.Receipts 'candidate.JSON')
+        Assert-Verdict (Invoke-Verifier $fixture) 1 '| read | MISSING |'
+        Move-Item -LiteralPath (Join-Path $fixture.Receipts 'candidate.JSON') -Destination (Join-Path $fixture.Receipts 'read.json')
+        Assert-Verdict (Invoke-Verifier $fixture) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-036 distinguishes case identity even when required checks match' {
+        $original = New-Fixture 'original case'
+        Write-FixtureReceipt $original 'build'
+        Write-FixtureReceipt $original 'read'
+        Assert-Verdict (Invoke-Verifier $original) 0 '**Overall: PASS**'
+        $other = New-Fixture 'independent case' -Case 'FIXTURE-002'
+        $other.Receipts = $original.Receipts
+        Assert-Verdict (Invoke-Verifier $other) 1 'case_id does not match'
+        Write-FixtureReceipt $other 'build'
+        Write-FixtureReceipt $other 'read'
+        Assert-Verdict (Invoke-Verifier $other) 0 '**Overall: PASS**'
     }
 
     Test-Case 'GHQ-PS-011 rejects tracked checkout changes before accepting receipts' {

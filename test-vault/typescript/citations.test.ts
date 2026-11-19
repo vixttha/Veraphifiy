@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { decodeEvidenceGraph, findImplementation, type EvidenceGraph } from "./citations.ts";
+import { decodeEvidenceGraph, findImplementation, selectCitation, type EvidenceGraph } from "./citations.ts";
 
 const archive = process.env.GRAPHIFY_HQ_ARCHIVE;
 assert.ok(archive, "Set GRAPHIFY_HQ_ARCHIVE to the pinned v0.0.8 graph directory");
@@ -144,4 +144,63 @@ test("GHQ-TS-031 withholds navigable results for an invalid graph source pin", (
     assert.deepEqual(findImplementation({ ...graph, built_at_commit }, feature), { status: "invalid-citation" });
   }
   assert.equal(findImplementation(graph, feature).status, "found");
+});
+
+test("GHQ-TS-020 returns a stale source result before exposing citations", () => {
+  assert.deepEqual(findImplementation(graph, feature, "f".repeat(40)),
+    { status: "stale-source", sourceCommit });
+  assert.equal(findImplementation(graph, feature, sourceCommit).status, "found");
+});
+
+function featurePair(first: string, second: string, paths: [string, string]): EvidenceGraph {
+  const nodes = paths.flatMap((source_file, index) => [
+    { id: index ? second : first, label: "Shared label", source_file: "", source_location: null },
+    { id: "anchor:" + index, source_file, source_location: "L1" },
+  ]);
+  const links = paths.map((source_file, index) => ({
+    source: index ? second : first, target: "anchor:" + index, relation: "implemented_in",
+    source_file, source_location: "L1",
+  }));
+  return { built_at_commit: sourceCommit, nodes, links };
+}
+
+test("GHQ-TS-021 preserves raw distinct Unicode paths", () => {
+  const composed = "src/é.py";
+  const decomposed = "src/e\u0301.py";
+  const fixture = featurePair("feature:first", "feature:second", [composed, decomposed]);
+  assert.equal(composed.normalize(), decomposed.normalize());
+  assert.deepEqual(selectCitation(findImplementation(fixture, "feature:first"), 0), { path: composed, line: 1 });
+  assert.deepEqual(selectCitation(findImplementation(fixture, "feature:second"), 0), { path: decomposed, line: 1 });
+});
+
+test("GHQ-TS-024 resolves stable feature IDs independently of shared labels", () => {
+  const fixture = featurePair("feature:first", "feature:second", ["first.py", "second.py"]);
+  assert.deepEqual(selectCitation(findImplementation(fixture, "feature:first"), 0), { path: "first.py", line: 1 });
+  assert.deepEqual(selectCitation(findImplementation(fixture, "feature:second"), 0), { path: "second.py", line: 1 });
+  assert.deepEqual(findImplementation(fixture, "Shared label"), { status: "feature-not-found" });
+});
+
+test("GHQ-TS-025 resolves a constructor-named feature as ordinary node data", () => {
+  const fixture = featurePair("feature:constructor", "feature:control", ["first.py", "control.py"]);
+  assert.deepEqual(selectCitation(findImplementation(fixture, "feature:constructor"), 0), { path: "first.py", line: 1 });
+  assert.deepEqual(selectCitation(findImplementation(fixture, "feature:control"), 0), { path: "control.py", line: 1 });
+  assert.deepEqual(findImplementation(fixture, "constructor"), { status: "feature-not-found" });
+});
+
+test("GHQ-TS-033 distinguishes null source locations from omitted locations", () => {
+  const wire = featurePair("feature:first", "feature:second", ["first.py", "second.py"]);
+  assert.ok(decodeEvidenceGraph(wire));
+  const missing = wire.nodes.map(({ source_location: _, ...node }) => node);
+  assert.equal(decodeEvidenceGraph({ ...wire, nodes: missing }), null);
+  const omittedEdge = wire.links.map(({ source_location: _, ...edge }) => edge);
+  assert.equal(decodeEvidenceGraph({ ...wire, links: omittedEdge }), null);
+});
+
+test("the guarded caller can open first and last citations without opening an invalid index", () => {
+  const result = findImplementation(graph, feature);
+  assert.equal(result.status, "found");
+  const open = (index: number) => selectCitation(result, index)?.path;
+  assert.equal(open(0), result.citations[0].path);
+  assert.equal(open(result.citations.length - 1), result.citations.at(-1)?.path);
+  for (const index of [-1, result.citations.length, 0.5]) assert.equal(open(index), undefined);
 });

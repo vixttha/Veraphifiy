@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import select
 import shutil
 import subprocess
 import sys
@@ -70,13 +71,13 @@ class BuilderTests(unittest.TestCase):
     def git(self, *args):
         return subprocess.check_output(["git", *args], cwd=self.repo, text=True)
 
-    def invoke(self, output, *args, manifest=None):
+    def invoke(self, output, *args, manifest=None, checkout=None, locale="C.UTF-8"):
         config = self.root / "manifest.json"
         config.write_text(json.dumps(self.manifest if manifest is None else manifest), encoding="utf-8")
         return subprocess.run(
             [sys.executable, str(KIT / "evidence_map.py"), str(config), str(output), *args],
-            cwd=self.repo, capture_output=True, text=True, timeout=45,
-            env=dict(os.environ, PYTHONHASHSEED="0", GRAPHIFY_QUERY_LOG_DISABLE="1"),
+            cwd=checkout or self.repo, capture_output=True, text=True, timeout=45,
+            env=dict(os.environ, LC_ALL=locale, PYTHONHASHSEED="0", GRAPHIFY_QUERY_LOG_DISABLE="1"),
         )
 
     def succeeds(self, result):
@@ -119,6 +120,12 @@ class BuilderTests(unittest.TestCase):
         (output / "python.sha256").write_text(observed + "\n", encoding="ascii")
         # Pass the independently known Git identity to the downstream consumer.
         (output / "source.txt").write_text(self.source + "\n", encoding="ascii")
+        for name in receipt["source_sha256"]:
+            target = output / ".source-blobs" / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(subprocess.check_output(
+                ["git", "show", f"{self.source}:{name}"], cwd=self.repo,
+            ))
         write_observation(output, "python")
         shutil.copytree(output, HANDOFF)
 
@@ -199,6 +206,157 @@ class BuilderTests(unittest.TestCase):
                 self.assertIn("Deterministic rebuild differs: " + name, result.stderr)
                 self.assertEqual({part: (output / part).read_bytes() for part in PARTS}, expected)
                 (output / name).write_bytes(original[name])
+
+    def test_GHQ_PY_029_rebuilds_in_independent_checkouts_and_locales(self):
+        clone = self.root / "independent checkout" / "clone"
+        self.git("clone", "-q", "--local", str(self.repo), str(clone))
+        first, second = self.root / "first", self.root / "second"
+        self.succeeds(self.invoke(first, locale="C"))
+        self.succeeds(self.invoke(second, checkout=clone, locale="C.UTF-8"))
+        for name in PARTS:
+            expected = (first / name).read_bytes()
+            self.assertEqual(expected, (second / name).read_bytes(), name)
+            self.assertNotIn(os.fsencode(self.repo), expected)
+            self.assertNotIn(os.fsencode(clone), expected)
+
+    def test_GHQ_PY_030_preserves_committed_line_endings_and_unicode(self):
+        self.write(".gitattributes", "anchors/* -text\n".encode())
+        originals = {
+            "anchors/lf.py": "# résumé\névidence\n".encode(),
+            "anchors/crlf.py": "# résumé\r\névidence\r\n".encode(),
+        }
+        for name, contents in originals.items():
+            self.write(name, contents)
+        self.git("add", ".")
+        self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-qm", "Record both source line endings")
+        manifest = copy.deepcopy(self.manifest)
+        manifest["source_commit"] = self.git("rev-parse", "HEAD").strip()
+        manifest["source_files"].extend(originals)
+        manifest["features"][0]["implemented_in"] = [
+            {"path": name, "anchor": "évidence"} for name in originals
+        ]
+        output = self.root / "lines"
+        self.succeeds(self.invoke(output, manifest=manifest))
+        receipt = read_json(output / "receipt.json")
+        anchors = {node["id"] for node in read_json(output / "graph.json")["nodes"]}
+        for name, contents in originals.items():
+            self.assertEqual(receipt["source_sha256"][name], hashlib.sha256(contents).hexdigest())
+            self.assertIn(f"implemented_in:{name}:L2", anchors)
+
+    def test_GHQ_PY_031_does_not_publish_when_interrupted_during_mcp(self):
+        output = self.root / "published"
+        self.succeeds(self.invoke(output))
+        previous = {name: (output / name).read_bytes() for name in PARTS}
+        manifest = dict(self.manifest, title="Replacement after retry")
+        config = self.root / "manifest.json"
+        config.write_text(json.dumps(manifest), encoding="utf-8")
+        block = """
+import asyncio, evidence_map, sys
+async def wait_for_cancellation(graph, receipt):
+    print("MCP boundary reached", flush=True)
+    await asyncio.Event().wait()
+evidence_map.verify_mcp = wait_for_cancellation
+evidence_map.main()
+"""
+        environment = dict(os.environ, PYTHONPATH=str(KIT), PYTHONHASHSEED="0", GRAPHIFY_QUERY_LOG_DISABLE="1")
+        with subprocess.Popen(
+            [sys.executable, "-c", block, str(config), str(output)], cwd=self.repo,
+            env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        ) as process:
+            try:
+                readable, _, _ = select.select([process.stdout], [], [], 15)
+                self.assertTrue(readable, "builder never reached MCP boundary")
+                self.assertEqual(process.stdout.readline().strip(), b"MCP boundary reached")
+            finally:
+                process.kill()
+                process.communicate(timeout=10)
+        self.assertEqual({name: (output / name).read_bytes() for name in PARTS}, previous)
+        self.succeeds(self.invoke(output, manifest=manifest))
+        self.assertNotEqual((output / "graph.json").read_bytes(), previous["graph.json"])
+        self.succeeds(self.invoke(output, "--check", manifest=manifest))
+
+    def test_GHQ_PY_036_keeps_its_explicit_pin_after_head_changes(self):
+        self.write("src/feature.py", b"# different source at HEAD\n")
+        self.git("add", ".")
+        self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-qm", "Move worktree beyond the source pin")
+        later = self.git("rev-parse", "HEAD").strip()
+        self.git("checkout", "-q", "--detach", self.source)
+        reference = self.root / "reference"
+        self.succeeds(self.invoke(reference))
+        config = self.root / "manifest.json"
+        output = self.root / "moved"
+        switch = """
+import evidence_map, subprocess, sys
+later = sys.argv.pop()
+read_original = evidence_map.source_lines
+def move_after_first_read(commit, path):
+    result = read_original(commit, path)
+    evidence_map.source_lines = read_original
+    subprocess.run(["git", "checkout", "-q", "--detach", later], check=True)
+    return result
+evidence_map.source_lines = move_after_first_read
+evidence_map.main()
+"""
+        environment = dict(os.environ, PYTHONPATH=str(KIT), PYTHONHASHSEED="0", GRAPHIFY_QUERY_LOG_DISABLE="1")
+        self.succeeds(subprocess.run(
+            [sys.executable, "-c", switch, str(config), str(output), later], cwd=self.repo,
+            env=environment, capture_output=True, text=True, timeout=45,
+        ))
+        self.assertEqual(self.git("rev-parse", "HEAD").strip(), later)
+        for name in PARTS:
+            self.assertEqual((reference / name).read_bytes(), (output / name).read_bytes())
+
+    def test_GHQ_PY_043_requires_an_integer_pr_number_in_the_released_manifest(self):
+        for invalid in (True, 1.5):
+            with self.subTest(invalid=invalid):
+                manifest = dict(self.manifest, pull_request={"number": invalid, "source_branch": "fixture"})
+                self.unchanged_failure(manifest, "Expected a positive PR number")
+        output = self.root / "valid-pr"
+        manifest = dict(self.manifest, pull_request={"number": 12, "source_branch": "fixture"})
+        self.succeeds(self.invoke(output, manifest=manifest))
+        self.assertEqual(read_json(output / "receipt.json")["pull_request"], manifest["pull_request"])
+
+    def test_GHQ_PY_045_recovers_a_pair_written_by_the_released_builder(self):
+        output = self.root / "published"
+        self.succeeds(self.invoke(output))
+        old = {name: (output / name).read_bytes() for name in PARTS}
+        replacement = dict(self.manifest, title="Draft replacement")
+        config = self.root / "manifest.json"
+        config.write_text(json.dumps(replacement), encoding="utf-8")
+        draft = Path(os.environ["GRAPHIFY_HQ_CANDIDATE"]).resolve() / "candidate"
+        env = dict(os.environ, PYTHONPATH=str(draft), PYTHONHASHSEED="0", GRAPHIFY_QUERY_LOG_DISABLE="1")
+        interruption = """
+import evidence_map, os, sys
+from pathlib import Path
+replace = os.replace
+published = Path(sys.argv[2]) / "graph.json"
+def interrupted_replace(source, target):
+    replace(source, target)
+    if Path(target) == published:
+        os._exit(47)
+evidence_map.os.replace = interrupted_replace
+evidence_map.main()
+"""
+        result = subprocess.run(
+            [sys.executable, "-c", interruption, str(config), str(output)],
+            cwd=self.repo, env=env, capture_output=True, text=True, timeout=45,
+        )
+        self.assertEqual(result.returncode, 47, result.stdout + result.stderr)
+        self.assertNotEqual((output / "graph.json").read_bytes(), old["graph.json"])
+        recovery = "from pathlib import Path; import evidence_map, sys; evidence_map.read_published_pair(Path(sys.argv[1]))"
+        self.succeeds(subprocess.run(
+            [sys.executable, "-c", recovery, str(output)], env=env, text=True, capture_output=True, timeout=15,
+        ))
+        self.assertEqual({name: (output / name).read_bytes() for name in PARTS}, old)
+        for flags in ([], ["--check"]):
+            self.succeeds(subprocess.run(
+                [sys.executable, str(draft / "evidence_map.py"), str(config), str(output), *flags],
+                cwd=self.repo, env=env, text=True, capture_output=True, timeout=45,
+            ))
+        self.assertNotEqual((output / "graph.json").read_bytes(), old["graph.json"])
+        self.assertEqual(read_json(output / "receipt.json")["source_commit"], self.source)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import json
 import os
+import select
 import shutil
 import subprocess
 import sys
@@ -152,7 +153,7 @@ class CaseRunTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode == 0, should_pass, result.stderr)
                 if should_pass:
-                    self.assertEqual(len(typed_passes(result.stdout, source)), 3)
+                    self.assertIn("GHQ-TS-002", typed_passes(result.stdout, source))
                 else:
                     self.assertNotIn("TYPE PASS", result.stdout)
 
@@ -211,6 +212,67 @@ class CaseRunTests(unittest.TestCase):
             self.assertIn("JS: failed or skipped cases=['GHQ-JS-001']", result.stderr)
             self.assertIn("GO: failed or skipped cases=['GHQ-GO-001']", result.stderr)
             self.assertIn("SH: no native log, suite unavailable", result.stderr)
+
+    def test_GHQ_PY_041_rejects_malformed_environment_on_specific_receipts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            recorder, handoff, receipts = self.handoff_fixture(Path(directory))
+            vault = recorder.parent
+            for check in ("python-build", "node-consume"):
+                result = self.invoke_recorder(recorder, handoff, receipts, check=check)
+                self.assertEqual(result.returncode, 0, result.stderr)
+            evidence = handoff / "evidence.bin"
+            subprocess.run([sys.executable, "-B", str(vault / "evidence_bundle.py"), str(handoff)], check=True)
+            command = [sys.executable, "-B", str(vault / "verify_receipts.py"), "--case",
+                       str(vault / "javascript/case.json"), "--receipts", str(receipts), "--evidence",
+                       str(evidence), "--run-id", "12", "--attempt", "1"]
+            def verify():
+                return subprocess.run(command, cwd=vault.parent, text=True, capture_output=True, timeout=10)
+
+            result = verify()
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            target = receipts / "node-consume.json"
+            valid = json.loads(target.read_bytes())
+            for environment in ({"os": "Linux", "runtime": ""}, {"runtime": "node"}, {"os": "Linux", "runtime": 9}):
+                with self.subTest(environment=environment):
+                    target.write_text(json.dumps(dict(valid, environment=environment)), encoding="utf-8")
+                    result = verify()
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertIn("| node-consume | INVALID |", result.stdout)
+                    self.assertIn("environment", result.stdout)
+                    self.assertIn("| python-build | PASS |", result.stdout)
+
+    def test_GHQ_PY_047_killed_receipt_writer_does_not_occupy_final_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            recorder, handoff, receipts = self.handoff_fixture(Path(directory))
+            pause = """
+import record_handoff, time
+def partial_write(value, output, **kwargs):
+    output.write("{")
+    output.flush()
+    print("staged partial receipt", flush=True)
+    time.sleep(120)
+record_handoff.json.dump = partial_write
+record_handoff.main()
+"""
+            environment = dict(os.environ, PYTHONPATH=str(recorder.parent), GITHUB_RUN_ID="12", GITHUB_RUN_ATTEMPT="1")
+            with subprocess.Popen(
+                [sys.executable, "-B", "-c", pause, "node-consume", str(handoff), str(receipts),
+                 "--runtime", "Node fixture"], cwd=recorder.parents[1], env=environment,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            ) as process:
+                try:
+                    ready, _, _ = select.select([process.stdout], [], [], 15)
+                    self.assertTrue(ready, "recorder did not reach the partial-write boundary")
+                    self.assertEqual(process.stdout.readline().strip(), b"staged partial receipt")
+                finally:
+                    process.kill()
+                    process.communicate(timeout=10)
+            self.assertEqual(list(receipts.glob("*.json")), [])
+            self.assertEqual([path.read_bytes() for path in receipts.iterdir()], [b"{"])
+            retry = self.invoke_recorder(recorder, handoff, receipts)
+            self.assertEqual(retry.returncode, 0, retry.stderr)
+            published, = receipts.glob("*.json")
+            self.assertEqual(json.loads(published.read_bytes())["check_id"], "node-consume")
 
 
 if __name__ == "__main__":

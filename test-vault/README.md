@@ -85,3 +85,10 @@ The [upstream receipt guide](https://github.com/vixttha/Lydite-Test-Vault-Templa
 The [case catalog](cases.md) is the executable inventory. The [language plan](LANGUAGE-PLAN.md) preserves the original 320-case planning baseline. Implemented proposal IDs appear in both files. [The adoption issue](https://github.com/vixttha/Veraphifiy/issues/15) tracks the eight language tracks that require integrations and active-lane cases awaiting a deployed boundary.
 
 Use this Vault for the reusable kit's map generation, Graphify MCP readback, archive reproducibility, GitHub source provenance, and evidence publication. The [checkpoint tracker](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/provenistem/graphify-hq/provenistem) links the project changes to their existing issues, PRs and CI runs. Add only project cases backed by a defined behavior, and attach results once they are run.
+
+
+## Proposal checkpoint
+
+The executable catalog accounts for 111 of the 320 proposals. The original proposals remain visible in the language plan. The remaining 50 active-lane cases include additional fixture work, pinned upstream behavior, and hosted deployment checks. The 159 adopter cases depend on the project integrations described in their individual plan rows. [Implementation tracker](https://github.com/vixttha/Veraphifiy/issues/15)
+
+The Go protocol checks use the pinned SDK and an isolated stdio subprocess when the frozen Graphify server cannot produce a particular protocol response. Server lifecycle, checkout freshness, and simultaneous archive identity are also exercised against the real pinned Graphify runtime. The Node source-blob check reads exact Git bytes from the disposable builder fixture. The Bash wheel checks use an isolated local wheelhouse and the real pinned install step. The PowerShell verifier considers lowercase `.json` receipt files on both hosts and uses literal paths for native logs.

@@ -25,7 +25,8 @@ export type ImplementationLookup =
     }
   | { status: "feature-not-found" }
   | { status: "no-implementation" }
-  | { status: "invalid-citation" };
+  | { status: "invalid-citation" }
+  | { status: "stale-source"; sourceCommit: string };
 
 function isRepositoryPath(path: string): boolean {
   return typeof path === "string" && path.trim().length > 0 && !/[\\:\p{C}]/u.test(path) &&
@@ -57,8 +58,16 @@ export function decodeEvidenceGraph(value: unknown): EvidenceGraph | null {
   return { built_at_commit: value.built_at_commit, nodes: value.nodes, links: value.links };
 }
 
-export function findImplementation(graph: EvidenceGraph, feature: string): ImplementationLookup {
+export function selectCitation(result: ImplementationLookup, index: number): Citation | undefined {
+  if (result.status !== "found" || !Number.isSafeInteger(index) || index < 0) return undefined;
+  return result.citations[index];
+}
+
+export function findImplementation(graph: EvidenceGraph, feature: string, expectedSource?: string): ImplementationLookup {
   if (!validPin(graph.built_at_commit)) return { status: "invalid-citation" };
+  if (expectedSource !== undefined && graph.built_at_commit !== expectedSource) {
+    return { status: "stale-source", sourceCommit: graph.built_at_commit };
+  }
   const nodes = new Map(graph.nodes.map((node) => [node.id, node]));
   if (nodes.size !== graph.nodes.length) return { status: "invalid-citation" };
   if (!feature.startsWith("feature:") || !nodes.has(feature)) {

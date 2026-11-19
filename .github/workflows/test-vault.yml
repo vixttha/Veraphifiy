@@ -123,7 +123,7 @@ jobs:
         shell: pwsh
         run: |
           $log = Join-Path $env:RUNNER_TEMP 'ps.log'
-          ./test-vault/powershell/verify-receipts.tests.ps1 | Tee-Object -FilePath $log
+          ./test-vault/powershell/verify-receipts.tests.ps1 | Tee-Object -LiteralPath $log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Download the Linux handoff by artifact ID
         if: ${{ needs.graph-consumers.result == 'success' }}
@@ -155,7 +155,7 @@ jobs:
           }
           python -B test-vault/verify_receipts.py --case test-vault/javascript/case.json --receipts (Join-Path $handoff 'receipts') --evidence (Join-Path $handoff 'evidence.bin')
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          'PASS GHQ-PS-015 reverifies the Ubuntu handoff on Windows' | Tee-Object -FilePath (Join-Path $env:RUNNER_TEMP 'ps.log') -Append
+          'PASS GHQ-PS-015 reverifies the Ubuntu handoff on Windows' | Tee-Object -LiteralPath (Join-Path $env:RUNNER_TEMP 'ps.log') -Append
       - name: Match the Windows run to the catalog
         if: ${{ !cancelled() }}
         shell: pwsh
