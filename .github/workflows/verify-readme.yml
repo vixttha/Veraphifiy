@@ -1,0 +1,147 @@
+name: Veraphify README verification
+
+on:
+  push:
+    branches: [readme-hq]
+    paths: ['.github/workflows/verify-readme.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Check README, replay walkthrough, and verify Graphify map
+    if: github.event.repository.private == false && github.event.repository.visibility == 'public'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      README_SHA: c0a03f7e40b115c51fbc4be2a45f50ce1dee46f7
+      PRODUCT_SHA: 91ccf6bdc4ac4645006151d68605c2b77239d651
+      PYTHONHASHSEED: '0'
+      GRAPHIFY_QUERY_LOG_DISABLE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: c0a03f7e40b115c51fbc4be2a45f50ce1dee46f7
+          path: homepage
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: vixttha/README-HQ
+          ref: 8d50caec2bc6fcb998994a1fd302294a029325f9
+          path: readme-hq
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: '24.22.3'
+          package-manager-cache: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+      - name: Validate exact README tree and prepare the documented commands
+        shell: bash
+        run: |
+          test "$(git -C homepage rev-parse HEAD)" = "$README_SHA"
+          kit=readme-hq/graphify-hq/template/v0.0.8
+          python -m pip install --require-hashes -r readme-hq/tools/requirements.txt
+          python -m pip install --require-hashes --only-binary=:all: --no-deps -r "$kit/requirements.txt"
+          python -m pip check
+          mkdir -p "$RUNNER_TEMP/readme-proof"
+          python readme-hq/tools/check_readme_hq.py --repo homepage --ref "$README_SHA" \
+            --receipt "$RUNNER_TEMP/readme-proof/readme.json"
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+          from urllib.parse import urlsplit
+          from markdown_it import MarkdownIt
+
+          root = Path("homepage")
+          readme = (root / "README.md").read_text(encoding="utf-8")
+          guide = (root / "docs/verification.md").read_text(encoding="utf-8")
+          parser = MarkdownIt("commonmark").enable("table")
+          def links(markdown):
+              return [child.attrGet("href") for block in parser.parse(markdown)
+                      for child in (block.children or []) if child.type == "link_open"]
+
+          assert "docs/verification.md" in links(readme)
+          assert "../README.md#quickstart" in links(guide)
+          assert any(t.type == "table_open" for t in parser.parse(readme))
+          assert any(t.type == "table_open" for t in parser.parse(guide))
+          for target in links(readme) + links(guide):
+              if not urlsplit(target).scheme:
+                  folder = root / ("docs" if target.startswith("../") else ".")
+                  assert (folder / urlsplit(target).path).is_file(), target
+          block, = re.findall(r"(?ms)^\x60{3}bash\n(.*?)^\x60{3}$", readme)
+          assert os.environ["PRODUCT_SHA"] in block
+          (Path(os.environ["RUNNER_TEMP"]) / "quickstart.sh").write_text(block, encoding="utf-8")
+          PY
+      - name: Run README quickstart and the pinned two-version walkthrough
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          bash "$RUNNER_TEMP/quickstart.sh" | tee "$RUNNER_TEMP/readme-proof/cli-help.txt"
+          for command in import verify lookup; do
+            grep -w "$command" "$RUNNER_TEMP/readme-proof/cli-help.txt" > /dev/null
+          done
+          cd Veraphify-preview
+          test "$(git rev-parse HEAD)" = "$PRODUCT_SHA"
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          guide = Path("docs/adopter-walkthrough.md").read_text(encoding="utf-8")
+          script, = re.findall(r"(?ms)^\x60{3}bash\n(.*?)^\x60{3}$", guide)
+          (Path(os.environ["RUNNER_TEMP"]) / "walkthrough.sh").write_text(script, encoding="utf-8")
+          PY
+          bash "$RUNNER_TEMP/walkthrough.sh" | tee "$RUNNER_TEMP/readme-proof/walkthrough.txt"
+          grep -E '^v1\.0\.0 verified at [0-9a-f]{40}, citation src/feature\.py:3$' "$RUNNER_TEMP/readme-proof/walkthrough.txt"
+          grep -E '^v1\.1\.0 verified at [0-9a-f]{40}, citation src/feature\.py:4$' "$RUNNER_TEMP/readme-proof/walkthrough.txt"
+          grep -F 'Project version is not archived' "$RUNNER_TEMP/readme-proof/walkthrough.txt"
+      - name: Build and query the README Graphify evidence map
+        shell: bash
+        working-directory: homepage
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          def ref(path, anchor):
+              return [{"path": path, "anchor": anchor}]
+
+          readme = "README.md"
+          guide = "docs/verification.md"
+          features = []
+          for identity, label, section, proof in [
+              ("versioned-citations", "Two versions resolve to two citations", "## Quickstart", "## What the tests demonstrate"),
+              ("exact-run-evidence", "Verification tracks the exact producing run", "## Verification", "## Exact run and handoff"),
+          ]:
+              features.append({
+                  "id": identity,
+                  "label": label,
+                  "documented_in": ref(readme, section),
+                  "changed_in": ref(guide, "# Verification evidence for the Veraphify v0.0.9 preview"),
+                  "tested_by": ref(guide, proof),
+              })
+          manifest = {
+              "repository": "vixttha/Veraphify",
+              "source_commit": os.environ["README_SHA"],
+              "title": "Veraphify v0.0.9 README evidence",
+              "features": features,
+          }
+          (Path(os.environ["RUNNER_TEMP"]) / "readme-proof" / "manifest.json").write_text(
+              json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+          )
+          PY
+          python ../readme-hq/graphify-hq/template/v0.0.8/evidence_map.py \
+            "$RUNNER_TEMP/readme-proof/manifest.json" "$RUNNER_TEMP/readme-proof/graphify"
+      - name: Retain README evidence for this attempt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: veraphify-readme-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/readme-proof
+          if-no-files-found: error
