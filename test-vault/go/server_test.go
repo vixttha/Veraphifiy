@@ -2,6 +2,7 @@ package graphify_test
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -133,6 +134,106 @@ func serverCases(t *testing.T, archive string) {
 			}
 		}
 	})
+
+	t.Run("GHQ-GO-020 bounds the reported path across a directed cycle and alternate route", func(t *testing.T) {
+		var graph struct {
+			Nodes json.RawMessage  `json:"nodes"`
+			Links []map[string]any `json:"links"`
+		}
+		raw, err := os.ReadFile(filepath.Join(archive, "graph.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := json.Unmarshal(raw, &graph); err != nil {
+			t.Fatal(err)
+		}
+		alternative := "implemented_in:versions/v0.0.8/evidence_map.py:L203"
+		graph.Links = append(graph.Links,
+			map[string]any{"source": anchor, "target": feature, "relation": "tested_by", "confidence": "EXTRACTED"},
+			map[string]any{"source": alternative, "target": file, "relation": "located_in", "confidence": "EXTRACTED"},
+		)
+		variant := writeGraphFixture(t, map[string]any{
+			"directed": true, "multigraph": false, "nodes": graph.Nodes, "links": graph.Links, "built_at_commit": source,
+		})
+		ctx, session, _ := openGraph(t, variant)
+		for _, hop := range []struct{ from, to, relation string }{
+			{anchor, feature, "tested_by"}, {alternative, file, "located_in"},
+		} {
+			got, err := callText(ctx, session, "shortest_path", map[string]any{"source": hop.from, "target": hop.to, "max_hops": 1})
+			if err != nil {
+				t.Fatal(err)
+			}
+			requireText(t, got, "Shortest path (1 hops):", "--"+hop.relation+" [EXTRACTED]-->")
+		}
+		bounded, err := callText(ctx, session, "shortest_path", map[string]any{"source": feature, "target": file, "max_hops": 1})
+		if err != nil || bounded != "Path exceeds max_hops=1 (2 hops found)." {
+			t.Fatalf("incorrect path limit response: %q %v", bounded, err)
+		}
+		got, err := callText(ctx, session, "shortest_path", map[string]any{"source": feature, "target": file, "max_hops": 2})
+		if err != nil {
+			t.Fatal(err)
+		}
+		requireText(t, got, "Shortest path (2 hops):", "--implemented_in [EXTRACTED]-->", "--located_in [EXTRACTED]--> tools/verify_archive.py", "weakest of 2 equal-length routes")
+		if strings.Count(got, "Reproducible Graphify archive") != 1 || strings.Contains(got, "--tested_by") {
+			t.Fatalf("reported path revisited the starting node: %q", got)
+		}
+	})
+
+	t.Run("GHQ-GO-035 joins a released MCP path with an exact source citation", func(t *testing.T) {
+		var graph map[string]json.RawMessage
+		raw, err := os.ReadFile(filepath.Join(archive, "graph.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := json.Unmarshal(raw, &graph); err != nil {
+			t.Fatal(err)
+		}
+		var nodes []map[string]any
+		if err := json.Unmarshal(graph["nodes"], &nodes); err != nil {
+			t.Fatal(err)
+		}
+		for _, node := range nodes {
+			if node["id"] == anchor {
+				node["source_location"] = "L31"
+			}
+		}
+		graph["nodes"], err = json.Marshal(nodes)
+		if err != nil {
+			t.Fatal(err)
+		}
+		variant := writeGraphFixture(t, graph)
+		for _, candidate := range []struct{ directory, line string }{{archive, "L30"}, {variant, "L31"}} {
+			ctx, session, _ := openGraph(t, candidate.directory)
+			requireStats(t, ctx, session, source)
+			path, err := callText(ctx, session, "shortest_path", map[string]any{"source": feature, "target": file})
+			if err != nil {
+				t.Fatal(err)
+			}
+			requireText(t, path, "--implemented_in [EXTRACTED]--> tools/verify_archive.py L30 --located_in [EXTRACTED]--> tools/verify_archive.py\n")
+			location, err := callText(ctx, session, "get_node", map[string]any{"node_id": anchor})
+			if err != nil {
+				t.Fatal(err)
+			}
+			requireText(t, location, "ID: "+anchor+"\n", "Source: tools/verify_archive.py "+candidate.line+"\n")
+			agrees := strings.Contains(location, "Source: tools/verify_archive.py L30\n")
+			if agrees != (candidate.directory == archive) {
+				t.Fatalf("path and source reply were reconciled incorrectly: %q and %q", path, location)
+			}
+		}
+	})
+}
+
+func writeGraphFixture(t *testing.T, value any) string {
+	t.Helper()
+	data, err := json.Marshal(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "graph.json"), data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	return directory
 }
 
 func requireStats(t *testing.T, ctx context.Context, session *mcp.ClientSession, want string) {

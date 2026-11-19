@@ -25,8 +25,8 @@ function Write-JsonFile([string]$Path, [hashtable]$Value) {
     $Value | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $Path -Encoding utf8NoBOM
 }
 
-function New-Fixture([string]$Name, [switch]$Shared, [int]$SchemaVersion = 2, [string]$Case = $caseId) {
-    $directory = Join-Path $root "$Name [case files]"
+function New-Fixture([string]$Name, [switch]$Shared, [int]$SchemaVersion = 2, [string]$Case = $caseId, [string]$FixtureRoot = $root) {
+    $directory = Join-Path $FixtureRoot "$Name [case files]"
     $paths = @{
         CaseId = $Case
         CaseFile = Join-Path $directory 'case [definition].json'
@@ -441,6 +441,30 @@ try {
         $script:fixtureHead = Invoke-FixtureGit rev-parse HEAD
         Assert-Verdict (Invoke-Verifier $fixture) 1 'checkout_sha'
         Assert-Verdict (Invoke-Verifier $fixture -WorkingDirectory $linked -CatalogPath (Join-Path $linked 'test-vault/catalog [cases].md') -VerifierPath (Join-Path $linked 'test-vault/verify_receipts.py')) 0 '**Overall: PASS**'
+    }
+
+    Test-Case 'GHQ-PS-028 distinguishes a submodule checkout from its parent' {
+        $parent = Join-Path $root 'parent [checkout]'
+        $submodulePath = 'linked evidence'
+        $submodule = Join-Path $parent $submodulePath
+        $submoduleHead = $script:fixtureHead
+        & git clone -q -- $checkout $parent
+        if ($LASTEXITCODE -ne 0) { throw 'Could not clone the fixture parent' }
+        & git -C $parent -c protocol.file.allow=always submodule add -q -- $checkout $submodulePath
+        if ($LASTEXITCODE -ne 0) { throw 'Could not create a real submodule' }
+        & git -C $parent -c user.name=Fixture -c user.email=fixture@example.invalid -c commit.gpgsign=false commit -qm 'Register fixture submodule'
+        if ($LASTEXITCODE -ne 0) { throw 'Could not commit the fixture submodule' }
+        $parentHead = & git -C $parent rev-parse HEAD
+        if ($LASTEXITCODE -ne 0 -or $parentHead -eq $submoduleHead) { throw 'Fixture roots must differ' }
+        $fixture = New-Fixture 'submodule scope' -FixtureRoot $submodule
+        $parentVerifier = @{ WorkingDirectory = $parent; CatalogPath = (Join-Path $parent 'test-vault/catalog [cases].md'); VerifierPath = (Join-Path $parent 'test-vault/verify_receipts.py') }
+        $submoduleVerifier = @{ WorkingDirectory = $submodule; CatalogPath = (Join-Path $submodule 'test-vault/catalog [cases].md'); VerifierPath = (Join-Path $submodule 'test-vault/verify_receipts.py') }
+        foreach ($check in @('build', 'read')) { Write-FixtureReceipt $fixture $check }
+        Assert-Verdict (Invoke-Verifier $fixture @submoduleVerifier) 0 "Checkout: $submoduleHead"
+        Assert-Verdict (Invoke-Verifier $fixture @parentVerifier) 1 'checkout_sha'
+        foreach ($check in @('build', 'read')) { Write-FixtureReceipt $fixture $check @{ checkout_sha = $parentHead } }
+        Assert-Verdict (Invoke-Verifier $fixture @parentVerifier) 0 "Checkout: $parentHead"
+        Assert-Verdict (Invoke-Verifier $fixture @submoduleVerifier) 1 'checkout_sha'
     }
 
     Test-Case 'GHQ-PS-029 treats a failed step-summary write as a native failure' {
