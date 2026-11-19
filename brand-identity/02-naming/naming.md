@@ -1,6 +1,10 @@
 # Naming
 
-**Working recommendation.** Edge Docket (ej DOK-it). Use the exact spelling for the product and wordmark in the [creative decision](../01-strategy/creative-decision.json). The name preserves the idea of a place to go when you need answers about a repo. The descriptor gives readers the category on first contact.
+**Selected product name.** GEvidence, with capital G and E and no space. The owner selected it on November 19, 2026. See the [creative decision](../01-strategy/creative-decision.json) for the exact product name and draft wordmark text.
+
+The **G** stands for the graph that connects repository records. **Evidence** is what the reader can inspect at the end of a path, such as a source line, a test definition, or a run receipt. Together, **GEvidence** expresses the relationship between navigation and verification. Follow the graph to something you can check.
+
+## Earlier shortlist
 
 | Candidate | Three connections to the project | Trade-off |
 | --- | --- | --- |
@@ -21,8 +25,8 @@ Initial public screen on November 19, 2026. Scope was GitHub repository names an
 
 ## Usage
 
-- **Product and wordmark.** Edge Docket is the recommendation. Keep “Repository evidence kit” as separate descriptor text.
+- **Product and wordmark.** Use GEvidence in product copy. The draft wordmark uses the same lettering. Keep “Repository evidence kit” as separate descriptor text.
 - **Upstream attribution.** “Built with Graphify, the code knowledge graph from Graphify Labs.” Link Graphify to the [upstream repository](https://github.com/Graphify-Labs/graphify).
-- **Historical label.** “Graphify HQ” identifies the existing repository and archived work while the new name is under review. A slug or identifier migration is a later owner decision.
+- **Historical label.** “Graphify HQ” identifies the existing repository and archived work. GEvidence is the product name.
 
 See [voice and slogan](../03-messaging/voice.md) and [wordmark](../05-wordmark/wordmark.md).
