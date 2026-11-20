@@ -26,10 +26,23 @@ for directory, expected in (("adopter", source), ("veraphify", veraphify), ("pro
     if actual != expected:
         raise ValueError(f"{directory} checkout {actual} differs from {expected}")
 
-blob = subprocess.check_output(["git", "show", f"{source}:{path}"], cwd=worktree)
-lines = [i for i, line in enumerate(blob.decode("utf-8").split("\n"), 1) if anchor and anchor in line]
-if len(lines) != 1:
-    raise ValueError(f"Expected one implementation anchor in {path}, found {len(lines)}")
+def resolve_reference(reference):
+    path = reference["path"]
+    text = reference["anchor"]
+    blob = subprocess.check_output(["git", "show", f"{source}:{path}"], cwd=worktree)
+    matches = [(i, line.strip()) for i, line in enumerate(blob.decode("utf-8").split("\n"), 1)
+               if text and text in line]
+    if len(matches) != 1:
+        raise ValueError(f"Expected one anchor in {path}, found {len(matches)}")
+    line, anchor = matches[0]
+    return line, {"path": path, "anchor": anchor}
+
+
+implementation_line, implementation = resolve_reference({"path": path, "anchor": anchor})
+references = {
+    relation: [resolve_reference(reference)[1] for reference in values]
+    for relation, values in json.loads(os.environ["ADOPTER_REFERENCES"]).items()
+}
 manifest = run / "veraphify-adoption-manifest.json"
 manifest.write_text(json.dumps({
     "repository": repository,
@@ -39,8 +52,8 @@ manifest.write_text(json.dumps({
     "features": [{
         "id": "adoption-check",
         "label": "Pinned implementation citation",
-        **json.loads(os.environ["ADOPTER_REFERENCES"]),
-        "implemented_in": [{"path": path, "anchor": anchor}],
+        **references,
+        "implemented_in": [implementation],
     }],
 }), encoding="utf-8")
 kit = root / "producer/versions/v0.0.8/evidence_map.py"
@@ -71,7 +84,7 @@ verified = invoke("verify", *pin)
 if verified != imported:
     raise ValueError("Independent archive verification differs from import")
 lookup = invoke("lookup", *pin, "--feature", "feature:adoption-check")
-if lookup != {**verified, "feature": "feature:adoption-check", "citations": [{"path": path, "line": lines[0]}]}:
+if lookup != {**verified, "feature": "feature:adoption-check", "citations": [{"path": path, "line": implementation_line}]}:
     raise ValueError(f"Unexpected implementation citation: {lookup}")
 
 report = {
@@ -86,7 +99,7 @@ report = {
     "archived_lookup": lookup,
 }
 (proof / "adoption.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-message = f"Veraphify v0.0.9 verified {repository}@{source} at {path}:{lines[0]}"
+message = f"Veraphify v0.0.9 verified {repository}@{source} at {path}:{implementation_line}"
 print(message)
 with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
     print(message, file=summary)
