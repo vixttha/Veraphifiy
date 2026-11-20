@@ -2,7 +2,7 @@
 
 **Code memory for each project version.** Archive a project’s evidence graph and look up the exact Git commit, file, and line that implemented a feature in a selected version.
 
-**v0.0.9 preview** · [Try the two-version walkthrough](https://github.com/vixttha/Veraphify/blob/91ccf6bdc4ac4645006151d68605c2b77239d651/docs/adopter-walkthrough.md) · [Verification evidence](docs/verification.md) · [Release tracker](https://github.com/vixttha/Veraphify/issues/21)
+**v0.0.9 preview** · [Try the two-version walkthrough](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/docs/adopter-walkthrough.md) · [Verification evidence](docs/verification.md) · [Release tracker](https://github.com/vixttha/Veraphify/issues/21)
 
 ## Quickstart
 
@@ -11,13 +11,13 @@ Use Git, Bash, and Node.js 24 to open the CLI at the tested preview commit.
 ```bash
 git clone --no-checkout https://github.com/vixttha/Veraphify.git Veraphify-preview
 cd Veraphify-preview
-git checkout --detach 91ccf6bdc4ac4645006151d68605c2b77239d651
+git checkout --detach 66e822b56528c5f3e7b7730709d4b472ae2d5f1e
 node veraphifiy.mjs --help
 ```
 
 The help output lists `import`, `verify`, and `lookup`. The CLI filename retains its original spelling.
 
-To see an archive in use, follow the [two-version walkthrough](https://github.com/vixttha/Veraphify/blob/91ccf6bdc4ac4645006151d68605c2b77239d651/docs/adopter-walkthrough.md) from that checkout. The walkthrough uses Linux x86-64 and CPython 3.12 with `venv`, in addition to the tools above. It builds disposable fixture evidence with the pinned Graphify producer and looks up the same feature twice.
+To see an archive in use, follow the [two-version walkthrough](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/docs/adopter-walkthrough.md) from that checkout. The walkthrough uses Linux x86-64 and CPython 3.12 with `venv`, in addition to the tools above. It builds disposable fixture evidence with the pinned Graphify producer and looks up the same feature twice.
 
 | Fixture version | Implementation citation for `feature:export` |
 | --- | --- |
@@ -36,7 +36,11 @@ Archive entries preserve the graph, receipt, and verified source bytes. Keep arc
 
 ## Verification
 
-The public Test Vault ran the documented walkthrough on Ubuntu. Separate Ubuntu and Windows jobs independently replayed both versions from the retained archive handoff. [Exact push run, attempt 1](https://github.com/vixttha/Veraphify/actions/runs/44640005952/attempts/1) · [Evidence and rerun instructions](docs/verification.md) · [Test Vault](https://github.com/vixttha/Veraphify/blob/91ccf6bdc4ac4645006151d68605c2b77239d651/test-vault/README.md)
+The public Test Vault ran the documented walkthrough on Ubuntu. Separate Ubuntu and Windows jobs independently replayed both versions from the retained archive handoff. [Exact push run, attempt 1](https://github.com/vixttha/Veraphify/actions/runs/44644119066/attempts/1) · [Evidence and rerun instructions](docs/verification.md) · [Test Vault](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/test-vault/README.md)
+
+## License and attribution
+
+Veraphify-authored code and tests are available under the [MIT license](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/LICENSE). The [reuse and attribution guide](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/docs/reuse.md) identifies the separate notices for imported Lydite and Brand Identity material.
 
 ## Project links
 
