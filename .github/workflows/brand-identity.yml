@@ -1,0 +1,30 @@
+name: Veraphify Brand Identity
+
+on:
+  push:
+    branches: [Brand-Identity]
+  pull_request:
+    branches: [Brand-Identity]
+
+permissions:
+  contents: read
+
+jobs:
+  brand-kit:
+    name: Verify brand kit and PNG tests
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Verify the checkout and brand kit
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          printf 'Tested checkout: %s\n' "$SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          python3 -B brand-identity/verify.py
+      - name: Run the kit regression tests
+        run: python3 -B -m unittest discover -s brand-identity -p 'test_*.py' -v

@@ -28,6 +28,19 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def read_record(path):
+    def unique_fields(pairs):
+        result = {}
+        for key, value in pairs:
+            require(key not in result, f"{path.name}: duplicate JSON field {key!r}")
+            result[key] = value
+        return result
+
+    value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_fields)
+    require(isinstance(value, dict), f"{path.name}: expected a JSON object")
+    return value
+
+
 def check_license():
     license_file = KIT / "LICENSE"
     require(license_file.is_file() and not license_file.is_symlink(),
@@ -165,14 +178,13 @@ def main():
     args = parser.parse_args()
     check_license()
     check_docs()
-    inventory = json.loads((ASSETS / "manifest.json").read_text(encoding="utf-8"))
+    inventory = read_record(ASSETS / "manifest.json")
     require(inventory["kit_version"] == "v0.0.1", "Unexpected kit version")
     kind = inventory["kind"]
     require(kind in {"template", "project"}, f"Invalid kit kind: {kind}")
     assets = inventory["assets"]
     check_inventory(assets)
-    decision = json.loads(DECISION.read_text(encoding="utf-8"))
-    require(isinstance(decision, dict), "The creative decision must be a record")
+    decision = read_record(DECISION)
     validate_production(kind, assets, args.ready_for_artwork, decision)
     if args.ready_for_handoff:
         require(kind == "project", "Start a project kit before checking handoff")

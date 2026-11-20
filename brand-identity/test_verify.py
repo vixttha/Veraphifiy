@@ -1,8 +1,10 @@
 """Regression coverage for the artwork confirmation gate."""
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 
-from verify import WEIGHTS, validate_production
+from verify import WEIGHTS, read_record, validate_production
 
 
 def scored_decision():
@@ -24,6 +26,19 @@ def scored_decision():
 
 
 class ArtworkGateTests(unittest.TestCase):
+    def test_ambiguous_approval_and_name_fields_are_rejected(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "decision.json"
+            path.write_text('{"names":{"product":"Veraphify"}}', encoding="utf-8")
+            self.assertEqual(read_record(path)["names"]["product"], "Veraphify")
+            for text in (
+                '{"names":{"product":"Old","product":"Veraphify"}}',
+                '{"assets":[{"status":"draft","status":"approved"}]}',
+            ):
+                path.write_text(text, encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "decision.json: duplicate JSON field"):
+                    read_record(path)
+
     def test_template_and_pending_project_pass_inventory_checks(self):
         for kind in ("template", "project"):
             validate_production(kind, [], False, {"confirmation": None})
