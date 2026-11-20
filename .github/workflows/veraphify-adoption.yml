@@ -1,0 +1,25 @@
+name: Veraphify v0.0.9 adoption
+
+on:
+  push:
+    branches: ["branchwell-adoption", "chore/veraphify-v0.0.9"]
+    paths:
+      - ".github/workflows/veraphify-adoption.yml"
+      - "docs/branchwell-adoption.md"
+  pull_request:
+    branches: ["branchwell-adoption"]
+    paths:
+      - ".github/workflows/veraphify-adoption.yml"
+      - "docs/branchwell-adoption.md"
+
+permissions:
+  contents: read
+
+jobs:
+  adoption:
+    if: github.event.repository.private == false
+    uses: vixttha/Veraphify/.github/workflows/verify-adopter-v0.0.9.yml@156331636fab4fafdd4ca8d05c5047cb14e5385e
+    with:
+      source_sha: "1b5168675163587020fe2a1fcb3138028de0f2f4"
+      source_file: "docs/branchwell-adoption.md"
+      source_anchor: "graphify cluster-only . --no-label"
