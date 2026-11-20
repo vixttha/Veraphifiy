@@ -39,6 +39,7 @@ manifest.write_text(json.dumps({
     "features": [{
         "id": "adoption-check",
         "label": "Pinned implementation citation",
+        **json.loads(os.environ["ADOPTER_REFERENCES"]),
         "implemented_in": [{"path": path, "anchor": anchor}],
     }],
 }), encoding="utf-8")
