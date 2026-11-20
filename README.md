@@ -19,4 +19,15 @@ Veraphify's strategy and concepts come from the [earlier brand workspace at `7eb
 
 The workspace lives on the `Brand-Identity` branch. Use [#63](https://github.com/vixttha/Veraphify/issues/63) for product-branch cleanup and [#26](https://github.com/vixttha/Veraphify/issues/26) for artwork approval and handoff.
 
+## Verify the kit
+
+From a checkout of this branch, use Python 3.10 or newer.
+
+```bash
+python3 -B brand-identity/verify.py
+python3 -B -m unittest discover -s brand-identity -p 'test_*.py' -v
+```
+
+The [public GitHub Actions workflow](https://github.com/vixttha/Veraphify/actions/workflows/brand-identity.yml?query=branch%3ABrand-Identity) runs those checks and records its checkout commit. The artwork handoff requires approved logo and wordmark exports in the manifest.
+
 We use and support the open-source [Graphify project](https://github.com/Graphify-Labs/graphify). Veraphify is developed and maintained independently of Graphify Labs.
