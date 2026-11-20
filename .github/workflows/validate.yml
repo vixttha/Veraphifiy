@@ -2,8 +2,9 @@ name: Lydite validation
 
 on:
   push:
-    branches: [main, hardening/v0.0.3]
+    branches: [Lydite-Test-Vault]
   pull_request:
+    branches: [Lydite-Test-Vault]
   workflow_dispatch:
 
 permissions:

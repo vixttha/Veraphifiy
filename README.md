@@ -1,4 +1,13 @@
-# Lydite Test Vault Template
+# Lydite Test Vault for Veraphify
+
+This permanent branch contains the [executable Veraphify Vault](test-vault/README.md),
+the [14-language proof plan](docs/veraphify-mechanical-proof.md), and the preserved
+Lydite v0.0.4 template. [The public workflow](.github/workflows/test-vault.yml)
+records the Vault revision and tests a separate, independently pinned Veraphify checkout.
+The [test catalog](test-vault/cases.md) contains 211 executable cases across six
+languages. The upstream examples and planned Veraphify cases have separate inventories.
+
+## Upstream Lydite template
 
 **A mechanical touchstone for software. Put your code against the stone and prove it works.**
 
