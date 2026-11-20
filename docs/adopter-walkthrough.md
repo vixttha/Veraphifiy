@@ -2,6 +2,8 @@
 
 Start in a clean Veraphify checkout. Use Bash, Git, Node.js 24, and CPython 3.12 with venv support on Linux x86-64. The walkthrough creates a disposable Git project, fetches the existing Graphify evidence builder at a fixed commit, and installs its hash-locked wheels into a temporary environment.
 
+For your own map, budget **8 MiB (8,388,608 bytes)** of committed source per archive entry. Count each distinct path in the receipt's source digests once, including inventoried files and any files cited by documentation, change, test, or implementation links. Also allow up to **16 MiB** for the graph, **2 MiB** for the receipt, and **40 MiB** for the serialized archive entry, including its encoded contents. Before running Graphify, scope the manifest to the features and files you need, then sum their pinned Git blob sizes. If the total exceeds the budget, narrow the inventory and feature references and build the map again.
+
 Run the block from the Veraphify repository root. Build output and archives stay under a temporary directory and are removed at exit.
 
 ```bash

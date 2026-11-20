@@ -250,10 +250,15 @@ jobs:
           $result = 'PASS GHQ-PS-015 reverifies the Ubuntu handoff on Windows'
           Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'ps.log') -Value $result
           Write-Output $result
+          Add-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'ps.log') -Value 'PowerShell Vault completed successfully'
       - name: Match the Windows run to the catalog
         if: ${{ !cancelled() }}
         shell: pwsh
-        run: python -B test-vault/verify_case_run.py windows $env:RUNNER_TEMP
+        run: |
+          python -B test-vault/verify_case_run.py windows $env:RUNNER_TEMP
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B -m unittest discover -s test-vault/python -p test_case_run.py -k test_GHQ_PY_108 -v
+          exit $LASTEXITCODE
 
   archive-replay:
     name: Independent version archive replay on Ubuntu

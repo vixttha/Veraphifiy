@@ -13,6 +13,7 @@ from validate_catalog import read_cases
 VAULT = Path(__file__).resolve().parent
 LINUX = frozenset({"PY", "SH", "JS", "TS", "GO"})
 WINDOWS = frozenset({"PS"})
+POWERSHELL_COMPLETE = "PowerShell Vault completed successfully"
 ID = r"GHQ-[A-Z]+-\d{3,}"
 TAP_RESULT = re.compile(r"^(ok|not ok) (\d+)(?: - (.*))?$")
 TAP_SUMMARY = re.compile(
@@ -149,6 +150,12 @@ def require_complete_unittest(log):
         raise ValueError("native unittest total does not match the verbose test records")
 
 
+def require_complete_powershell(log):
+    lines = log.splitlines()
+    if lines.count(POWERSHELL_COMPLETE) != 1 or lines[-1] != POWERSHELL_COMPLETE:
+        raise ValueError("missing, repeated or nonterminal PowerShell completion record")
+
+
 def catalog_lanes(cases):
     lanes = defaultdict(set)
     for case in sorted(cases):
@@ -179,6 +186,8 @@ def main():
                     require_complete_tap(log)
                 elif kind == "PY":
                     require_complete_unittest(log)
+                elif kind == "PS":
+                    require_complete_powershell(log)
                 if kind == "TS":
                     actual += typed_passes(log, (VAULT / "typescript/citations.types.ts").read_text(encoding="utf-8"))
                 require_cases(expected, actual)

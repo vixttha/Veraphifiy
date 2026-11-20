@@ -56,6 +56,8 @@ Run the PowerShell suite with PowerShell 7, Git, and Python 3.12 on the path. It
 pwsh -NoProfile -File test-vault/powershell/verify-receipts.tests.ps1
 ```
 
+To replay the full Windows lane with `python -B test-vault/verify_case_run.py windows LOG_DIR`, use the workflow's complete `ps.log`. It includes the native suite results, the cross-runner handoff result, and one successful completion record at the end.
+
 The TypeScript code is a reference consumer for typed source navigation. Go talks to the real pinned Graphify server over stdio. PowerShell covers process arguments, status, environment, and shared evidence on Windows. Cases for an application viewer or Windows graph publishing need those entry points.
 
 ## Adoption audit

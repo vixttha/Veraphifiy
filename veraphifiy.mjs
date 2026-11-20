@@ -35,16 +35,27 @@ function readArchiveFile(path) {
   return readBytes(path, ENTRY_BYTES);
 }
 
-function git(checkout, args, maxBuffer = 32 * 1024) {
+function git(checkout, args, env, maxBuffer = 32 * 1024) {
   return execFileSync("git", ["--no-replace-objects", "-C", checkout, ...args], {
-    maxBuffer, timeout: 15_000, windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
+    env, maxBuffer, timeout: 15_000, windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
   });
 }
 
 function readGitBlobs(checkout, commit, manifest) {
-  if (!COMMIT.test(commit ?? "") || git(checkout, ["cat-file", "-t", commit]).toString().trim() !== "commit") {
-    throw new Error("Source must be a full commit SHA in the selected Git checkout");
+  const invalidSource = "Source must be a full commit SHA in the selected Git checkout";
+  if (!COMMIT.test(commit ?? "")) throw new Error(invalidSource);
+  // Git hooks export repository-local settings that can override -C and object lookup.
+  const localVariables = git(checkout, ["rev-parse", "--local-env-vars"], process.env);
+  const repositoryVariables = new Set(localVariables.toString().trim().split(/\r?\n/));
+  const env = Object.fromEntries(Object.entries(process.env)
+    .filter(([key]) => !repositoryVariables.has(key.toUpperCase())));
+  let type;
+  try {
+    type = git(checkout, ["cat-file", "-t", commit], env).toString().trim();
+  } catch (error) {
+    throw new Error(invalidSource + ": " + (error.stderr?.toString().trim() || error.message), { cause: error });
   }
+  if (type !== "commit") throw new Error(invalidSource);
   if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) {
     throw new Error("Invalid source inventory");
   }
@@ -52,14 +63,15 @@ function readGitBlobs(checkout, commit, manifest) {
   let total = 0;
   for (const path of Object.keys(manifest).sort()) {
     if (!repositoryPath(path)) throw new Error("Invalid source path: " + path);
-    const listing = git(checkout, ["ls-tree", "-r", "-z", "--full-tree", commit, "--", ":(literal)" + path]);
+    const listing = git(checkout, ["ls-tree", "-r", "-z", "--full-tree", commit, "--", ":(literal)" + path], env);
     const match = /^(100644|100755) blob ([a-f0-9]{40})\t([^\0]+)\0$/.exec(listing.toString("utf8"));
     if (!match || match[3] !== path) throw new Error("Not an ordinary committed source file: " + path);
-    const size = Number(git(checkout, ["cat-file", "-s", match[2]]).toString().trim());
-    if (!Number.isSafeInteger(size) || size < 0 || total + size > SOURCE_BYTES) {
-      throw new Error("Source inventory exceeds the archive byte budget");
+    const size = Number(git(checkout, ["cat-file", "-s", match[2]], env).toString().trim());
+    if (!Number.isSafeInteger(size) || size < 0) throw new Error("Invalid Git blob size: " + path);
+    if (total + size > SOURCE_BYTES) {
+      throw new Error(`Source inventory exceeds the ${SOURCE_BYTES}-byte archive limit at ${path}. Build a smaller map.`);
     }
-    const bytes = git(checkout, ["cat-file", "blob", match[2]], Math.max(1, size));
+    const bytes = git(checkout, ["cat-file", "blob", match[2]], env, Math.max(1, size));
     total += bytes.length;
     blobs.push([path, bytes.toString("base64")]);
   }
@@ -176,6 +188,7 @@ function readVersion(command, { archive, project, version, feature, source, "arc
 const usage = "Usage: node veraphifiy.mjs <import|verify|lookup> --archive DIR --project OWNER/REPO --version vX.Y.Z\n"
   + "  import requires --source SHA --checkout DIR --evidence DIR\n"
   + "  lookup requires --feature feature:ID\n"
+  + "  specify each option at most once\n"
   + "  project casing is ignored for selection; results keep the receipt spelling\n"
   + "  verify and lookup accept --source SHA and --archive-sha256 HASH to check independently recorded pins";
 
@@ -194,7 +207,13 @@ try {
       ...(command !== "import" ? { "archive-sha256": { type: "string" } } : {}),
       ...(command === "lookup" ? { feature: { type: "string" } } : {}),
     };
-    const { values } = parseArgs({ args, options: validOptions });
+    const { values, tokens } = parseArgs({ args, options: validOptions, tokens: true });
+    const seen = new Set();
+    for (const token of tokens) {
+      if (token.kind !== "option") continue;
+      if (seen.has(token.name)) throw new Error("Option --" + token.name + " may only be specified once");
+      seen.add(token.name);
+    }
     if (!values.archive) throw new Error("Specify an archive directory");
     requireIdentity(values.project, values.version);
     const result = command === "import" ? importVersion(values) : readVersion(command, values);

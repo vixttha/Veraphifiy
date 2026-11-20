@@ -13,11 +13,40 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from evidence_bundle import PROFILE, encode_bundle, write_observation
 from validate_catalog import HEADER, read_cases
 from verify_case_run import (
-    passed_cases, require_cases, require_complete_tap, require_complete_unittest, typed_passes,
+    POWERSHELL_COMPLETE, passed_cases, require_cases, require_complete_tap, require_complete_unittest, typed_passes,
 )
 
 
 class CaseRunTests(unittest.TestCase):
+    def test_GHQ_PY_108_requires_successful_powershell_completion_on_replay(self):
+        vault = Path(__file__).resolve().parents[1]
+        catalog, _ = read_cases(vault / "cases.md")
+        cases = sorted(case for case in catalog if case.startswith("GHQ-PS-"))
+        records = "".join(f"PASS {case} fixture passed\n" for case in cases)
+        complete = f"{records}{POWERSHELL_COMPLETE}\n"
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / "ps.log"
+            for content, diagnostic in (
+                (complete, None),
+                (records, "PowerShell completion record"),
+                (records + "Late failure before completion\n", "PowerShell completion record"),
+                (complete + "Late failure after completion\n", "PowerShell completion record"),
+                (complete + POWERSHELL_COMPLETE + "\n", "PowerShell completion record"),
+                (complete.replace(f"PASS {cases[0]}", f"SKIP {cases[0]}"), f"missing=['{cases[0]}'"),
+            ):
+                with self.subTest(diagnostic=diagnostic, length=len(content)):
+                    log.write_text(content, encoding="utf-8")
+                    run = subprocess.run(
+                        [sys.executable, "-B", str(vault / "verify_case_run.py"), "windows", directory],
+                        capture_output=True, text=True, timeout=10,
+                    )
+                    if diagnostic is None:
+                        self.assertEqual(run.returncode, 0, run.stderr)
+                        self.assertIn(f"PS: {len(cases)} catalog checks accounted for", run.stdout)
+                    else:
+                        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+                        self.assertIn(diagnostic, run.stderr)
+
     def test_GHQ_PY_023_rejects_missing_or_skipped_catalog_cases(self):
         expected = {"GHQ-JS-001", "GHQ-JS-002"}
         log = "ok 1 - GHQ-JS-001 passed\nok 2 - GHQ-JS-002 unavailable # SKIP\n"

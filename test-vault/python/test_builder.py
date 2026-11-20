@@ -85,14 +85,81 @@ class BuilderTests(unittest.TestCase):
     def succeeds(self, result):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-    def archive_command(self, command, archive, *args, umask=-1, project=None):
+    def archive_command(self, command, archive, *args, umask=-1, project=None, env=None):
         cli = Path(__file__).resolve().parents[2] / "veraphifiy.mjs"
         return subprocess.run(
             ["node", str(cli), command, "--archive", str(archive),
              "--project", project if project is not None else self.manifest["repository"],
              "--version", "v1.0.0", *args],
-            cwd=self.root, capture_output=True, text=True, timeout=30, umask=umask,
+            cwd=self.root, capture_output=True, text=True, timeout=30, umask=umask, env=env,
         )
+
+    def test_GHQ_PY_105_import_uses_the_explicit_checkout_under_inherited_git_context(self):
+        evidence = self.root / "output"
+        self.succeeds(self.invoke(evidence))
+        other = self.root / "unrelated checkout"
+        subprocess.run(["git", "init", "-q", str(other)], check=True, capture_output=True)
+        worktree = self.root / "linked checkout"
+        self.git("worktree", "add", "-q", "--detach", str(worktree), self.source)
+        archive = self.root / "archive"
+        args = ("--source", self.source, "--evidence", str(evidence), "--checkout")
+        inherited = dict(os.environ, GIT_DIR=str(self.repo / ".git"), GIT_WORK_TREE=str(self.repo))
+        unrelated_context = dict(os.environ, GIT_DIR=str(other / ".git"), GIT_WORK_TREE=str(other))
+        for environment in (
+            None,
+            inherited,
+            dict(os.environ, GIT_OBJECT_DIRECTORY=str(self.repo / ".git" / "objects")),
+        ):
+            result = self.archive_command("import", archive, *args, str(other), env=environment)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn("selected Git checkout", result.stderr)
+            self.assertFalse(archive.exists())
+        for selected in (self.repo, worktree):
+            self.succeeds(self.archive_command("import", archive, *args, str(selected), env=unrelated_context))
+        self.assertEqual(len(list(archive.glob("*.json"))), 1)
+
+    def test_GHQ_PY_106_enforces_the_archive_source_budget_for_valid_producer_maps(self):
+        inventory = [f"sample-{index}.txt" for index in range(9)]
+        for path in inventory:
+            self.write(path, b"fixture line\n" * 76_000)
+        self.git("add", ".")
+        self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-qm", "Add source inventory files")
+        source = self.git("rev-parse", "HEAD").strip()
+        manifest = dict(self.manifest, source_commit=source)
+        archive = self.root / "archive"
+        args = ("--source", source, "--checkout", str(self.repo), "--evidence")
+        oversized = self.root / "oversized"
+        self.succeeds(self.invoke(oversized, manifest=dict(manifest, source_files=inventory)))
+        rejected = self.archive_command("import", archive, *args, str(oversized))
+        self.assertEqual(rejected.returncode, 1, rejected.stdout + rejected.stderr)
+        self.assertIn("8388608-byte archive limit at sample-8.txt. Build a smaller map.", rejected.stderr)
+        self.assertFalse(archive.exists())
+        supported = self.root / "supported"
+        self.succeeds(self.invoke(supported, manifest=dict(manifest, source_files=inventory[:-1])))
+        self.succeeds(self.archive_command("import", archive, *args, str(supported)))
+        self.succeeds(self.archive_command("verify", archive, "--source", source))
+
+    def test_GHQ_PY_107_rejects_repeated_archive_selectors(self):
+        evidence = self.root / "output"
+        self.succeeds(self.invoke(evidence))
+        archive = self.root / "archive"
+        alternate = self.root / "alternate"
+        args = ("--source", self.source, "--checkout", str(self.repo), "--evidence", str(evidence))
+        for option, value in (("project", "example/other"), ("archive", str(alternate))):
+            rejected = self.archive_command("import", archive, *args, f"--{option}={value}")
+            self.assertEqual(rejected.returncode, 1, rejected.stdout + rejected.stderr)
+            self.assertIn(f"Option --{option} may only be specified once", rejected.stderr)
+            self.assertFalse(archive.exists())
+            self.assertFalse(alternate.exists())
+        self.succeeds(self.archive_command("import", archive, *args))
+        for command, extra in (("verify", ()), ("lookup", ("--feature", FEATURE))):
+            for version in ("v1.0.0", "v1.1.0"):
+                rejected = self.archive_command(command, archive, *extra, "--version", version)
+                self.assertEqual(rejected.returncode, 1, rejected.stdout + rejected.stderr)
+                self.assertIn("Option --version may only be specified once", rejected.stderr)
+                self.assertEqual(rejected.stdout, "")
+            self.succeeds(self.archive_command(command, archive, *extra))
 
     def unchanged_failure(self, manifest, message):
         output = self.root / "saved"
