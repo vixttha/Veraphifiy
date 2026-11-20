@@ -54,6 +54,12 @@
       "source_sha": "fdef4867c87148bdf0782e16de372b584d51588e",
       "source_path": "test-vault/cases.md",
       "receipt": "https://github.com/vixttha/Veraphify/issues/61"
+    },
+    {
+      "kind": "test",
+      "claim": "The exact public push for the newer draft passed. Issue #61 records that GHQ-PY-109 exercised a dot-prefixed repository and the existing alias and pin contract.",
+      "source_sha": "fdef4867c87148bdf0782e16de372b584d51588e",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44653386073/attempts/1"
     }
   ],
   "release_membership": "NOT_ASSERTED"
