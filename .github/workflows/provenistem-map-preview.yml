@@ -1,0 +1,40 @@
+name: Provenistem map preview
+
+on:
+  push:
+    branches: [qa/provenistem-map-preview]
+    paths:
+      - .github/workflows/provenistem-map-preview.yml
+      - qa/map-preview/**
+
+permissions:
+  contents: read
+
+jobs:
+  browser-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the exact preview commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install the browser test runner
+        run: |
+          python3 -m venv "$RUNNER_TEMP/veraphify-map-venv"
+          "$RUNNER_TEMP/veraphify-map-venv/bin/pip" install playwright==1.62.0
+          "$RUNNER_TEMP/veraphify-map-venv/bin/python" -m playwright install --with-deps chromium --only-shell
+      - name: Audit branch pages, directed links, and mobile layout
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          "$RUNNER_TEMP/veraphify-map-venv/bin/python" qa/map-preview/test_veraphify_redesign.py
+      - name: Retain audited preview and desktop and mobile views
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: provenistem-map-preview
+          if-no-files-found: error
+          path: |
+            qa/map-preview/Veraphify-Mind-Map.html
+            qa/map-preview/Veraphify-Overview.png
+            qa/map-preview/Veraphify-Discover.png
+            qa/map-preview/Veraphify-Mobile.png
