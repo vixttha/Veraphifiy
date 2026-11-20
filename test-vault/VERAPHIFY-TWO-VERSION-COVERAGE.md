@@ -23,20 +23,20 @@ Run implemented cases against the pinned CLI on standard public GitHub-hosted Ub
 
 | Language | Planned assertions | Readiness |
 | --- | ---: | --- |
-| [JavaScript](#javascript) | 15 | Existing CLI or runner boundary |
-| [Python](#python) | 16 | Ready to design |
-| [Bash](#bash) | 12 | Ready to design |
-| [PowerShell](#powershell) | 12 | Ready to design |
-| [TypeScript](#typescript) | 15 | Ready to design |
-| [Go](#go) | 14 | Ready to design |
-| [C++](#c-compiler-evidence) | 12 | Dependency or contract required |
-| [C#](#c-windows-file-sharing) | 9 | Dependency or contract required |
-| [F#](#f-archive-state-model) | 9 | Dependency or contract required |
-| [Haskell](#haskell) | 11 | Dependency or contract required |
-| [Java](#java) | 10 | Dependency or contract required |
-| [Lua](#lua) | 11 | Dependency or contract required |
-| [Ruby](#ruby) | 11 | Dependency or contract required |
-| [Rust](#rust) | 11 | Dependency or contract required |
+| [JavaScript](#javascript) | 19 | Existing CLI or runner boundary |
+| [Python](#python) | 20 | Ready to design |
+| [Bash](#bash) | 16 | Ready to design |
+| [PowerShell](#powershell) | 16 | Ready to design |
+| [TypeScript](#typescript) | 18 | Ready to design |
+| [Go](#go) | 18 | Ready to design |
+| [C++](#c-compiler-evidence) | 16 | Dependency or contract required |
+| [C#](#c-windows-file-sharing) | 13 | Dependency or contract required |
+| [F#](#f-archive-state-model) | 13 | Dependency or contract required |
+| [Haskell](#haskell) | 15 | Dependency or contract required |
+| [Java](#java) | 14 | Dependency or contract required |
+| [Lua](#lua) | 15 | Dependency or contract required |
+| [Ruby](#ruby) | 15 | Dependency or contract required |
+| [Rust](#rust) | 15 | Dependency or contract required |
 
 ## JavaScript
 
@@ -59,6 +59,10 @@ Pin verification on the downloaded archive, with the real Node CLI. `GHQ-PY-100`
 | VFY-JS-13 | Help and version contract | Run the real top-level help and version commands from a clean working directory. | Help lists import, verify, lookup and their pin options. Version prints the documented CLI version once. Both exit zero. |
 | VFY-JS-14 | Graph and receipt pair mismatch | Supply the valid graph bytes from one version with the valid receipt from the other to import into a disposable archive. | The command reports source or graph mismatch and publishes no new entry. Reuniting each graph and receipt restores both successful imports. |
 | VFY-JS-15 | Archive reads preserve exact bytes | Repeat verified and failed reads in alternating order from two independent processes and compare raw bytes before and after. | Neither verify nor lookup rewrites receipt, graph or archive bytes, and the original pin pairs keep working. |
+| VFY-JS-16 | Command-specific option scope | Call the real CLI with an archive digest option on import and an evidence-directory option on lookup. Include a supported call for each command. | Unsupported options fail in argument parsing and the disposable archive stays unchanged. Each supported command reaches its expected product operation. |
+| VFY-JS-17 | Four-part version selection | Import identical Git evidence under a supported four-part checkpoint and its three-part prefix, then verify both using their independently recorded archive pins. | Each exact label selects its own entry and digest. An unarchived four-part neighbor fails without falling back to the shorter label. |
+| VFY-JS-18 | Producer compatibility envelope | Generate the same graph and receipt through the pinned producer, then exercise a disposable envelope with an unsupported producer identity alongside the pinned positive control. | The consumer verifies the documented producer identity before emitting citation output and retains an observable compatibility verdict. |
+| VFY-JS-19 | Exact published subcommand output names | Read the real output from all three commands with the current JSON field names and compare it to a contract snapshot tied to v0.0.9. | Import and verify report matching evidence metadata and lookup adds the feature and citations. The documented compatibility spelling remains observable. |
 
 ## Python
 
@@ -82,6 +86,10 @@ Independent byte and Git-object verification. Extend `GHQ-PY-032`, `GHQ-PY-053`,
 | VFY-PY-14 | Source entry budget precedence | Model the documented graph, receipt, source and envelope caps independently before constructing boundary tests. | Each proposed equality and one-over case identifies the first reachable cap. Combinations blocked by a tighter cap are recorded as unreachable through valid input. |
 | VFY-PY-15 | Artifact proof stays independently attributable | Compare exported receipt context, downloaded ZIP metadata, expected archive map and registered native results in one audit. | A source digest, ZIP digest, planned assertion or skipped native result is never substituted for an exact-run product verdict. |
 | VFY-PY-16 | Verifier requires retained evidence | Audit a valid exact-run record against a missing or expired artifact and compare with a retained, independently copied ZIP. | Verification records whether the bytes were available and independently checked. GitHub metadata can still identify an expired artifact without standing in for a byte check. |
+| VFY-PY-17 | Git object residence in shallow clones | Fetch one of the two fixture commits into a deliberately shallow checkout and try both pinned imports before and after fetching the other commit. | The available pin imports, the missing object gives a source diagnostic, and supplying its exact object restores the other version without altering the first. |
+| VFY-PY-18 | Equivalent packed and loose objects | Retain equivalent Git fixture checkouts with different normal object storage layouts and look up the same blobs independently. | With identical producer graph and receipt bytes, both imports select the same Git object contents and yield identical archive bytes and SHA-256. |
+| VFY-PY-19 | Project-key filename oracle | Derive the expected entry filename independently from the documented literal project/version pair and compare against the two entries on disk. Treat the filename formula as an internal compatibility check. | The expected paths match the published archive files and independently hashed bytes, with separate names for the two version labels. |
+| VFY-PY-20 | Preflight source inventory on a public adopter | Extend the isolated public-adopter verifier to report the pinned Git object inventory, totals and changed versus unchanged files before import. | The independent preflight accounts for every archived file and reports adopter identity, source pin and budget without treating a planned assertion as a native result. |
 
 ## Bash
 
@@ -101,6 +109,10 @@ Linux subprocess, walkthrough and pipeline semantics. Keep `GHQ-SH-001`, `GHQ-SH
 | VFY-SH-10 | Pre-existing archive directory | Run the pinned walkthrough steps against a prepared writable archive directory with unrelated fixture output present. | The selected imports are correct and existing unrelated fixture files retain their names and hashes. |
 | VFY-SH-11 | Input prerequisites | Exercise missing Git and missing producer dependencies in throwaway clean shells before meaningful archive work. | The walkthrough or prerequisite step stops with an attributable failure. An already prepared archive read can still run with Node alone. |
 | VFY-SH-12 | Interrupted shell cleanup | Run the walkthrough under its normal cleanup trap and introduce a controlled fixture failure after the first version is recorded. | Temporary files follow the documented cleanup policy. There is no success artifact for the unfinished run. |
+| VFY-SH-13 | Pinned external adopter checkout | Run the existing public-adopter verifier from a fresh working directory when the reviewed adopter ref is also available as a mutable branch. | The verifier records and uses the approved full commit. If that branch later moves, the original pinned run still locates the expected guide citation. |
+| VFY-SH-14 | CLI entry file unavailable | Run the existing shell wrapper with its configured CLI path pointing to a missing file, then use the normal entry path. | The failure is attributed to process launch and the runner cannot count it as an expected missing-version result. |
+| VFY-SH-15 | Fail when the expected failure unexpectedly succeeds | Feed the existing native wrapper the valid pinned lookup while it expects a missing-version error. | The test fails its observation check, proving the suite cannot pass solely by executing its happy path. |
+| VFY-SH-16 | Read-only replay location | Replay a prebuilt fixture from a read-only archive directory under a normal non-root Linux runner. Record logs in a separate location. | Lookup and verify succeed using read access and both archive SHA-256 values stay unchanged. |
 
 ## PowerShell
 
@@ -120,6 +132,10 @@ Windows native execution and cross-platform handoff. `GHQ-PS-001`, `GHQ-PS-002`,
 | VFY-PS-10 | Windows import and retry parity | On a disposable Windows runner import the same request twice, then attempt the conflicting second-version input under the first label. | The retry and conflict outcomes agree with existing serial Linux controls. The already published entry keeps its exact digest. |
 | VFY-PS-11 | Cross-platform Git mode fixture | Replay an archive made from a fixture containing an ordinary Git executable path that Windows does not represent as a POSIX permission. | Git object bytes and citations still agree. Host permission representation is recorded independently of Git tree mode. |
 | VFY-PS-12 | Windows CRLF redirection semantics | Compare the artifact bytes to native capture output and to explicitly redirected PowerShell strings from one successful replay. | Windows character encoding and terminal newlines in console output stay independent of binary archive identity. |
+| VFY-PS-13 | Explicit native stream encoding | Run the real Windows replay under a documented PowerShell encoding setting and include a valid non-ASCII repository-relative citation. | The JSON reader recovers the exact citation spelling. Archive byte hashing stays independent from host console decoding. |
+| VFY-PS-14 | Archive path casing on Windows | Replay through two casing spellings of one workspace path on a verified case-insensitive NTFS runner. | Both arguments reach the same retained files and digests. Repository identity casing is recorded as a separate assertion. |
+| VFY-PS-15 | Locked log sink classification | Force a test-only log-output failure after a passing native command and compare with a native lookup failure written to an available log. | Runner evidence can distinguish a wrapper/logging failure from a product failure. Neither is counted as the other. |
+| VFY-PS-16 | Exact artifact filename list on Windows | After downloading the existing Ubuntu handoff, independently enumerate expected archive/result files with literal-path APIs. | Windows observes both entries with exact retained names and contents, and an irrelevant file cannot be mistaken for one of them. |
 
 ## TypeScript
 
@@ -142,6 +158,9 @@ Runtime decoder and type-safe navigation from real CLI stdout. `GHQ-TS-001`, `GH
 | VFY-TS-13 | Opaque pin types | Define the decoder’s validated source and archive-pin types and compile a fixture crossing the two boundaries without conversion. | Correctly decoded pins pass. Accidental pin interchange produces its expected targeted diagnostic. |
 | VFY-TS-14 | Per-entry readiness for multi-version rows | Decode a valid result and an unusable result side by side in one compare view. | The valid item remains usable and the invalid one cannot share another row’s selection or citations. |
 | VFY-TS-15 | Schema evolution discipline | Add an irrelevant extra field to a real response, then remove an essential field from another copy. | The adapter follows its documented policy for additions and reliably reports missing essential evidence. Add a control before making it a required consumer behavior. |
+| VFY-TS-16 | Trusted producers and duplicate response routing | Give the decoded UI stream two identical valid responses for the same request and a valid response for a different search currently open. | Reapplying the first remains idempotent and the unrelated response never replaces a ready citation. |
+| VFY-TS-17 | Query identity carries the feature | Use two real successful feature lookups from one commit and intentionally route one under the other request ID in the test harness. | The consumer requires the actual feature ID as well as the source and digest and rejects a mismatched ready state. |
+| VFY-TS-18 | Producer-line and physical-line types | Decode a genuine line-remapping result from GHQ-PY-101 and route it to a typed navigation adapter. | Navigation consumes the physical Git line; auxiliary producer coordinates can be shown separately and have separate compile-time expectations. |
 
 ## Go
 
@@ -163,6 +182,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-GO-12 | Parallel writes into existing archive | Preload a third independent project/version before starting concurrent writers. | The preloaded archive remains byte-identical while the new keys settle, and all expected final entries can be replayed. |
 | VFY-GO-13 | Concurrent verification with wrong pin | Run one correctly pinned reader and an incorrectly pinned reader while another process imports an independent key. | Each process retains its own exit code and digest outcome. The incorrect reader cannot inherit the correct reader’s result. |
 | VFY-GO-14 | Transient failure attribution | Use a disposable invalid input as one contender alongside a genuine input. Coordinate release and wait for both processes. | Only the genuine input may publish. The rejected contender’s own diagnostic and output identify why it failed. |
+| VFY-GO-15 | Preserve independent archive roots | Coordinate competing imports with equal project/version claims in separate disposable directories. | Each root contains its own valid entry with the expected digest and writers in one root never decide the other root’s outcome. |
+| VFY-GO-16 | Parallel version queries during a compound selection | Issue paired verify and lookup commands for both fixture versions with independently coordinated start and collection. | Request identity survives arbitrary result order, and each pair agrees on its own archive digest and source pin. |
+| VFY-GO-17 | Filename creation failure without a loser overwrite | On a disposable filesystem path that cannot accept a new archive file, run the normal importer while another root uses a valid path. | The failed process reports its own filesystem error and emits no success. The successful root remains verifiable. |
+| VFY-GO-18 | Finite completion with a closed reader | Close a child stdout consumer after an intentional bounded fixture interruption and observe child termination and sibling reader behavior through Go. | Cancellation and stream closure are isolated to the child and sibling readers can still verify their retained committed inputs. |
 
 ## C++ compiler evidence
 
@@ -182,6 +205,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-CPP-10 | Path remapping in diagnostics | Build identical committed sources from two checkout roots using the compiler emitter’s supported path mapping. Citations contain stable repository-relative paths and correct lines for each root. |
 | VFY-CPP-11 | Duplicate source basenames | Place identically named files in two directories and emit distinct implementation anchors. Compiler evidence and CLI citations disambiguate by full repository-relative path. |
 | VFY-CPP-12 | Compiler failure attribution | Build one successful pinned compilation and one benign source compilation failure. The adapter cannot present a compiler error or missing semantic evidence as successful citation generation. |
+| VFY-CPP-13 | Stable symbol binding across build modes | Run the supported compiler exporter in debug and optimized modes against the same tracked symbol with an agreed expected coordinate. If the exporter claims source-stable identity, both output shapes cite the same committed definition even if debug metadata differs. |
+| VFY-CPP-14 | Explicit specialization and primary template | Give both a primary template and an explicit specialization their own recorded feature keys. The exporter links each claim to its own tracked declaration or definition according to the documented symbol policy. |
+| VFY-CPP-15 | Precompiled header coordinates | Use a pinned compiler with and without the supported precompiled-header inputs for otherwise equivalent compilation. Supported runs retain the same tracked source anchor and byte-level citation. |
+| VFY-CPP-16 | Remapped #line annotations | Use a tracked source fixture with a compiler line directive and record both the reported logical coordinate and the actual committed location. The adapter documents whether it can translate the logical coordinate. Navigable results, when supported, still identify the correct physical Git line. |
 
 ## C# Windows file sharing
 
@@ -198,6 +225,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-CS-07 | File identity diagnostics | Record native .NET outcome and CLI exit status separately when a handle policy causes a denial. Decoded diagnostics point to the affected file and cannot be confused with a wrong-pin failure. |
 | VFY-CS-08 | .NET report pin round-trip | Serialize both actual lookup records through the adopter’s typed .NET result object and read them back in a new process. The second process preserves each full source SHA, archive digest, producer spelling and integer citation. Compare with the direct CLI result. |
 | VFY-CS-09 | Independent FileStream position | Read both entries with separate handles and interleave partial byte reads during a CLI verification. Hashes and expected versions stay bound to the correct handle, and replays still select both original entries. |
+| VFY-CS-10 | .NET version selector comparer | Use the adopter’s production .NET comparer on a verified aliased repository and a differently cased version string, which is subject to CLI syntax. Repository aliases preserve the documented canonical selection. Version syntax is validated independently rather than normalized by the client. |
+| VFY-CS-11 | Directory move with file handles open | Hold ordinary readable handles while attempting to rename a disposable archive directory under the adopter's documented Windows file-sharing contract. The result exposes the native outcome. Replaying at the surviving location verifies the original bytes. |
+| VFY-CS-12 | Client cancellation and read-only state | Cancel a .NET consumer operation during benign fixture-controlled waiting and rerun normal verification after disposal. Canceled work is distinguished from a successful lookup and neither changes the retained archive bytes. |
+| VFY-CS-13 | Line types during .NET JSON round-trip | Read a supported multiline citation result and compare real native JSON to the typed .NET navigation and persisted fields. Physical lines remain integral and independent from any optional producer coordinate. |
 
 ## F# archive state model
 
@@ -214,6 +245,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-FS-07 | Read commands are state-neutral | Generate traces with reordered verify and lookup calls between imports. The final observed file map is independent of read order, and each read result agrees with the modeled state at that step. |
 | VFY-FS-08 | Version extensions | Add valid additional version labels that share a source commit, where accepted by the CLI contract. The model and archive agree on separate version keys and corresponding per-entry digests. |
 | VFY-FS-09 | Reference model sensitivity | Deliberately invert one outcome rule inside the model test harness. A known fixture detects the oracle defect, proving the comparison can distinguish disagreement. |
+| VFY-FS-10 | Deterministic prefix equivalence | Execute two seeded traces with the same prefix and different future choices, collecting the state at the shared step. The prefix observations and byte map are identical regardless of later planned operations. |
+| VFY-FS-11 | Model serialization compatibility | Save and reload a minimal failed or successful trace with both full source and archive digests and replay it against the CLI. The decoded trace preserves the chosen selectors and exactly the same observation order. |
+| VFY-FS-12 | Removal is outside the modeled CLI | Generate an unsupported command token in a finite trace and compare emitted exit code and persisted archive inventory with a valid read control. The unsupported operation leaves every recorded entry unchanged and is identifiable as a command failure. |
+| VFY-FS-13 | Version-scoped expected state after interrupted sequence | Stop a generated trace after a real completed import and resume from the retained output in a second process. Resumption sees only completed writes and the final result matches the reference trace state. |
 
 ## Haskell
 
@@ -232,6 +267,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-HS-09 | Reference model self-check | Mutate one fixture annotation used by the model while retaining the original real CLI data. The comparison fails at the intended coordinate, demonstrating that it is independent. |
 | VFY-HS-10 | Producer report correlation | Correlate independently queried MCP graph relations with the pinned graph snapshot before comparing to the CLI. Expected decisions come from the versioned source graph, and the report retains both producer and consumer observations. |
 | VFY-HS-11 | Declared source-only fixture | Model an inventoried code path with zero linked implementation edges, then compare with a linked control in the same graph. An inventoried file alone yields no citation. Adding the documented implementation relation changes only the corresponding feature. |
+| VFY-HS-12 | Direct implementation and transitive reachability | Give the reference oracle a valid graph with an indirectly related path and a direct implementation relation for the selected feature. The reference and CLI return the path attributable to the admitted direct implementation relation. |
+| VFY-HS-13 | Graph label changes preserve citation coordinates | Rebuild a valid producer fixture with equivalent evidence edges and different supported display labels. The archive digest reflects changed graph bytes, while the citation still refers to the same pinned source location. |
+| VFY-HS-14 | Select same feature key in separate repository models | Build equivalent feature IDs in two valid Graphify repositories with different tracked implementations. The pure oracle retains repository-scoped provenance and the CLI produces the respective citations for both. |
+| VFY-HS-15 | Multiple direct edges sharing physical line | Use a producer fixture with distinct valid anchors that map to the same physical line and an unrelated extra citation. The reference checks outcomes against the actual contract for equal physical pairs without inventing a deduplication rule. |
 
 ## Java
 
@@ -249,6 +288,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-JAVA-08 | Citation line representation | Decode one real CLI result with a JSON library configured for the desired integer policy, then use a synthetic malformed response as control. The real integer survives exact decoding, and the decoder refuses unsafe or fractional navigation coordinates according to its contract. |
 | VFY-JAVA-09 | MCP initialization visibility | Negotiate the supported capabilities and request version-specific graph data with the actual JVM client. The adapter observes what the server advertises before discovery and reports mismatches as structured failures. |
 | VFY-JAVA-10 | Per-version audit output | Record real client outcome, source pin, archive digest and citations into the adopter’s result shape. Displaying or serializing the outcome retains the complete identifiers and a failed request cannot be reported as verified. |
+| VFY-JAVA-11 | Packaged JVM adapter from clean checkout | Use the adopter's documented package entry point on a clean public runner with pinned Java and Veraphify dependencies. Both version queries carry the expected provenance and the report records package, runtime and checkout identity. |
+| VFY-JAVA-12 | Bounded JSON decode with an explicit schema | Check real archive results under the actual JVM JSON decoder using a documented size/shape validation policy and one benign out-of-policy fixture. The consumer reports an invalid result before navigation, and the genuine record remains independently pinned. |
+| VFY-JAVA-13 | UTF-8 error diagnostic round-trip | Use a benign failing native request with a non-ASCII fixture field that appears in a documented diagnostic. The JVM reader reports the real nonzero exit and diagnostic without loss of Unicode or substituting a success record. |
+| VFY-JAVA-14 | MCP result has no match for one version | Discover a fixture feature present in only one snapshot via the real JVM adapter and corroborate with version-pinned CLI output. The result distinguishes an advertised valid no-match from transport or capability failure. |
 
 ## Lua
 
@@ -267,6 +310,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-LUA-09 | Versioned buffer reuse | Open the same feature in both versions using the documented version views, then revisit the first. Editor state uses the requested version’s source bytes and restores its original line. |
 | VFY-LUA-10 | Process failure status | Have the real adapter request a missing feature or incorrect pin after a valid navigation. An adapter error is surfaced without replacing the previously verified buffer selection. |
 | VFY-LUA-11 | Explicit user choice of active window | Open two editor windows showing different fixture versions and direct a lookup to the selected window through the installed adapter. Only the selected window's view navigates. The other window's cursor and selected version remain unchanged. |
+| VFY-LUA-12 | Cursor range validation against saved source | Give the real editor adapter a valid version response with the associated tracked source available, and a controlled response whose line exceeds the saved buffer. The valid citation navigates. The out-of-range case follows the documented error path without jumping to an arbitrary line. |
+| VFY-LUA-13 | Unsaved buffer revision differs from selected version | Open a pinned fixture buffer, make an unsaved edit, and run the installed adapter’s version-locked lookup. The adapter presents its documented stale or unsaved state and never silently uses uncommitted coordinates as pinned evidence. |
+| VFY-LUA-14 | Window focus and history restoration | Navigate across the two fixture versions using the installed editor command and then use its supported navigation history. The selected source view, buffer and cursor are attributed to the correct version after each jump. |
+| VFY-LUA-15 | Cancellation on editor shutdown | Start a benign fixture adapter observation and close the owning editor window with normal shutdown handling. The child is cleaned up according to the adapter contract and never reports a result into a closed view. |
 
 ## Ruby
 
@@ -285,6 +332,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-RB-09 | Reordered partial failures | Run the same successful and failed requests in a different order. The per-row outcomes are stable and ordered as documented. Aggregate results reflect the same set of failures. |
 | VFY-RB-10 | Independent manifest location | Launch the adopter task from another project directory with an explicit manifest and the same archive. Inputs and output destinations follow the documented arguments, and version identity is unchanged. |
 | VFY-RB-11 | Adopter retry with stable identity | Retry only a previously failed row alongside a control using unchanged original input records. The resulting status is tied to the retry’s own row ID and cannot change previously successful report entries. |
+| VFY-RB-12 | Structured format failure after native success | Use a controlled result sink that cannot write the adopter report while the native Veraphify call itself succeeds. The Rake wrapper records report failure independently and cannot claim the full batch completed. |
+| VFY-RB-13 | Resumable adopter batch | Persist a partially completed batch report then rerun only documented resume operations from another working directory. Already recorded successes remain attached to the original row IDs and newly checked rows retain fresh per-row evidence. |
+| VFY-RB-14 | Independent inputs with the same external label | Run two distinct manifests that each assign a common human-facing label to a different pinned query. The report separates stable request IDs and SHA-256 from label text and shows the right output for each. |
+| VFY-RB-15 | Batch manifest schema version handling | Use the Rake adopter’s accepted manifest format and a deliberately unsupported manifest version. The versioned schema yields a readable rejection where applicable and schedules no unintended CLI work. |
 
 ## Rust
 
@@ -303,6 +354,10 @@ Concurrent subprocesses around atomic archive publication. `GHQ-GO-007` and `GHQ
 | VFY-RS-09 | Valid empty blob | Use a valid producer inventory with an ordinary empty file and a nonempty referenced implementation file. Empty bytes retain their independent expected digest, and only the real implementation contributes a navigation coordinate. |
 | VFY-RS-10 | Resource accounting evidence | Track bytes read and decoded under deterministic capped fixtures while comparing to the Python independent oracle. The reader reports the correct budget layer and no success is issued for an over-limit input. |
 | VFY-RS-11 | Opaque evidence round-trip | Decode and re-encode the embedded evidence of both archives in Rust without interpreting evidence text as a new canonical JSON document. Decoding the re-encoded fields returns original graph, receipt and source bytes exactly, including harmless whitespace. |
+| VFY-RS-12 | Independent digest without storing all source blobs | Read both genuine archives with the proposed bounded streaming reader and independently hash each decoded field in one pass where possible. Hashes and decoded byte counts match the Python oracle and retained Git bytes within the recorded memory budget. |
+| VFY-RS-13 | Stable scalar identity under equivalent JSON escapes | Use two legitimate text encodings for an unchanged decoded field in a disposable fixture envelope and compare raw versus decoded identity. The reader distinguishes exact outer bytes from inner decoded evidence and preserves each relevant digest. |
+| VFY-RS-14 | Worktree-free inspection | Open both genuine archive entries with Rust in a directory containing neither Git nor producer state. The independent wire-format verifier still emits the expected project/version pins and byte digests. |
+| VFY-RS-15 | Reader remains usable after expected error | Process a benign truncated fixture in one reader instance, then restart with each of the genuine archive entries. Reinitialization isolates decoder state. Supported subsequent archives verify independently. |
 
 ## Coverage review
 
@@ -318,3 +373,27 @@ This planning pass evaluated 84 candidate additions against the existing rows an
 | Evidence and release attribution | Python and native shell lanes | Independent handoff read, exact-run receipt rules, and public Ubuntu/Windows replay. |
 
 The review covers valid hits, legitimate empty data, invalid selections, exact boundaries, offline reads, historical coordinates, retry, contention, stale replies, platform behavior, and runner proof. Remaining unknowns include real client integrations, platform-specific sharing expectations, and limits that may be hard to reach because another format limit applies first. Treat each as a dependency or an explicit reachability check. Reopen the matrix when a product surface or support contract changes, an adopter ships a new boundary, or a reported failure lacks a matching case. Use named passing runner results to report implemented coverage.
+
+## Shared executions across language lanes
+
+These executions group compatible cases from the matrix. Each case retains its expected result and native evidence. Use a disposable copy for a failing control and preserve the original archive files and pins.
+
+| Interaction | Case IDs | Shared fixture and decisive check |
+| --- | --- | --- |
+| Exact version and two independent pins | `VFY-JS-01`–`04`, `VFY-JS-17`, `VFY-PY-01`, `VFY-PY-02` | Run both ordinary fixture versions and a supported four-part label using trusted archive digests and Git commits stored before replay. A single-swapped source or archive pin fails at its own boundary. |
+| Pinned checkout and source availability | `VFY-PY-03`, `VFY-PY-17`, `VFY-SH-13` | Pin the reviewed checkout and exercise a shallow fetch on a disposable copy. Identify the missing object and repeat after fetching that exact object. Use only reviewed public source for the public adopter path. |
+| Shell transport and visible failure | `VFY-SH-03`–`05`, `VFY-SH-14`, `VFY-SH-15`, `VFY-PS-02`, `VFY-PS-03`, `VFY-PS-15` | Collect native stdout, stderr, process status and independent runner status on both public OSes. A benign failure in the log sink, CLI launch or selected lookup identifies its own layer. |
+| Contention and subsequent replay | `VFY-GO-02`, `VFY-GO-03`, `VFY-GO-11`, `VFY-JS-15`, `VFY-CS-02` | Observe concurrent readers around publication. After the writers finish, independently verify the exact winning bytes. Run the .NET sharing check with its declared Windows handle policy. |
+| Producer coordinate and editor navigation | `VFY-PY-02`, `VFY-CPP-16`, `VFY-TS-18`, `VFY-LUA-12`, `VFY-LUA-13` | Record the producer coordinate, physical Git line, and actual buffer revision. The editor navigates in the supported pinned view or reports its documented stale or out-of-range condition. |
+| Request identity across independent clients | `VFY-TS-16`, `VFY-TS-17`, `VFY-GO-16`, `VFY-JAVA-14`, `VFY-RB-14` | Reuse pinned queries, including a successful and an unresolved feature where supported. Preserve project, version, pin and feature association across process or batch ordering. |
+| Binary observation and model restore | `VFY-PY-01`, `VFY-PY-18`, `VFY-FS-11`, `VFY-RS-12`, `VFY-RS-13` | Compare independently decoded bytes across normal storage and reader layouts. Git repacking and equivalent JSON escape sequences are observed at their own layers. Exact outer byte equality applies when comparing the same retained archive. |
+
+The [standalone public-adopter verifier](https://github.com/vixttha/Veraphify/blob/ffbd1df937a0d11acc7edf391f289e877b4d48d8/tools/verify-adoption.py) provides an additional entry point for a reviewed public adopter pinned by commit. The [Branchwell guide PR](https://github.com/vixttha/Veraphify/pull/62) describes that public guide citation boundary. Private application behavior requires its own authorized fixture and evidence.
+
+## Planning scope and remaining evidence
+
+This pass compared 70 candidate additions with the prior 168 rows and the product catalog. It added 55, with at least three per language. The other 15 overlap with existing assertions or fit as variants of the same fixture.
+
+Use the interaction table alongside the individual positive, negative, boundary, repeatability and compatibility cases. Further expansion should require an uncovered observable, a reproduced defect, a newly supported platform or format, or a real adopter contract. Eight adopter lanes retain their stated prerequisites. Supabase has no fixture or declared dependency in this product Vault.
+
+A quantitative confidence estimate requires implemented cases, actual results and a defined fault model. Record case status from its native runner result, exact product and Vault SHAs, and the retained evidence.

@@ -8,7 +8,7 @@ The [case catalog](cases.md) records the implementation status of this plan. The
 
 ## Veraphify product test continuation
 
-The [two-version fixture coverage matrix](VERAPHIFY-TWO-VERSION-COVERAGE.md) expands this plan into 168 proposed assertions across all 14 languages. It links each active lane to the existing catalog and gives the adopter lanes a prerequisite and an observable result.
+The [two-version fixture coverage matrix](VERAPHIFY-TWO-VERSION-COVERAGE.md) expands this plan into 223 proposed assertions across all 14 languages. It links the active lanes to the existing catalog, records prerequisites for adopter checks, and groups compatible cases into shared executions.
 
 The original Vault at `be00421e0eb4b328bac1e1661e89fb946f374eaf` has **200 executable cases** across six languages. Its [exact public push run](https://github.com/vixttha/Veraphify/actions/runs/44538412520/attempts/1) reconciled 166 on Ubuntu and 34 on Windows. The [v0.0.9 integration candidate catalog](https://github.com/vixttha/Veraphify/blob/fdef4867c87148bdf0782e16de372b584d51588e/test-vault/cases.md) has **211 executable cases** at `fdef4867c87148bdf0782e16de372b584d51588e`, including the first-party archive cases. Its [exact public push run](https://github.com/vixttha/Veraphify/actions/runs/44653386073/attempts/1) passed the producer and the independent Ubuntu and Windows replay jobs. The merged main commit `ed5650085e33cf142a37de695757a4df999a7cf3` has the same Git tree as the tested candidate. Use the full product SHA for each test and record the ref on which its evidence ran.
 
