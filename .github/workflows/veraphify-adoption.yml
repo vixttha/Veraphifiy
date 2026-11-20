@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: vixttha/Veraphify
-          ref: bd04eddb54006bc0f7a155405fe87241903343de
+          ref: ffbd1df937a0d11acc7edf391f289e877b4d48d8
           path: adoption-tools
           persist-credentials: false
       - name: Build the pinned evidence map and verify the archive and citation
