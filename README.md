@@ -1,39 +1,49 @@
 # Veraphify
 
-Code memory for each project version. Veraphify archives an evidence graph against the exact project commit and uses it to look up implementation citations for a selected version.
+**Code memory for each project version.** Archive a project’s evidence graph and look up the exact Git commit, file, and line that implemented a feature in a selected version.
 
-We use and support the open-source Graphify project. Veraphify is developed and maintained independently of Graphify Labs.
+**v0.0.9 preview** · [Try the two-version walkthrough](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/docs/adopter-walkthrough.md) · [Verification evidence](docs/verification.md) · [Release tracker](https://github.com/vixttha/Veraphify/issues/21)
 
-## Open the candidate
+## Quickstart
 
-Clone the candidate and run its entry point with Node.js 24 and Git.
+Use Git, Bash, and Node.js 24 to open the CLI at the tested preview commit.
 
-```sh
-git clone --branch work/veraphifiy-v0.0.9 https://github.com/vixttha/Veraphify.git
-cd Veraphify
+```bash
+git clone --no-checkout https://github.com/vixttha/Veraphify.git Veraphify-preview
+cd Veraphify-preview
+git checkout --detach 66e822b56528c5f3e7b7730709d4b472ae2d5f1e
 node veraphifiy.mjs --help
 ```
 
-The draft branch, CLI filename, and archive output field `veraphifiy_version` retain their existing spelling for compatibility.
+The help output lists `import`, `verify`, and `lookup`. The CLI filename retains its original spelling.
 
-## Build and verify two versions
+To see an archive in use, follow the [two-version walkthrough](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/docs/adopter-walkthrough.md) from that checkout. The walkthrough uses Linux x86-64 and CPython 3.12 with `venv`, in addition to the tools above. It builds disposable fixture evidence with the pinned Graphify producer and looks up the same feature twice.
 
-Follow the [adopter walkthrough](docs/adopter-walkthrough.md) to build two maps with the pinned producer, import both versions, and verify their citations from a clean checkout.
+| Fixture version | Implementation citation for `feature:export` |
+| --- | --- |
+| `v1.0.0` | `src/feature.py:3` |
+| `v1.1.0` | `src/feature.py:4` |
 
-## Archive and find evidence
+Each result identifies a different source commit. Importing `v1.1.0` leaves the earlier archive entry byte-for-byte identical.
 
-Supply the paired `graph.json` and `receipt.json` produced by the existing pinned Graphify feature-evidence builder (Graphify `0.9.109`). The source checkout must contain the exact commit claimed by the receipt.
+## Archive your own project
 
-```sh
-node veraphifiy.mjs import --archive ./archive --project owner/repo --version v1.2.3 \
-  --source COMMIT_SHA --checkout ../project --evidence ../graph-output
-node veraphifiy.mjs verify --archive ./archive --project owner/repo --version v1.2.3
-node veraphifiy.mjs lookup --archive ./archive --project owner/repo --version v1.2.3 \
-  --feature feature:export
-```
+1. **Import** a `graph.json` and `receipt.json` pair from the [pinned Graphify producer](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/6af3c2025be3f51e02dca4e4502088c526aae6d1/versions/v0.0.8), using the project identity and source commit declared by the receipt.
+2. **Verify** the entry for that project and version. Store the source commit and archive SHA-256 from a trusted import separately. Pass them as `--source` and `--archive-sha256` to verify the exact entry.
+3. **Look up** a feature in that version. Pass the same trusted `--source` and `--archive-sha256` pins to `lookup`. Citations give one-based physical line numbers in the pinned Git source.
 
-The project name must match the receipt. Each archive entry preserves the graph, receipt and verified source blobs. Importing identical evidence is repeatable. An existing version can only be read or replayed. Record `source` and `archive_sha256` from a trusted import separately from the archive. To verify the exact approved entry, pass those values to `verify` or `lookup` as `--source` and `--archive-sha256`. The summary distinguishes the archived project version, archive format, Veraphify version and pinned producer version.
+Archive entries preserve the graph, receipt, and verified source bytes. Keep archives built from private repositories in private storage.
 
-Lookup citations use one-based physical lines in the pinned Git blob. LF advances the line, including the LF in CRLF. If the producer uses a different line because of an embedded separator, `producer_line` records its original coordinate. Archived graph and receipt bytes are preserved.
+## Verification
 
-Keep archives that contain private source on private storage. On POSIX systems, new archive directories request mode `0700` and new entries request `0600`, subject to the process umask. Existing directory and entry permissions are preserved. On Windows, choose a private archive location and check that its inherited access control lists restrict access to the intended users. Review permissions on existing archives before storing private source. The public Test Vault uploads only disposable fixture archives. [Test Vault](test-vault/README.md) · [v0.0.9 tracker](https://github.com/vixttha/Veraphify/issues/21)
+The public Test Vault ran the documented walkthrough on Ubuntu. Separate Ubuntu and Windows jobs independently replayed both versions from the retained archive handoff. [Exact push run, attempt 1](https://github.com/vixttha/Veraphify/actions/runs/44644119066/attempts/1) · [Evidence and rerun instructions](docs/verification.md) · [Test Vault](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/test-vault/README.md)
+
+## License and attribution
+
+Veraphify-authored code and tests are available under the [MIT license](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/LICENSE). The [reuse and attribution guide](https://github.com/vixttha/Veraphify/blob/66e822b56528c5f3e7b7730709d4b472ae2d5f1e/docs/reuse.md) identifies the separate notices for imported Lydite and Brand Identity material.
+
+## Project links
+
+[Report an issue](https://github.com/vixttha/Veraphify/issues/new/choose) · [Release tracker](https://github.com/vixttha/Veraphify/issues/21)
+
+We use and support the open-source [Graphify project](https://github.com/Graphify-Labs/graphify). Veraphify is developed and maintained independently of Graphify Labs.

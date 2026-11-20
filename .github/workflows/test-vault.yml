@@ -2,23 +2,29 @@ name: Veraphify Test Vault
 
 on:
   push:
-    branches: [graphify-hq-test-vault, work/veraphifiy-v0.0.9]
+    branches: [graphify-hq-test-vault, work/veraphifiy-v0.0.9, integration/veraphify-v0.0.9-mechanical]
     paths:
       - 'test-vault/**'
       - 'veraphifiy.mjs'
       - 'README.md'
       - 'docs/adopter-walkthrough.md'
+      - 'docs/verification.md'
+      - 'docs/reuse.md'
+      - 'LICENSE'
       - 'brand-identity/**'
       - '.gitattributes'
       - '.github/workflows/test-vault.yml'
 
   pull_request:
-    branches: [graphify-hq-test-vault]
+    branches: [graphify-hq-test-vault, main]
     paths:
       - 'test-vault/**'
       - 'veraphifiy.mjs'
       - 'README.md'
       - 'docs/adopter-walkthrough.md'
+      - 'docs/verification.md'
+      - 'docs/reuse.md'
+      - 'LICENSE'
       - 'brand-identity/**'
       - '.gitattributes'
       - '.github/workflows/test-vault.yml'
