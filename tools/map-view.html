@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-__SCRIPT_HASH__'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Provenistem catalog</title>
+<style>
+:root{color-scheme:light;--paper:#f7f7f2;--white:#fff;--ink:#142926;--muted:#485a55;--rail:#12322e;--rail-text:#f5f8f5;--green:#536a37;--line:#b7c7bf;--path:#47746b;--rule:#d8ddd3;--size-rail:clamp(190px,18vw,260px);--sans:"Instrument Sans","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;min-width:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--sans)}button,input{font:inherit}a{color:#155c50}a:focus-visible,summary:focus-visible{outline:3px solid #387d71;outline-offset:4px}.rail a:focus-visible{outline-color:#d3e5ce}.shell{min-height:100vh;display:grid;grid-template-columns:var(--size-rail) minmax(0,1fr)}.rail{background:var(--rail);color:var(--rail-text);display:flex;flex-direction:column;gap:26px;padding:22px 16px;min-width:0}.rail a{color:inherit;text-decoration:none}.brand{font-weight:700;font-size:clamp(1.42rem,2.5vw,1.97rem);letter-spacing:-.045em;padding-inline:12px}.nav{display:grid;gap:4px}.nav a{display:flex;align-items:center;gap:15px;padding:10px 13px;border-radius:8px;min-height:44px}.nav a[aria-current]{background:#536a37}.nav a:hover:not([aria-current]){background:#244942}.nav svg{flex:none;opacity:.91}.source{margin-top:auto;padding:11px 11px 3px;border-top:1px solid #64857e;font:13px var(--mono)}.source a{text-decoration:underline;text-underline-offset:3px}
+main{padding:clamp(24px,3.8vw,54px) clamp(16px,3.8vw,52px);min-width:0}.content{max-width:1130px;margin:auto}h1,h2,p{margin:0}h1{font-size:clamp(2.05rem,4.15vw,3.45rem);letter-spacing:-.057em;line-height:1.08;font-weight:720}.subtitle{margin-top:10px;max-width:48ch;color:var(--muted);font-size:clamp(1rem,1.8vw,1.25rem)}.crumb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:22px;font-size:.94rem;color:var(--muted)}.crumb a{text-decoration:none}.crumb a:hover{text-decoration:underline}
+.mode{display:inline-flex;margin-top:20px;border:1px solid var(--path);border-radius:8px;overflow:hidden;background:var(--white)}.mode a,.tabs a{text-decoration:none;color:var(--ink);min-height:44px;display:flex;align-items:center;justify-content:center}.mode a{min-width:95px;padding:8px 15px}.mode a[aria-current]{background:var(--green);color:#fff;font-weight:650}.mode a:focus-visible{outline-offset:-4px}.mode a+a{border-left:1px solid var(--path)}
+.map{--gap:17px;--row:76px;display:grid;grid-template-columns:minmax(146px,.38fr) minmax(48px,.22fr) minmax(0,1fr);align-items:stretch;margin-top:24px;padding-top:36px;border-top:1px solid var(--line)}.root{align-self:center;background:var(--rail);color:#fff;border-radius:12px;padding:17px 8px;font-size:clamp(1.12rem,2.15vw,1.67rem);text-align:center;font-weight:720;letter-spacing:-.035em}.connectors{position:relative;display:grid;grid-auto-rows:minmax(var(--row),auto);gap:var(--gap)}.connectors::before{content:"";position:absolute;top:calc(var(--row) / 2);bottom:calc(var(--row) / 2);left:48%;border-left:1px solid var(--path)}.connectors::after{content:"";position:absolute;width:48%;left:0;top:50%;border-top:1px solid var(--path)}.connector{position:relative}.connector::before{content:"";position:absolute;left:48%;right:0;top:50%;border-top:1px solid var(--path)}.branches{display:grid;grid-auto-rows:var(--row);gap:var(--gap);min-width:0}.branch{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--white);color:var(--ink);border:1px solid var(--path);border-radius:10px;padding:9px 16px;text-decoration:none;min-width:0}.branch:hover{background:#ecf3ed}.branch strong,.branch small{display:block}.branch strong{font-size:clamp(1.1rem,2.3vw,1.52rem);line-height:1.2;letter-spacing:-.035em}.branch small{font-size:.84rem;color:var(--muted);margin-top:2px}.arrow{font-size:1.42rem;line-height:1;color:#21695e;flex:none}.inventory{margin-top:24px;color:var(--muted);font-size:.87rem}.inventory p{margin-top:7px}
+.tabs{display:flex;gap:16px;border-bottom:1px solid var(--line);margin:24px 0 9px}.tabs a{padding:6px 13px;border-bottom:3px solid transparent}.tabs a[aria-current]{border-bottom-color:var(--green);color:#374f20;font-weight:700}.tabs small{font:12px var(--mono);margin-left:7px;color:var(--muted)}.records,.links{list-style:none;margin:0;padding:0}.records li,.links li{border-bottom:1px solid var(--rule)}.record{display:grid;grid-template-columns:118px minmax(0,1fr) 24px;align-items:center;gap:12px;min-height:58px;padding:12px 5px;color:var(--ink);text-decoration:none}.records a:hover,.links a:hover{background:#edf3eb}.mono{color:var(--muted);font:13px var(--mono);overflow-wrap:anywhere}.record-title{font-weight:550;line-height:1.35}.detail{padding:2px 0}.detail .mono{display:block;margin-bottom:9px}.detail h1{font-size:clamp(1.8rem,3.6vw,2.85rem);max-width:30ch}.detail>p{margin-top:13px;max-width:70ch}.external{margin-top:17px;display:inline-block;text-underline-offset:3px}.states{display:grid;gap:3px;margin:19px 0;color:var(--muted);font-size:.91rem}.value{color:var(--ink);padding-left:7px}.relationships{margin-top:22px}.relationships details{border-top:1px solid var(--rule);padding:10px 0}.relationships summary{font-weight:650;cursor:pointer}.links a{display:block;padding:8px 6px;text-decoration:none}.links .mono{display:inline;margin-right:7px}.none{font-size:.91rem;color:var(--muted)}.skip{position:absolute;top:6px;left:10px;transform:translateY(-150%);background:#fff;padding:8px;z-index:1}.skip:focus{transform:none}
+@media(max-width:720px){.shell{grid-template-columns:minmax(0,1fr)}.rail{padding:12px 16px;gap:8px}.brand{padding:0}.nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}.nav a{padding:7px 5px;gap:5px;font-size:.85rem;min-height:36px}.nav svg{width:15px;height:15px}.source{display:none}.map{grid-template-columns:1fr;padding-top:19px;margin-top:17px;gap:14px;--row:66px;--gap:10px}.root{justify-self:start;padding:8px 12px}.connectors{display:none}.branches{border-left:1px solid var(--path);padding-left:12px;margin-left:9px}.branch{padding:7px 10px}.record{grid-template-columns:minmax(0,1fr) 20px;gap:2px 8px;padding:10px 4px}.record .mono{grid-column:1}.record .record-title{grid-column:1}.record .arrow{grid-column:2;grid-row:1/span 2}.tabs{gap:5px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#content-heading">Skip to content</a>
+<div class="shell">
+  <aside class="rail">
+    <a class="brand" id="brand" href="#/overview/ideas">Provenistem</a>
+    <nav class="nav" id="nav" aria-label="Pages"></nav>
+    <div class="source"><span id="source"></span></div>
+  </aside>
+  <main><div class="content" id="content"></div>
+  <noscript><p>For record data without JavaScript, open graph.json alongside this file.</p></noscript></main>
+</div>
+<script type="application/json" id="catalog">__CATALOG__</script>
+<script>
+(() => {
+  "use strict";
+  const find = id => document.getElementById(id);
+  const data = JSON.parse(find("catalog").textContent);
+  const groups = new Map(data.groups.map(group => [group.id, group]));
+  const nodes = new Map(data.records.map(record => [record.id, record]));
+  const content = find("content");
+  const nav = find("nav");
+  const iconPaths = {
+    overview: "M3 10l9-7 9 7v11h-6v-7H9v7H3z",
+    discover: "M16 16l5 5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0z",
+    archive: "M3 4h18v4H3zM5 8v12h14V8m-11 4h8",
+    prove: "M12 22s8-3 8-10V6l-8-4-8 4v6c0 7 8 10 8 10zm-4-10l3 3 5-6",
+    release: "M7 3v18m0-7c5 0 10-4 10-9M5 3h4m6 2h4M5 21h4",
+    remember: "M6 3h12v18l-6-4-6 4z"
+  };
+  function element(tag, value, className) {
+    const node = document.createElement(tag);
+    if (value) node.textContent = value;
+    if (className) node.className = className;
+    return node;
+  }
+  function route(page, mode, record) {
+    return "#/" + page + "/" + mode + (record ? "/" + record : "");
+  }
+  function parse() {
+    const [page, mode, id] = location.hash.slice(2).split("/");
+    const group = groups.get(page);
+    const chosen = mode === "features" ? mode : "ideas";
+    const node = nodes.get(id);
+    const record = group && node?.group === group.id && node.kind === chosen ? node : null;
+    return {page: group ? group.id : "overview", mode: chosen, record};
+  }
+  function link(label, href, className) {
+    const node = element("a", label, className);
+    node.href = href;
+    return node;
+  }
+  function glyph(key) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    for (const [name,value] of Object.entries({width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.6","stroke-linejoin":"round","stroke-linecap":"round","aria-hidden":"true"})) {
+      svg.setAttribute(name,value);
+    }
+    const path = document.createElementNS(svg.namespaceURI,"path");
+    path.setAttribute("d",iconPaths[key] || "M3 4h18v16H3zM7 9h10m-10 5h10");
+    svg.append(path);
+    return svg;
+  }
+  function heading(title, subtitle) {
+    const node = element("h1",title);
+    node.id = "content-heading";
+    node.tabIndex = -1;
+    content.append(node);
+    if (subtitle) content.append(element("p",subtitle,"subtitle"));
+  }
+  function modeLinks(state, branch) {
+    const wrapper = element("nav","",branch ? "tabs" : "mode");
+    wrapper.setAttribute("aria-label","Record type");
+    for (const [mode,label] of [["ideas","Ideas"],["features","Features"]]) {
+      const a = link(label,route(state.page,mode));
+      if (branch) a.append(element("small",String(branch[mode].length)));
+      if (state.mode === mode) a.setAttribute("aria-current","page");
+      wrapper.append(a);
+    }
+    content.append(wrapper);
+  }
+  function crumb(state, group, record) {
+    const area = element("nav","","crumb");
+    area.setAttribute("aria-label","Breadcrumb");
+    area.append(link("Overview",route("overview",state.mode)),element("span","/"));
+    if (record) area.append(link(group.label,route(group.id,state.mode)),element("span","/"),element("span",record.id,"mono"));
+    else area.append(element("span",group.label));
+    content.append(area);
+  }
+  function arrow() {
+    const node = element("span","→","arrow");
+    node.setAttribute("aria-hidden","true");
+    return node;
+  }
+  function overview(state) {
+    heading("Ideas & features");
+    modeLinks(state);
+    const map = element("div","","map");
+    const connectors = element("div","","connectors");
+    connectors.setAttribute("aria-hidden","true");
+    const branches = element("nav","","branches");
+    branches.setAttribute("aria-label","Catalog categories");
+    for (const group of data.groups) {
+      connectors.append(element("span","","connector"));
+      const a = link("",route(group.id,state.mode),"branch");
+      const copy = element("span");
+      const count = group[state.mode].length;
+      copy.append(element("strong",group.label),element("small",count + " " + (count === 1 ? state.mode.slice(0,-1) : state.mode)));
+      a.append(copy,arrow());
+      branches.append(a);
+    }
+    map.append(element("div","Provenistem","root"),connectors,branches);
+    content.append(map);
+    const inventory = element("details","","inventory");
+    inventory.append(element("summary","Catalog details"),element("p",data.counts.ideas + " ideas · " + data.counts.features + " features · " + data.counts.idea_references + " directed idea references · " + data.counts.feature_to_idea + " feature-to-idea links"),element("p",data.revision,"mono"),element("p","Categories are an editorial grouping. Record pages preserve the original reference direction and status."));
+    content.append(inventory);
+  }
+  function branchPage(state,group) {
+    crumb(state,group);
+    heading(group.label,group.description);
+    modeLinks(state,group);
+    const list = element("ul","","records");
+    list.setAttribute("aria-label",group.label+" "+state.mode);
+    for (const id of group[state.mode]) {
+      const record = nodes.get(id);
+      const row = element("li");
+      const a = link("",route(group.id,state.mode,id),"record");
+      a.append(element("span",id,"mono"),element("span",record.title,"record-title"),arrow());
+      row.append(a);
+      list.append(row);
+    }
+    if (!list.children.length) content.append(element("p","No records in this view.","none"));
+    else content.append(list);
+  }
+  function addLinks(container, label, ids) {
+    if (!ids.length) return;
+    const detail = element("details");
+    detail.append(element("summary",label+" ("+ids.length+")"));
+    const list = element("ul","","links");
+    for (const id of ids) {
+      const n = nodes.get(id);
+      const row = element("li");
+      const a = link("",route(n.group,n.kind,id));
+      a.append(element("span",id,"mono"),element("span",n.title));
+      row.append(a);
+      list.append(row);
+    }
+    detail.append(list);
+    container.append(detail);
+  }
+  function recordPage(state,group,record) {
+    crumb(state,group,record);
+    const detail = element("article","","detail");
+    detail.append(element("span",record.id,"mono"));
+    const title = element("h1",record.title);
+    title.id = "content-heading";
+    title.tabIndex = -1;
+    detail.append(title,element("p",record.summary));
+    const status = element("div","","states");
+    for (const [label,value] of [["Lifecycle",record.lifecycle],["Implementation",record.implementation],["Testing",record.testing],["Release membership",record.release]]) {
+      if (!value) continue;
+      const row = element("div");
+      row.append(element("span",label),element("span",value.toLowerCase().replaceAll("_"," "),"value"));
+      status.append(row);
+    }
+    detail.append(status);
+    if (record.url) detail.append(link("Open source record ↗",record.url,"external"));
+    else detail.append(element("p",record.path,"mono"));
+    const related = element("div","","relationships");
+    if (record.kind === "ideas") {
+      addLinks(related,"This idea references",record.related);
+      addLinks(related,"Ideas referencing this one",record.incoming);
+      addLinks(related,"Features citing this idea",record.citing);
+    } else {
+      addLinks(related,"Originating ideas",record.origins);
+    }
+    detail.append(related);
+    content.append(detail);
+  }
+  function render(moveFocus) {
+    const state = parse();
+    nav.replaceChildren();
+    for (const [page,label] of [["overview","Overview"],...data.groups.map(g=>[g.id,g.label])]) {
+      const a = link("",route(page,state.mode));
+      a.append(glyph(page),element("span",label));
+      if (page === state.page) a.setAttribute("aria-current","page");
+      nav.append(a);
+    }
+    find("brand").href = route("overview",state.mode);
+    find("brand").textContent = data.title;
+    const label = "Source " + data.revision.slice(0,7);
+    const source = find("source");
+    source.replaceChildren();
+    if (data.tree) source.append(link(label,data.tree));
+    else source.textContent = label;
+    content.replaceChildren();
+    if (state.record) recordPage(state,groups.get(state.page),state.record);
+    else if (state.page === "overview") overview(state);
+    else branchPage(state,groups.get(state.page));
+    document.title = (state.record?.title || groups.get(state.page)?.label || "Ideas & features") + " · " + data.title;
+    if (moveFocus) find("content-heading").focus();
+  }
+  window.addEventListener("hashchange",() => {
+    if (location.hash.startsWith("#/") || location.hash === "") render(true);
+  });
+  document.querySelector(".skip").addEventListener("click",event => {
+    event.preventDefault();
+    find("content-heading").focus();
+  });
+  render(false);
+})();
+</script>
+</body>
+</html>

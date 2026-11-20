@@ -1,0 +1,127 @@
+{
+  "title": "Veraphify",
+  "groups": [
+    {
+      "id": "discover",
+      "label": "Discover",
+      "description": "Find the code, tests, and docs behind a change.",
+      "ideas": [
+        "IDEA-000001",
+        "IDEA-000003",
+        "IDEA-000004",
+        "IDEA-000006",
+        "IDEA-000007",
+        "IDEA-000035"
+      ],
+      "features": [
+        "FEAT-000005",
+        "FEAT-000010",
+        "FEAT-000016",
+        "FEAT-000017",
+        "FEAT-000018",
+        "FEAT-000037",
+        "FEAT-000038"
+      ]
+    },
+    {
+      "id": "archive",
+      "label": "Archive",
+      "description": "Keep the graph, receipt, and source together at an exact Git revision.",
+      "ideas": [
+        "IDEA-000005",
+        "IDEA-000008",
+        "IDEA-000009",
+        "IDEA-000010",
+        "IDEA-000013",
+        "IDEA-000017",
+        "IDEA-000027",
+        "IDEA-000028",
+        "IDEA-000037"
+      ],
+      "features": [
+        "FEAT-000001",
+        "FEAT-000002",
+        "FEAT-000003",
+        "FEAT-000004",
+        "FEAT-000006",
+        "FEAT-000019",
+        "FEAT-000027",
+        "FEAT-000028",
+        "FEAT-000029",
+        "FEAT-000033",
+        "FEAT-000040"
+      ]
+    },
+    {
+      "id": "prove",
+      "label": "Verify",
+      "description": "Turn findings into reproducible checks in the Test Vault.",
+      "ideas": [
+        "IDEA-000002",
+        "IDEA-000012",
+        "IDEA-000015",
+        "IDEA-000016",
+        "IDEA-000018",
+        "IDEA-000026",
+        "IDEA-000029",
+        "IDEA-000031",
+        "IDEA-000036"
+      ],
+      "features": [
+        "FEAT-000008",
+        "FEAT-000009",
+        "FEAT-000015",
+        "FEAT-000021",
+        "FEAT-000026",
+        "FEAT-000030",
+        "FEAT-000031",
+        "FEAT-000039"
+      ]
+    },
+    {
+      "id": "release",
+      "label": "Adopt",
+      "description": "Make a release reviewable and the workflow repeatable on an adopter project.",
+      "ideas": [
+        "IDEA-000011",
+        "IDEA-000019",
+        "IDEA-000020",
+        "IDEA-000021",
+        "IDEA-000022",
+        "IDEA-000023",
+        "IDEA-000024",
+        "IDEA-000030",
+        "IDEA-000034"
+      ],
+      "features": [
+        "FEAT-000007",
+        "FEAT-000011",
+        "FEAT-000012",
+        "FEAT-000013",
+        "FEAT-000014",
+        "FEAT-000020",
+        "FEAT-000022",
+        "FEAT-000023",
+        "FEAT-000024",
+        "FEAT-000034",
+        "FEAT-000036"
+      ]
+    },
+    {
+      "id": "remember",
+      "label": "Remember",
+      "description": "Preserve decisions and evidence for the next review.",
+      "ideas": [
+        "IDEA-000014",
+        "IDEA-000025",
+        "IDEA-000032",
+        "IDEA-000033"
+      ],
+      "features": [
+        "FEAT-000025",
+        "FEAT-000032",
+        "FEAT-000035"
+      ]
+    }
+  ]
+}

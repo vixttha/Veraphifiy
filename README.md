@@ -7,6 +7,7 @@ Use this permanent branch to record what Veraphify can do, keep track of possibl
 - [**Ideas**](ideas/INDEX.md) preserves questions, design choices, and the discussions behind them.
 - [**Source audit**](docs/SOURCE-AUDIT.md) maps the issues and earlier Provenistem entries to these records.
 - [**Inventory reconciliation**](docs/INVENTORY-RECONCILIATION.md) records branch, candidate, test and proposal counts and identifies gaps found in review.
+- [**Project map and feature walkthrough**](docs/USE-THE-PROJECT-MAP.md) shows how to open the generated Ideas and Features map and use it to plan and verify one feature.
 
 ## Capture and update records
 

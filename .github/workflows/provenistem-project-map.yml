@@ -1,0 +1,40 @@
+name: Provenistem project map
+
+on:
+  push:
+    branches: [Provenistem]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: provenistem-project-map
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the catalog revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Generate and repeat the map build
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 tools/build_map.py --rev "$GITHUB_SHA" \
+            --groups map-groups.json --github-repo "$GITHUB_REPOSITORY" \
+            --output "$RUNNER_TEMP/provenistem-map"
+          python3 tools/build_map.py --rev "$GITHUB_SHA" \
+            --groups map-groups.json --github-repo "$GITHUB_REPOSITORY" \
+            --output "$RUNNER_TEMP/provenistem-map-repeat"
+          diff -r "$RUNNER_TEMP/provenistem-map" "$RUNNER_TEMP/provenistem-map-repeat"
+          python3 -m json.tool "$RUNNER_TEMP/provenistem-map/receipt.json"
+      - name: Retain the offline map and receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: veraphify-provenistem-map
+          path: ${{ runner.temp }}/provenistem-map
+          if-no-files-found: error
+          retention-days: 7
