@@ -28,6 +28,8 @@ Each result identifies a different source commit. Importing `v1.1.0` leaves the 
 
 ## Archive your own project
 
+Before building the evidence, keep the combined size of inventoried and cited Git files within the [8 MiB source budget](docs/adopter-walkthrough.md).
+
 1. **Import** a `graph.json` and `receipt.json` pair from the [pinned Graphify producer](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/6af3c2025be3f51e02dca4e4502088c526aae6d1/versions/v0.0.8), using the project identity and source commit declared by the receipt.
 2. **Verify** the entry for that project and version. Store the source commit and archive SHA-256 from a trusted import separately. Pass them as `--source` and `--archive-sha256` to verify the exact entry.
 3. **Look up** a feature in that version. Pass the same trusted `--source` and `--archive-sha256` pins to `lookup`. Citations give one-based physical line numbers in the pinned Git source.
