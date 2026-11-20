@@ -1,0 +1,38 @@
+name: Template boundary pilot
+
+on:
+  push:
+    branches: [pilot/template-boundary]
+  pull_request:
+    branches: [pilot/template-boundary]
+    types: [opened, reopened, synchronize, ready_for_review, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  boundary:
+    name: Veraphify template boundary pilot
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Inspect the complete proposed tree using the base policy
+        shell: bash
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          base="$GITHUB_SHA"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            base="$(git rev-parse "$GITHUB_SHA^1")"
+            test "$base" = "$PR_BASE_SHA"
+            test "$(git rev-parse "$GITHUB_SHA^2")" = "$PR_HEAD_SHA"
+          fi
+          policy="$RUNNER_TEMP/veraphify-boundary.py"
+          git show "$base:tools/check-template-boundary.py" > "$policy"
+          python3 -B "$policy" "$base" "$GITHUB_SHA" "$PR_HEAD_REF" "$GITHUB_STEP_SUMMARY"
