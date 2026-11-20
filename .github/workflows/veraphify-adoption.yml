@@ -1,0 +1,81 @@
+name: Veraphify v0.0.9 adoption
+
+on:
+  push:
+    branches: ["branchwell-adoption", "chore/veraphify-v0.0.9"]
+    paths:
+      - ".github/workflows/veraphify-adoption.yml"
+      - "docs/branchwell-adoption.md"
+  pull_request:
+    branches: ["branchwell-adoption"]
+    paths:
+      - ".github/workflows/veraphify-adoption.yml"
+      - "docs/branchwell-adoption.md"
+
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    name: Build, archive, verify, and cite the pinned source
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      VERAPHIFY_SHA: ed5650085e33cf142a37de695757a4df999a7cf3
+      PRODUCER_SHA: 6af3c2025be3f51e02dca4e4502088c526aae6d1
+      ADOPTER_SHA: "1b5168675163587020fe2a1fcb3138028de0f2f4"
+      ADOPTER_FILE: "docs/branchwell-adoption.md"
+      ADOPTER_ANCHOR: "graphify cluster-only . --no-label"
+      ADOPTER_REFERENCES: "{\"documented_in\":[{\"path\":\"docs/branchwell-adoption.md\",\"anchor\":\"Start with three tracked JavaScript modules\"}],\"changed_in\":[{\"path\":\"docs/branchwell-adoption.md\",\"anchor\":\"The default main branch holds a README.\"}],\"tested_by\":[{\"path\":\".github/workflows/branchwell-adoption.yml\",\"anchor\":\"python3 test-vault/validate_catalog.py\"}]}"
+      GRAPHIFY_QUERY_LOG_DISABLE: '1'
+      PYTHONHASHSEED: '0'
+    steps:
+      - name: Check out the pinned adopter source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: "1b5168675163587020fe2a1fcb3138028de0f2f4"
+          path: adopter
+          persist-credentials: false
+      - name: Check out Veraphify v0.0.9
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: vixttha/Veraphify
+          ref: ed5650085e33cf142a37de695757a4df999a7cf3
+          path: veraphify
+          persist-credentials: false
+      - name: Check out the frozen Graphify producer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: vixttha/Blender-Agent-Refinement-Toolkit
+          ref: 6af3c2025be3f51e02dca4e4502088c526aae6d1
+          path: producer
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: '24.22.3'
+          package-manager-cache: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+      - name: Install the producer's hash-locked dependencies
+        run: |
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r producer/versions/v0.0.8/requirements.txt
+          python -m pip check
+      - name: Check out the shared adoption verifier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: vixttha/Veraphify
+          ref: ffbd1df937a0d11acc7edf391f289e877b4d48d8
+          path: adoption-tools
+          persist-credentials: false
+      - name: Build the pinned evidence map and verify the archive and citation
+        run: python adoption-tools/tools/verify-adoption.py
+      - name: Retain the public adoption receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: veraphify-adoption-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/veraphify-adoption/adoption.json
+          if-no-files-found: error
+          retention-days: 7
