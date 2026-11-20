@@ -85,7 +85,7 @@ report = {
     "archived_lookup": lookup,
 }
 (proof / "adoption.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-message = f"Veraphify v0.0.9 verified {repository}${{source} at {path}:{lines[0]}"
+message = f"Veraphify v0.0.9 verified {repository}@{source} at {path}:{lines[0]}"
 print(message)
 with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
     print(message, file=summary)
