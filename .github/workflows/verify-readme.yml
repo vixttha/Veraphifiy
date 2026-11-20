@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
-      README_SHA: c0a03f7e40b115c51fbc4be2a45f50ce1dee46f7
+      README_SHA: 88d5d08cd8c80de3927858685878e51b6d7c69b8
       PRODUCT_SHA: 91ccf6bdc4ac4645006151d68605c2b77239d651
       PYTHONHASHSEED: '0'
       GRAPHIFY_QUERY_LOG_DISABLE: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: c0a03f7e40b115c51fbc4be2a45f50ce1dee46f7
+          ref: 88d5d08cd8c80de3927858685878e51b6d7c69b8
           path: homepage
           fetch-depth: 0
           persist-credentials: false
@@ -69,6 +69,9 @@ jobs:
           assert "../README.md#quickstart" in links(guide)
           assert any(t.type == "table_open" for t in parser.parse(readme))
           assert any(t.type == "table_open" for t in parser.parse(guide))
+          lookup = next(line for line in readme.splitlines() if line.startswith("3. **Look up**"))
+          assert all(pin in lookup for pin in ("--source", "--archive-sha256"))
+
           for target in links(readme) + links(guide):
               if not urlsplit(target).scheme:
                   folder = root / ("docs" if target.startswith("../") else ".")
