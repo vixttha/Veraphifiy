@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
-      README_SHA: 88d5d08cd8c80de3927858685878e51b6d7c69b8
-      PRODUCT_SHA: 91ccf6bdc4ac4645006151d68605c2b77239d651
+      README_SHA: e42e9ff321432619a6004a59164f51b002ff6055
+      PRODUCT_SHA: 66e822b56528c5f3e7b7730709d4b472ae2d5f1e
       PYTHONHASHSEED: '0'
       GRAPHIFY_QUERY_LOG_DISABLE: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: 88d5d08cd8c80de3927858685878e51b6d7c69b8
+          ref: e42e9ff321432619a6004a59164f51b002ff6055
           path: homepage
           fetch-depth: 0
           persist-credentials: false
@@ -66,6 +66,10 @@ jobs:
                       for child in (block.children or []) if child.type == "link_open"]
 
           assert "docs/verification.md" in links(readme)
+          product_base = "https://github.com/vixttha/Veraphify/blob/" + os.environ["PRODUCT_SHA"] + "/"
+          for path in ("LICENSE", "docs/reuse.md"):
+              assert product_base + path in links(readme)
+              assert product_base + path in links(guide)
           assert "../README.md#quickstart" in links(guide)
           assert any(t.type == "table_open" for t in parser.parse(readme))
           assert any(t.type == "table_open" for t in parser.parse(guide))
@@ -90,6 +94,10 @@ jobs:
           done
           cd Veraphify-preview
           test "$(git rev-parse HEAD)" = "$PRODUCT_SHA"
+          grep -Fx 'Copyright (c) 2026 vixttha' LICENSE
+          test -f docs/reuse.md
+          test -f test-vault/LICENSE
+          test -f brand-identity/LICENSE
           python - <<'PY'
           import os
           import re
