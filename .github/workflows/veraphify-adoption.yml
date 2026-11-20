@@ -28,6 +28,7 @@ jobs:
       ADOPTER_SHA: "1b5168675163587020fe2a1fcb3138028de0f2f4"
       ADOPTER_FILE: "docs/branchwell-adoption.md"
       ADOPTER_ANCHOR: "graphify cluster-only . --no-label"
+      ADOPTER_REFERENCES: "{\"documented_in\":[{\"path\":\"docs/branchwell-adoption.md\",\"anchor\":\"Start with three tracked JavaScript modules\"}],\"changed_in\":[{\"path\":\"docs/branchwell-adoption.md\",\"anchor\":\"The default main branch holds a README.\"}],\"tested_by\":[{\"path\":\".github/workflows/branchwell-adoption.yml\",\"anchor\":\"python3 test-vault/validate_catalog.py\"}]}"
       GRAPHIFY_QUERY_LOG_DISABLE: '1'
       PYTHONHASHSEED: '0'
     steps:
@@ -66,7 +67,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: vixttha/Veraphify
-          ref: 64b3b3005d7442aaacf5dc6ca45255ca673cba53
+          ref: bd04eddb54006bc0f7a155405fe87241903343de
           path: adoption-tools
           persist-credentials: false
       - name: Build the pinned evidence map and verify the archive and citation
