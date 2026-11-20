@@ -9,7 +9,8 @@
   "idea_ids": [
     "IDEA-000008",
     "IDEA-000009",
-    "IDEA-000017"
+    "IDEA-000017",
+    "IDEA-000028"
   ],
   "acceptance_criteria": [
     "The archive accepts ordinary committed blob files, respects bounded reads, and publishes owner-restricted source entries on POSIX."
@@ -41,6 +42,11 @@
       "kind": "tracking",
       "claim": "Tracked in GitHub issue #50.",
       "receipt": "https://github.com/vixttha/Veraphify/issues/50"
+    },
+    {
+      "kind": "tracking",
+      "claim": "The current candidate documents and tests the archive input budget.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/59"
     }
   ],
   "release_membership": "NOT_ASSERTED"

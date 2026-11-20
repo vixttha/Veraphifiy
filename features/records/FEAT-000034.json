@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000034",
+  "title": "Clean-checkout proof for downstream adopters",
+  "summary": "Record project-specific Graphify evidence that checks the kit and lock are available at the exact run checkout and walks real feature relationships.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000030",
+    "IDEA-000006",
+    "IDEA-000023"
+  ],
+  "acceptance_criteria": [
+    "At least one pinned downstream feature is built from its actual integration tree and resolves to implementation and test anchors under its own public workflow. The receipt identifies the project, source revision and evidence boundaries."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Adopter integration must retain its locked verifier.",
+      "receipt": "https://github.com/vixttha/AlderVale-Pact-of-Ten/issues/159"
+    },
+    {
+      "kind": "context",
+      "claim": "Candidate reward, save and test anchors.",
+      "receipt": "https://github.com/vixttha/AlderVale-Pact-of-Ten/issues/160"
+    },
+    {
+      "kind": "context",
+      "claim": "Branchwell compatibility and CI scope.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/27"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

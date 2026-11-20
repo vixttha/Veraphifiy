@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000040",
+  "title": "Concurrent archive publication and readback proof",
+  "summary": "Coordinate actual CLI subprocesses to check identical retries, competing imports, and concurrent readers against one project and version.",
+  "kind": "capability",
+  "lifecycle_status": "planned",
+  "implementation_status": "planned",
+  "idea_ids": [
+    "IDEA-000037",
+    "IDEA-000009",
+    "IDEA-000017",
+    "IDEA-000027"
+  ],
+  "acceptance_criteria": [
+    "Overlapping identical imports agree on the final digest. With conflicting inputs only one entry wins, and independent readers see an absent or complete pinned entry. The evidence shows that the operations actually overlapped."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Permanent Vault mechanical proof plan.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/77ac3ab9c01fd34e985981c41b9c890dcebba5c9/docs/veraphify-mechanical-proof.md"
+    },
+    {
+      "kind": "context",
+      "claim": "Adapted Vault continuation.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/954b0df69c0c0adba799ea30cfd0683889304353/test-vault/LANGUAGE-PLAN.md#veraphify-product-test-continuation"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

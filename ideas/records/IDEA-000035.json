@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000035",
+  "title": "Make producer and physical Git citation coordinates explicit",
+  "summary": "Define which line coordinate a typed consumer returns and when archived source bytes are required to resolve a physical Git citation.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/pull/56#discussion_r4637140523"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "graph-navigation"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000006",
+    "IDEA-000017",
+    "IDEA-000018"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "The first-party CLI already resolves physical Git lines.",
+      "url": "https://github.com/vixttha/Veraphify/issues/49"
+    }
+  ]
+}

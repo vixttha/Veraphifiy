@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000032",
+  "title": "Validate Provenistem records and evidence links from a clean checkout",
+  "summary": "Check IDs, related records, index membership, source pins and the current audit baseline mechanically so the inventory can be maintained across sessions.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/blob/0b9db6915ae1d15e656c9d84fea7fac7c5a02a6a/docs/SOURCE-AUDIT.md"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "provenistem"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000014",
+    "IDEA-000025"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Earlier Graphify HQ inventory and evidence mapping.",
+      "url": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem"
+    }
+  ]
+}

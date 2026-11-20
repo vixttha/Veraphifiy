@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000034",
+  "title": "Give integrators a versioned CLI and archive reference",
+  "summary": "Document the command flags, identity fields, archive format, and verification output so wrappers can integrate using exact supported behavior.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/blob/bad0eea429fd78b5d216cf01e26bcbaacbeddcb3/LEARNING.md"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "documentation"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000011",
+    "IDEA-000020"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Current executable command and archive contract.",
+      "url": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/veraphifiy.mjs"
+    }
+  ]
+}

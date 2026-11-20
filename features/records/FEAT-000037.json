@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000037",
+  "title": "Graph-guided discovery benchmark",
+  "summary": "Measure whether graph navigation uncovers useful implementation, test or document evidence missed by a defined baseline on representative project tasks.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000004",
+    "IDEA-000001",
+    "IDEA-000006"
+  ],
+  "acceptance_criteria": [
+    "Record the same tasks, source revisions, baseline search procedure and time budget for both methods. Count only findings with an inspected source or test anchor and publish misses alongside discoveries."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Original Graphify HQ discovery measurement idea.",
+      "receipt": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000004.json"
+    },
+    {
+      "kind": "context",
+      "claim": "An example where the retained graph leaves implementation discovery incomplete.",
+      "receipt": "https://github.com/vixttha/AlderVale-Pact-of-Ten/issues/160"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

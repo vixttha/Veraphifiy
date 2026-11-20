@@ -9,7 +9,8 @@
   "idea_ids": [
     "IDEA-000010",
     "IDEA-000013",
-    "IDEA-000017"
+    "IDEA-000017",
+    "IDEA-000027"
   ],
   "acceptance_criteria": [
     "Two casing spellings of one GitHub repository resolve consistently while distinct project/version entries remain separate."
@@ -41,6 +42,18 @@
       "kind": "tracking",
       "claim": "Tracked in GitHub issue #51.",
       "receipt": "https://github.com/vixttha/Veraphify/issues/51"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Repeated version and project options now yield an error.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/60"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Leading-dot project name compatibility is tracked separately. The candidate registers GHQ-PY-109 at the linked revision.",
+      "source_sha": "fdef4867c87148bdf0782e16de372b584d51588e",
+      "source_path": "test-vault/cases.md",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/61"
     }
   ],
   "release_membership": "NOT_ASSERTED"

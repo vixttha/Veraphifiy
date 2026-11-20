@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000038",
+  "title": "Typed citation coordinate contract",
+  "summary": "Name the producer graph coordinate returned by the typed consumer and expose a verified physical Git line only when the resolver has the pinned source bytes.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000035",
+    "IDEA-000006",
+    "IDEA-000017"
+  ],
+  "acceptance_criteria": [
+    "At a pinned source with a Unicode line separator, the typed result explicitly describes its coordinate system and the source-backed lookup returns the expected physical line."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Typed citation coordinate contract review.",
+      "receipt": "https://github.com/vixttha/Veraphify/pull/56#discussion_r4637140523"
+    },
+    {
+      "kind": "context",
+      "claim": "Existing physical line behavior in the first-party CLI.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/49"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

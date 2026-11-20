@@ -2,7 +2,7 @@
 
 [Back to the library](../README.md)
 
-This inventory covers the public Veraphify repository, published planning evidence, and the earlier Graphify HQ tracker. It records known capabilities and ideas at the listed revisions. Feature and issue states can change after this snapshot.
+This inventory covers the public Veraphify repository, published planning evidence, and the earlier Graphify HQ tracker. It records known capabilities and ideas at the listed revisions. Feature and issue states can change after this snapshot. The [inventory reconciliation](INVENTORY-RECONCILIATION.md) records current branch heads, 58 first-party issues, open review threads and the newer integration evidence.
 
 | Source | What was reconciled |
 | --- | --- |
@@ -38,6 +38,11 @@ The table covers all 53 open and closed issues returned by the public repository
 
 | Issue | Title | Recorded state | Relevant idea or feature |
 | --- | --- | --- | --- |
+| [#61](https://github.com/vixttha/Veraphify/issues/61) | Allow dot-prefixed repository names in the Veraphify CLI | open | [IDEA-000013](../ideas/records/IDEA-000013.json) · [FEAT-000002](../features/records/FEAT-000002.json) · [FEAT-000021](../features/records/FEAT-000021.json) |
+| [#60](https://github.com/vixttha/Veraphify/issues/60) | Reject conflicting CLI flags that select an archive or project version | open | [IDEA-000027](../ideas/records/IDEA-000027.json) · [FEAT-000001](../features/records/FEAT-000001.json) · [FEAT-000002](../features/records/FEAT-000002.json) · [FEAT-000028](../features/records/FEAT-000028.json) |
+| [#59](https://github.com/vixttha/Veraphify/issues/59) | Document Veraphify's archive size limit before adopters build a map | open | [IDEA-000028](../ideas/records/IDEA-000028.json) · [FEAT-000006](../features/records/FEAT-000006.json) · [FEAT-000007](../features/records/FEAT-000007.json) · [FEAT-000029](../features/records/FEAT-000029.json) · [FEAT-000033](../features/records/FEAT-000033.json) |
+| [#58](https://github.com/vixttha/Veraphify/issues/58) | Require successful PowerShell suite completion during standalone Vault replay | open | [IDEA-000029](../ideas/records/IDEA-000029.json) · [FEAT-000008](../features/records/FEAT-000008.json) · [FEAT-000009](../features/records/FEAT-000009.json) · [FEAT-000030](../features/records/FEAT-000030.json) |
+| [#57](https://github.com/vixttha/Veraphify/issues/57) | Bind archive import to the checkout explicitly selected by the caller | open | [IDEA-000027](../ideas/records/IDEA-000027.json) · [FEAT-000001](../features/records/FEAT-000001.json) · [FEAT-000027](../features/records/FEAT-000027.json) |
 | [#54](https://github.com/vixttha/Veraphify/issues/54) | Require source-file links for inventoried evidence anchors | open | [IDEA-000006](../ideas/records/IDEA-000006.json) · [IDEA-000017](../ideas/records/IDEA-000017.json) · [FEAT-000010](../features/records/FEAT-000010.json) · [FEAT-000018](../features/records/FEAT-000018.json) |
 | [#53](https://github.com/vixttha/Veraphify/issues/53) | Require a completed successful unittest run during Vault replay | open | [IDEA-000016](../ideas/records/IDEA-000016.json) · [FEAT-000009](../features/records/FEAT-000009.json) · [FEAT-000021](../features/records/FEAT-000021.json) |
 | [#52](https://github.com/vixttha/Veraphify/issues/52) | Reject out-of-range palette indices in indexed brand PNGs | open | [IDEA-000021](../ideas/records/IDEA-000021.json) · [FEAT-000013](../features/records/FEAT-000013.json) · [FEAT-000023](../features/records/FEAT-000023.json) |

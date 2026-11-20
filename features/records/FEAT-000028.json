@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000028",
+  "title": "Unambiguous archive CLI options",
+  "summary": "Repeated options yield an explicit error, including repeated archive, project, and version selectors.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000027",
+    "IDEA-000013"
+  ],
+  "acceptance_criteria": [
+    "Ambiguous import, verify and lookup commands emit no success and create no archive. The single-selector controls continue to work."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Integration candidate regression GHQ-PY-107",
+    "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44649433106/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "GitHub tracking and candidate evidence.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/60"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Behavior at the exact integration candidate.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "source_path": "veraphifiy.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/veraphifiy.mjs"
+    },
+    {
+      "kind": "test",
+      "claim": "Public regression GHQ-PY-107 is registered in the exact candidate and cited in its issue.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "source_path": "test-vault/cases.md",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44649433106/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

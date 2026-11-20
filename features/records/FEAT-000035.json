@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000035",
+  "title": "Replay evidence beyond the Actions artifact lifetime",
+  "summary": "Keep an approved replay origin and the run, attempt, artifact identity, digest and source pins needed for a later release review.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000033",
+    "IDEA-000009",
+    "IDEA-000019",
+    "IDEA-000025"
+  ],
+  "acceptance_criteria": [
+    "A fresh verifier can reconstruct the documented two-version citation proof when the original Actions artifact is unavailable and can report any evidence that cannot be reconstructed."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "README trial identifies evidence review after artifact expiration as a reader task.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/bad0eea429fd78b5d216cf01e26bcbaacbeddcb3/LEARNING.md"
+    },
+    {
+      "kind": "context",
+      "claim": "Existing release evidence rule remains authoritative.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/21"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

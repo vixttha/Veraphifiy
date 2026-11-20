@@ -8,7 +8,10 @@
   "implementation_status": "planned",
   "idea_ids": [
     "IDEA-000016",
-    "IDEA-000018"
+    "IDEA-000018",
+    "IDEA-000029",
+    "IDEA-000031",
+    "IDEA-000035"
   ],
   "acceptance_criteria": [
     "Each promoted test connects to a supported producer or adopter workflow and reports the required assertion."
@@ -31,6 +34,13 @@
       "kind": "tracking",
       "claim": "Tracked in GitHub issue #53.",
       "receipt": "https://github.com/vixttha/Veraphify/issues/53"
+    },
+    {
+      "kind": "context",
+      "claim": "The first-party plan extends coverage with a separate starter contract across all 14 lanes.",
+      "source_sha": "77ac3ab9c01fd34e985981c41b9c890dcebba5c9",
+      "source_path": "docs/veraphify-mechanical-proof.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/77ac3ab9c01fd34e985981c41b9c890dcebba5c9/docs/veraphify-mechanical-proof.md"
     }
   ],
   "release_membership": "NOT_ASSERTED"

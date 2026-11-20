@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000028",
+  "title": "Give adopters the archive budget before graph generation",
+  "summary": "Expose importer constraints before adopters invest time generating a graph and make input limits easy to check against the source inventory.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/59"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "archive"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000011",
+    "IDEA-000017"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "The current walkthrough documents the budget and how to scope a map.",
+      "url": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/docs/adopter-walkthrough.md"
+    }
+  ]
+}

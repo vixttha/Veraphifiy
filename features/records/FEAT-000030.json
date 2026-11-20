@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000030",
+  "title": "Standalone suite completion reconciliation",
+  "summary": "Standalone replay checks suite-level completion alongside the applicable named cases. Go, Python and PowerShell have explicitly tracked terminal result checks.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000029",
+    "IDEA-000016",
+    "IDEA-000019"
+  ],
+  "acceptance_criteria": [
+    "A complete PowerShell log with one terminal success record passes. A truncated log or late failure is rejected. Python and Go retain their own suite completion checks."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Integration candidate regression GHQ-PY-108",
+    "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44649433106/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "PowerShell suite completion and candidate evidence.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/58"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Python suite completion.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/53"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Go package completion.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/14"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Current replay implementation.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/test-vault/verify_case_run.py"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Behavior at the exact integration candidate.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "source_path": "test-vault/verify_case_run.py",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/test-vault/verify_case_run.py"
+    },
+    {
+      "kind": "test",
+      "claim": "Public regression GHQ-PY-108 is registered in the exact candidate and cited in its issue.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "source_path": "test-vault/cases.md",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44649433106/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

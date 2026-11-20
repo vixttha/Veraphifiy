@@ -8,7 +8,8 @@
   "implementation_status": "planned",
   "idea_ids": [
     "IDEA-000013",
-    "IDEA-000023"
+    "IDEA-000023",
+    "IDEA-000030"
   ],
   "acceptance_criteria": [
     "The recorded adopter check is tied to an exact source and accurately describes the verified behavior."

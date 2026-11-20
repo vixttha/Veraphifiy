@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000033",
+  "title": "Preflight an adopter map against the import budget",
+  "summary": "Check the selected source inventory and relevant limits before invoking the expensive producer build.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000028",
+    "IDEA-000011"
+  ],
+  "acceptance_criteria": [
+    "A supported pinned inventory passes before generation. One over the importer’s limit is identified with the total and relevant limit. Preflight and import calculate the same inventory bytes."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Observed mismatch between accepted producer inputs and importer budgets motivates preflight.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/59"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

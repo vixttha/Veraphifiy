@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000026",
+  "title": "Standalone Lydite v0.0.4 template branch",
+  "summary": "Veraphify has a separate Lydite-Test-Vault branch whose import tree is exactly the pinned upstream Lydite v0.0.4 tree.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000026",
+    "IDEA-000016"
+  ],
+  "acceptance_criteria": [
+    "The branch begins with a parentless empty tree and its next commit imports the complete upstream tree byte-for-byte."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Git tree identity and history inspection of the standalone template",
+    "source_sha": "2ab0f6b1757e6a0f7e3bb419ba0f83d83b692010",
+    "receipt": "https://github.com/vixttha/Veraphify/commit/2ab0f6b1757e6a0f7e3bb419ba0f83d83b692010"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "Veraphify’s standalone import commit.",
+      "receipt": "https://github.com/vixttha/Veraphify/commit/2ab0f6b1757e6a0f7e3bb419ba0f83d83b692010"
+    },
+    {
+      "kind": "tracking",
+      "claim": "The upstream source commit has the identical Git tree.",
+      "receipt": "https://github.com/vixttha/Lydite-Test-Vault-Template/tree/87d25d80d3154d295052412b64b29a0f0f152c27"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Empty root of the permanent branch.",
+      "receipt": "https://github.com/vixttha/Veraphify/commit/bd3db464dce8a323d653a8d8270b34002499ec26"
+    },
+    {
+      "kind": "test",
+      "claim": "The imported and upstream Git trees have identical object ID 4f697f230b98a3e3c5688dd107b2f53dd5e9a795.",
+      "source_sha": "2ab0f6b1757e6a0f7e3bb419ba0f83d83b692010",
+      "receipt": "https://github.com/vixttha/Veraphify/tree/2ab0f6b1757e6a0f7e3bb419ba0f83d83b692010"
+    },
+    {
+      "kind": "context",
+      "claim": "The branch tip adds project-specific proof planning after the exact upstream import.",
+      "source_sha": "77ac3ab9c01fd34e985981c41b9c890dcebba5c9",
+      "source_path": "docs/veraphify-mechanical-proof.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/77ac3ab9c01fd34e985981c41b9c890dcebba5c9/docs/veraphify-mechanical-proof.md"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

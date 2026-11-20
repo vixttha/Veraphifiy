@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000032",
+  "title": "Read-only Provenistem inventory validation",
+  "summary": "Check record IDs, JSON shape, index coverage, idea references and source pins from an exact branch checkout.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000032",
+    "IDEA-000014",
+    "IDEA-000025"
+  ],
+  "acceptance_criteria": [
+    "Valid records pass. Duplicate or unindexed IDs, missing related records, and unresolved exact source paths produce specific diagnostics."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "The original audit used a manually maintained source map.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0b9db6915ae1d15e656c9d84fea7fac7c5a02a6a/docs/SOURCE-AUDIT.md"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

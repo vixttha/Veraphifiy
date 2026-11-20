@@ -9,7 +9,8 @@
   "idea_ids": [
     "IDEA-000012",
     "IDEA-000019",
-    "IDEA-000024"
+    "IDEA-000024",
+    "IDEA-000033"
   ],
   "acceptance_criteria": [
     "An exact push run can qualify the selected source, while PR merge and earlier-attempt handoffs remain separately identified."
@@ -55,6 +56,12 @@
       "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
       "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
       "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    },
+    {
+      "kind": "tracking",
+      "claim": "The release tracker records this exact push workflow, attempt and artifact for owner review.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/21#selected-evidence-for-owner-review"
     }
   ],
   "release_membership": "NOT_ASSERTED"

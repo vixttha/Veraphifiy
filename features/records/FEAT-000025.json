@@ -7,7 +7,8 @@
   "lifecycle_status": "implemented",
   "implementation_status": "implemented",
   "idea_ids": [
-    "IDEA-000014"
+    "IDEA-000014",
+    "IDEA-000032"
   ],
   "acceptance_criteria": [
     "A reader can navigate to every indexed record and trace it to its public source or the dedicated workflow."

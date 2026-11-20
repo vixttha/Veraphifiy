@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000031",
+  "title": "Prove that each named Vault assertion detects its intended regression",
+  "summary": "Use controlled changes to one property at a time to see whether a passing case actually depends on the claimed behavior.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/pull/56#discussion_r4637140503"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "test-vault"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000002",
+    "IDEA-000016"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Earlier sampled controlled probes in all six active languages.",
+      "url": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/test-vault/ASSERTION-AUDIT.md"
+    },
+    {
+      "relation": "context",
+      "claim": "Staging interruption timing review.",
+      "url": "https://github.com/vixttha/Veraphify/pull/56#discussion_r4637140477"
+    }
+  ]
+}

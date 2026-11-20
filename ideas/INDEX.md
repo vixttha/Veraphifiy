@@ -31,3 +31,15 @@ These records preserve planning context. Feature records show the current implem
 | [IDEA-000023](records/IDEA-000023.json) | Make downstream adoption claims exact | Captured |
 | [IDEA-000024](records/IDEA-000024.json) | Preserve release checks across workflow ref changes | Captured |
 | [IDEA-000025](records/IDEA-000025.json) | Use retained evidence to recover a review session | Captured |
+| [IDEA-000026](records/IDEA-000026.json) | Keep the upstream Vault template separately reproducible | Captured |
+| [IDEA-000027](records/IDEA-000027.json) | Make archive selection explicit at the command boundary | Captured |
+| [IDEA-000028](records/IDEA-000028.json) | Give adopters the archive budget before graph generation | Captured |
+| [IDEA-000029](records/IDEA-000029.json) | Require complete runner verdicts for standalone replay | Captured |
+| [IDEA-000030](records/IDEA-000030.json) | Prove the workflow on real downstream checkouts | Captured |
+| [IDEA-000031](records/IDEA-000031.json) | Prove that each named Vault assertion detects its intended regression | Captured |
+| [IDEA-000032](records/IDEA-000032.json) | Validate Provenistem records and evidence links from a clean checkout | Captured |
+| [IDEA-000033](records/IDEA-000033.json) | Preserve replayable release evidence after artifact expiry | Captured |
+| [IDEA-000034](records/IDEA-000034.json) | Give integrators a versioned CLI and archive reference | Captured |
+| [IDEA-000035](records/IDEA-000035.json) | Make producer and physical Git citation coordinates explicit | Captured |
+| [IDEA-000036](records/IDEA-000036.json) | Give each runtime an independently observable Veraphify job | Captured |
+| [IDEA-000037](records/IDEA-000037.json) | Observe archive consistency while callers overlap | Captured |

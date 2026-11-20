@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000036",
+  "title": "Give each runtime an independently observable Veraphify job",
+  "summary": "The permanent Lydite branch plans product-specific checks across 14 languages. The adapted Vault carries a continuation of the same effort.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/blob/77ac3ab9c01fd34e985981c41b9c890dcebba5c9/docs/veraphify-mechanical-proof.md"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "test-vault"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000002",
+    "IDEA-000016",
+    "IDEA-000026",
+    "IDEA-000030",
+    "IDEA-000031"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Pinned Veraphify product proof continuation.",
+      "url": "https://github.com/vixttha/Veraphify/blob/954b0df69c0c0adba799ea30cfd0683889304353/test-vault/LANGUAGE-PLAN.md#veraphify-product-test-continuation"
+    }
+  ]
+}

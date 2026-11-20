@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000026",
+  "title": "Keep the upstream Vault template separately reproducible",
+  "summary": "A permanent Lydite branch should let maintainers inspect or reuse the original Vault independently of Veraphify’s adapted tests and their evidence.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/tree/2ab0f6b1757e6a0f7e3bb419ba0f83d83b692010"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "test-vault"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000016"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Pinned upstream Lydite template.",
+      "url": "https://github.com/vixttha/Lydite-Test-Vault-Template/tree/87d25d80d3154d295052412b64b29a0f0f152c27"
+    }
+  ]
+}

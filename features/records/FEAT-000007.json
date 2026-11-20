@@ -8,7 +8,8 @@
   "implementation_status": "implemented",
   "idea_ids": [
     "IDEA-000011",
-    "IDEA-000020"
+    "IDEA-000020",
+    "IDEA-000028"
   ],
   "acceptance_criteria": [
     "Both source versions yield the documented lines, the older bytes survive unchanged, and the missing-version control fails."
@@ -49,6 +50,11 @@
       "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
       "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
       "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    },
+    {
+      "kind": "tracking",
+      "claim": "The adopter guide explains the archive input budget.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/59"
     }
   ],
   "release_membership": "NOT_ASSERTED"

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000030",
+  "title": "Prove the workflow on real downstream checkouts",
+  "summary": "Use pinned adopters to verify the kit, lock and feature relationships survive from clean checkout through the actual public workflow and integration tree.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/AlderVale-Pact-of-Ten/issues/159"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "adoption"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000006",
+    "IDEA-000012",
+    "IDEA-000023"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "First Spark offers a concrete feature-to-code navigation check.",
+      "url": "https://github.com/vixttha/AlderVale-Pact-of-Ten/issues/160"
+    },
+    {
+      "relation": "context",
+      "claim": "Branchwell is a separate adopter and CI scope.",
+      "url": "https://github.com/vixttha/Veraphify/issues/27"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000039",
+  "title": "First-party Veraphify mechanical proof across Lydite languages",
+  "summary": "Exercise real Veraphify entry points through the active runtimes, then add the adopter tracks as their actual interfaces become available.",
+  "kind": "capability",
+  "lifecycle_status": "planned",
+  "implementation_status": "planned",
+  "idea_ids": [
+    "IDEA-000036",
+    "IDEA-000002",
+    "IDEA-000016",
+    "IDEA-000026"
+  ],
+  "acceptance_criteria": [
+    "Each executed case has one owned behavior, an exact product and harness pin, a distinct expected failure or boundary result, and native runner evidence. Agree on Java CLI and MCP scope before assigning the adopter cases."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Permanent Vault mechanical proof plan.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/77ac3ab9c01fd34e985981c41b9c890dcebba5c9/docs/veraphify-mechanical-proof.md"
+    },
+    {
+      "kind": "context",
+      "claim": "Adapted Vault continuation.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/954b0df69c0c0adba799ea30cfd0683889304353/test-vault/LANGUAGE-PLAN.md#veraphify-product-test-continuation"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

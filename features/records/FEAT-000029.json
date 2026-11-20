@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000029",
+  "title": "Documented archive source and input limits",
+  "summary": "The adopter guide explains the aggregate source budget and other bounds. The importer names the path that would exceed the source budget.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000028",
+    "IDEA-000011",
+    "IDEA-000017"
+  ],
+  "acceptance_criteria": [
+    "A supported-size map imports and verifies. A producer-valid map above the importer’s 8 MiB aggregate source budget yields the expected diagnostic without creating an archive entry."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Integration candidate regression GHQ-PY-106",
+    "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44649433106/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "GitHub tracking and candidate evidence.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/59"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Adopter instructions and published bounds.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/docs/adopter-walkthrough.md"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Preview README points to the archive budget.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/README.md"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Behavior at the exact integration candidate.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "source_path": "veraphifiy.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/veraphifiy.mjs"
+    },
+    {
+      "kind": "test",
+      "claim": "Public regression GHQ-PY-106 is registered in the exact candidate and cited in its issue.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "source_path": "test-vault/cases.md",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44649433106/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

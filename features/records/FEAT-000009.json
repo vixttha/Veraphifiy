@@ -8,7 +8,9 @@
   "implementation_status": "implemented",
   "idea_ids": [
     "IDEA-000002",
-    "IDEA-000016"
+    "IDEA-000016",
+    "IDEA-000029",
+    "IDEA-000031"
   ],
   "acceptance_criteria": [
     "The pinned integration catalog registers 206 named cases. CI must reconcile those results by lane before claiming passage."
@@ -84,6 +86,17 @@
       "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
       "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
       "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    },
+    {
+      "kind": "tracking",
+      "claim": "The standalone PowerShell suite verdict is separately reconciled.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/58"
+    },
+    {
+      "kind": "test",
+      "claim": "Current candidate has 210 registered checks across six lanes. 114 match the original 320-proposal plan.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44649433106/attempts/1"
     }
   ],
   "release_membership": "NOT_ASSERTED"

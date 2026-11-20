@@ -8,7 +8,9 @@
   "implementation_status": "implemented",
   "idea_ids": [
     "IDEA-000020",
-    "IDEA-000025"
+    "IDEA-000025",
+    "IDEA-000028",
+    "IDEA-000034"
   ],
   "acceptance_criteria": [
     "A reader can find the CLI, walk through both versions, and trace the verification claim to its actual product checkout."
@@ -44,6 +46,11 @@
       "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
       "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
       "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    },
+    {
+      "kind": "tracking",
+      "claim": "The candidate README links to the archive budget before import.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/59"
     }
   ],
   "release_membership": "NOT_ASSERTED"

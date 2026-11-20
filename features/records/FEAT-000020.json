@@ -15,6 +15,12 @@
   "testing": {
     "status": "untested"
   },
-  "evidence": [],
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "The BART Graphify HQ runner-mode draft documents an upstream private execution design. Veraphify live private execution remains a proposal.",
+      "receipt": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/pull/74"
+    }
+  ],
   "release_membership": "NOT_ASSERTED"
 }

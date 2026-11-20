@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000033",
+  "title": "Preserve replayable release evidence after artifact expiry",
+  "summary": "A later reviewer needs a documented way to recover both archived citations and their exact provenance after an ordinary Actions artifact ages out.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/blob/bad0eea429fd78b5d216cf01e26bcbaacbeddcb3/LEARNING.md"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "release-evidence"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000009",
+    "IDEA-000019",
+    "IDEA-000025"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Retained Vault evidence is a first-party requirement.",
+      "url": "https://github.com/vixttha/Veraphify/issues/2"
+    },
+    {
+      "relation": "context",
+      "claim": "The release tracker determines qualifying evidence.",
+      "url": "https://github.com/vixttha/Veraphify/issues/21"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000036",
+  "title": "Versioned CLI and archive format reference",
+  "summary": "Give adopters a stable reference for CLI options, archive versioning, required pins and machine-readable results.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000034",
+    "IDEA-000011",
+    "IDEA-000020"
+  ],
+  "acceptance_criteria": [
+    "The reference distinguishes setup, command options, archive fields and producer versus physical source coordinates. A test or documented example ties the reference to exact CLI behavior at the named revision."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "The README plan calls for dedicated CLI flag and archive field reference material.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/bad0eea429fd78b5d216cf01e26bcbaacbeddcb3/LEARNING.md"
+    },
+    {
+      "kind": "context",
+      "claim": "Implementation for the supported interface.",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/92ec58f3e574efd814f395d2f2bc23948d794b55/veraphifiy.mjs"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

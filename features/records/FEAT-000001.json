@@ -9,7 +9,8 @@
   "idea_ids": [
     "IDEA-000011",
     "IDEA-000013",
-    "IDEA-000017"
+    "IDEA-000017",
+    "IDEA-000027"
   ],
   "acceptance_criteria": [
     "A clean checkout can build and import a fixture, verify its exact entry, and return a citation."
@@ -55,6 +56,16 @@
       "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
       "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
       "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Explicit checkout selection is verified in the current integration candidate.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/57"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Unambiguous selector handling is verified in the current integration candidate.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/60"
     }
   ],
   "release_membership": "NOT_ASSERTED"

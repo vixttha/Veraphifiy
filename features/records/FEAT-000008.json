@@ -9,7 +9,9 @@
   "idea_ids": [
     "IDEA-000009",
     "IDEA-000012",
-    "IDEA-000019"
+    "IDEA-000019",
+    "IDEA-000029",
+    "IDEA-000033"
   ],
   "acceptance_criteria": [
     "Both consumers check the producer artifact digest, tracked plan, receipts, and both exact fixture entries."
@@ -92,6 +94,17 @@
       "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
       "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
       "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Standalone Windows replay requires successful suite completion.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/58"
+    },
+    {
+      "kind": "test",
+      "claim": "Independent Ubuntu and Windows jobs verified the same artifact and replayed both source citations at the current candidate.",
+      "source_sha": "92ec58f3e574efd814f395d2f2bc23948d794b55",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44649433106/attempts/1"
     }
   ],
   "release_membership": "NOT_ASSERTED"

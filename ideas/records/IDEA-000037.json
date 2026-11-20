@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000037",
+  "title": "Observe archive consistency while callers overlap",
+  "summary": "Exercise real concurrent imports and reads so the archive remains inspectable when two callers target one project version simultaneously.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/blob/77ac3ab9c01fd34e985981c41b9c890dcebba5c9/docs/veraphify-mechanical-proof.md"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "test-vault"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000009",
+    "IDEA-000017",
+    "IDEA-000027",
+    "IDEA-000036"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Pinned Veraphify product proof continuation.",
+      "url": "https://github.com/vixttha/Veraphify/blob/954b0df69c0c0adba799ea30cfd0683889304353/test-vault/LANGUAGE-PLAN.md#veraphify-product-test-continuation"
+    }
+  ]
+}

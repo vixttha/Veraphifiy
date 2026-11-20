@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000029",
+  "title": "Require complete runner verdicts for standalone replay",
+  "summary": "A complete set of named case results should be paired with the required suite-level verdict and handoff before the corresponding standalone replay passes.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/58"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "test-vault"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000016",
+    "IDEA-000019"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Go suite completion.",
+      "url": "https://github.com/vixttha/Veraphify/issues/14"
+    },
+    {
+      "relation": "context",
+      "claim": "Python suite completion.",
+      "url": "https://github.com/vixttha/Veraphify/issues/53"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000031",
+  "title": "Vault assertions that isolate their failure condition",
+  "summary": "Make reviewable regression cases fail for the behavior they claim, including staged interruption, diagnostics, retry source identity, and typed path and line checks.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000031",
+    "IDEA-000002",
+    "IDEA-000016"
+  ],
+  "acceptance_criteria": [
+    "For each affected case, keep a valid control and demonstrate that disabling only its intended guard changes the outcome or that the observed signal uniquely identifies failure of the intended behavior."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Bash install diagnostic observation.",
+      "receipt": "https://github.com/vixttha/Veraphify/pull/56#discussion_r4637140469"
+    },
+    {
+      "kind": "context",
+      "claim": "Cancellation must happen during the staged operation.",
+      "receipt": "https://github.com/vixttha/Veraphify/pull/56#discussion_r4637140477"
+    },
+    {
+      "kind": "context",
+      "claim": "Recovery retry should prove a new source pin.",
+      "receipt": "https://github.com/vixttha/Veraphify/pull/56#discussion_r4637140493"
+    },
+    {
+      "kind": "context",
+      "claim": "TypeScript line check must isolate invalid coordinates.",
+      "receipt": "https://github.com/vixttha/Veraphify/pull/56#discussion_r4637140503"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}
