@@ -161,6 +161,38 @@ class BuilderTests(unittest.TestCase):
                 self.assertEqual(rejected.stdout, "")
             self.succeeds(self.archive_command(command, archive, *extra))
 
+    def test_GHQ_PY_109_archives_dot_prefixed_repositories(self):
+        project = "example/.github"
+        alias = "Example/.GitHub"
+        evidence = self.root / "dot evidence"
+        archive = self.root / "dot archive"
+        self.succeeds(self.invoke(evidence, manifest=dict(self.manifest, repository=project)))
+        self.assertEqual(read_json(evidence / "receipt.json")["repository"], project)
+
+        args = ("--source", self.source, "--checkout", str(self.repo), "--evidence", str(evidence))
+        imported = self.archive_command("import", archive, *args, project=alias)
+        self.succeeds(imported)
+        summary = json.loads(imported.stdout)
+        self.assertEqual(summary["project"], project)
+
+        pins = ("--source", self.source, "--archive-sha256", summary["archive_sha256"])
+        verified = self.archive_command("verify", archive, *pins, project=project)
+        self.succeeds(verified)
+        self.assertEqual(json.loads(verified.stdout), summary)
+        looked_up = self.archive_command("lookup", archive, *pins, "--feature", FEATURE, project=alias)
+        self.succeeds(looked_up)
+        self.assertEqual(json.loads(looked_up.stdout), {
+            **summary, "feature": FEATURE, "citations": [{"path": "src/feature.py", "line": 3}],
+        })
+
+        rejected_archive = self.root / "rejected archive"
+        for invalid in ("example/.", "example/.."):
+            with self.subTest(project=invalid):
+                rejected = self.archive_command("import", rejected_archive, *args, project=invalid)
+                self.assertEqual(rejected.returncode, 1, rejected.stdout + rejected.stderr)
+                self.assertIn("Specify an exact owner/repository", rejected.stderr)
+                self.assertFalse(rejected_archive.exists())
+
     def unchanged_failure(self, manifest, message):
         output = self.root / "saved"
         output.mkdir(exist_ok=True)

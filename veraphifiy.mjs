@@ -13,7 +13,7 @@ const SOURCE_BYTES = 8 * 1024 * 1024;
 const ENTRY_BYTES = 40 * 1024 * 1024;
 const COMMIT = /^[a-f0-9]{40}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
-const PROJECT = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/;
+const PROJECT = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/(?!\.{1,2}$)[A-Za-z0-9_.][A-Za-z0-9_.-]{0,99}$/;
 const VERSION = /^v(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*)){2,3}$/;
 
 function projectKey(project) {
