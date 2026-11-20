@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
-import { parseEvidenceObject, readBytes } from "./inspect-evidence.mjs";
+import { parseEvidenceObject, readBytes } from "./product-inspector.mjs";
 
 const handoff = process.argv[2];
 assert.ok(handoff, "Pass the directory containing the downloaded Vault artifact");
 if (process.argv[3] === "--actions") {
   const context = parseEvidenceObject(readBytes(join(handoff, "evidence-context.json"), 4096), "evidence context");
   for (const [field, env] of Object.entries({
-    checkout_sha: "GITHUB_SHA", github_event_name: "GITHUB_EVENT_NAME", github_ref: "GITHUB_REF",
+    checkout_sha: "VERAPHIFY_VAULT_SHA", github_event_name: "GITHUB_EVENT_NAME", github_ref: "GITHUB_REF",
     github_workflow_ref: "GITHUB_WORKFLOW_REF", github_workflow_sha: "GITHUB_WORKFLOW_SHA",
     github_run_id: "GITHUB_RUN_ID", github_run_attempt: "GITHUB_RUN_ATTEMPT",
     product_sha: "VERAPHIFY_PRODUCT_SHA",

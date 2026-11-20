@@ -378,11 +378,11 @@ class BuilderTests(unittest.TestCase):
         fixture = self.root / "replay context"
         fixture.mkdir()
         env_context = {
-            "GITHUB_SHA": first_source, "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/example",
+            "VERAPHIFY_VAULT_SHA": first_source, "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/example",
             "GITHUB_WORKFLOW_REF": "example/project/.github/workflows/test.yml@refs/heads/example",
             "GITHUB_WORKFLOW_SHA": first_source, "GITHUB_RUN_ID": "12", "GITHUB_RUN_ATTEMPT": "2",
         }
-        context = {key.lower(): value for key, value in env_context.items() if key != "GITHUB_SHA"}
+        context = {key.lower(): value for key, value in env_context.items() if key != "VERAPHIFY_VAULT_SHA"}
         context.update(checkout_sha=first_source, github_run_attempt="1",
                        product_sha=os.environ["VERAPHIFY_PRODUCT_SHA"])
         (fixture / "evidence-context.json").write_text(json.dumps(context), encoding="utf-8")

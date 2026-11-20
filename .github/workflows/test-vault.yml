@@ -5,12 +5,21 @@ on:
     branches: [Lydite-Test-Vault, work/lydite-vault-consolidation]
   pull_request:
     branches: [Lydite-Test-Vault]
+  workflow_call:
+    inputs:
+      product_sha:
+        required: true
+        type: string
+      vault_sha:
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 env:
-  VERAPHIFY_PRODUCT_SHA: ed5650085e33cf142a37de695757a4df999a7cf3
+  VERAPHIFY_VAULT_SHA: ${{ inputs.vault_sha || github.sha }}
+  VERAPHIFY_PRODUCT_SHA: ${{ inputs.product_sha || 'ed5650085e33cf142a37de695757a4df999a7cf3' }}
   VERAPHIFY_PRODUCT_ROOT: ${{ github.workspace }}/product-under-test
 
 jobs:
@@ -30,6 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ env.VERAPHIFY_VAULT_SHA }}
           persist-credentials: false
       - name: Check out the pinned product in a separate directory
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -42,7 +52,7 @@ jobs:
         run: |
           vault_sha="$(git rev-parse HEAD)"
           product_sha="$(git -C "$VERAPHIFY_PRODUCT_ROOT" rev-parse HEAD)"
-          test "$vault_sha" = "$GITHUB_SHA"
+          test "$vault_sha" = "$VERAPHIFY_VAULT_SHA"
           test "$product_sha" = "$VERAPHIFY_PRODUCT_SHA"
           test "$vault_sha" != "$product_sha"
           printf 'Vault: %s\nProduct: %s\n' "$vault_sha" "$product_sha" | tee -a "$GITHUB_STEP_SUMMARY"
@@ -179,6 +189,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ env.VERAPHIFY_VAULT_SHA }}
           persist-credentials: false
       - name: Check out the pinned product in a separate directory
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -191,7 +202,7 @@ jobs:
         run: |
           vault_sha="$(git rev-parse HEAD)"
           product_sha="$(git -C "$VERAPHIFY_PRODUCT_ROOT" rev-parse HEAD)"
-          test "$vault_sha" = "$GITHUB_SHA"
+          test "$vault_sha" = "$VERAPHIFY_VAULT_SHA"
           test "$product_sha" = "$VERAPHIFY_PRODUCT_SHA"
           test "$vault_sha" != "$product_sha"
           printf 'Vault: %s\nProduct: %s\n' "$vault_sha" "$product_sha" | tee -a "$GITHUB_STEP_SUMMARY"
@@ -232,7 +243,7 @@ jobs:
           $handoff = Join-Path $env:RUNNER_TEMP 'linux-handoff'
           python -B test-vault/evidence_bundle.py $handoff --check --check-observations
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node --input-type=module -e 'import { inspectHandoff } from "./test-vault/javascript/inspect-evidence.mjs"; const result = inspectHandoff(process.argv[1]); console.log(`Verified producer and pinned source blobs: ${result.bundleDigest}`);' $handoff
+          node --input-type=module -e 'import { inspectHandoff } from "./test-vault/javascript/product-inspector.mjs"; const result = inspectHandoff(process.argv[1]); console.log(`Verified producer and pinned source blobs: ${result.bundleDigest}`);' $handoff
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $source = Join-Path $handoff 'source.txt'
           $original = [IO.File]::ReadAllBytes($source)
@@ -278,6 +289,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ env.VERAPHIFY_VAULT_SHA }}
           persist-credentials: false
       - name: Check out the pinned product in a separate directory
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -290,7 +302,7 @@ jobs:
         run: |
           vault_sha="$(git rev-parse HEAD)"
           product_sha="$(git -C "$VERAPHIFY_PRODUCT_ROOT" rev-parse HEAD)"
-          test "$vault_sha" = "$GITHUB_SHA"
+          test "$vault_sha" = "$VERAPHIFY_VAULT_SHA"
           test "$product_sha" = "$VERAPHIFY_PRODUCT_SHA"
           test "$vault_sha" != "$product_sha"
           printf 'Vault: %s\nProduct: %s\n' "$vault_sha" "$product_sha" | tee -a "$GITHUB_STEP_SUMMARY"

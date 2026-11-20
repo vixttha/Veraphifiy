@@ -3,7 +3,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { implementationLocation, inspectEvidence, inspectHandoff, sha256 } from "./inspect-evidence.mjs";
+import { implementationLocation, inspectEvidence, inspectHandoff, sha256 } from "./product-inspector.mjs";
 
 const handoff = process.env.GRAPHIFY_HQ_HANDOFF;
 assert.ok(handoff, "Set GRAPHIFY_HQ_HANDOFF to the fresh Python build directory");
