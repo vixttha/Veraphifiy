@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000021",
+  "title": "Finish the product artwork when approved",
+  "summary": "Register approved logo and wordmark assets after the mechanical baseline, and validate PNG bytes and approval evidence during handoff.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/26"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "branding"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000020"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #26.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/26"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #46.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/46"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #52.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/52"
+    }
+  ]
+}

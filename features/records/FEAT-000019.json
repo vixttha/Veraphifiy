@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000019",
+  "title": "Git mode-aware archive drift checks",
+  "summary": "Explore recording executable-mode changes and other agreed Git tree metadata with archive evidence.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000008"
+  ],
+  "acceptance_criteria": [
+    "A supported mode-only change is visible and legacy archive files remain readable."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Inherited design proposals from the Graphify HQ library.",
+      "source_sha": "edcca9ad4107a70a48c1f9f86d9e01f0b527a32b",
+      "source_path": "provenistem/features/INDEX.md",
+      "receipt": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

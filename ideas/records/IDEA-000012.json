@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000012",
+  "title": "Avoid stale source and misleading green checkout results",
+  "summary": "Record the actual event, candidate SHA, merge reference, attempt, jobs, and artifact needed to evaluate a check.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000012.json"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "release"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000019",
+    "IDEA-000024"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Earlier Graphify HQ planning record IDEA-000012.",
+      "repository": "vixttha/Blender-Agent-Refinement-Toolkit",
+      "commit": "edcca9ad4107a70a48c1f9f86d9e01f0b527a32b",
+      "path": "provenistem/ideas/records/IDEA-000012.json",
+      "url": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000012.json"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #9.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/9"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #18.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/18"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #34.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/34"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #45.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/45"
+    }
+  ]
+}

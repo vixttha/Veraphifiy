@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000022",
+  "title": "Finish the reuse and contribution handoff",
+  "summary": "Make the first-party terms and imported notices discoverable from the public entry, while keeping the GitHub publication decision with the owner.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/29"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "governance"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000020"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #29.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/29"
+    }
+  ]
+}

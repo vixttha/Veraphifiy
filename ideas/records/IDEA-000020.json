@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000020",
+  "title": "Align the default README and its adoption trail",
+  "summary": "Carry the verified quickstart and permanent evidence links into the canonical landing and make the README HQ adopter entry recover the exact product and documentation pins.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/22"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "documentation"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000011",
+    "IDEA-000025"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #22.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/22"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #24.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/24"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #25.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/25"
+    }
+  ]
+}

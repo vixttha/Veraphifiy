@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000025",
+  "title": "Use retained evidence to recover a review session",
+  "summary": "Make an independent agent follow the pinned README, walkthrough, and verification receipts without a separate PR search.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/README-HQ/blob/f6bc7b41af8dca7b7bf0671c851d041a55d77e71/trials/veraphify-two-version-lookup.md"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "adoption"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000014",
+    "IDEA-000020"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Recorded discussion or documented workflow.",
+      "url": "https://github.com/vixttha/README-HQ/blob/f6bc7b41af8dca7b7bf0671c851d041a55d77e71/trials/veraphify-two-version-lookup.md"
+    }
+  ]
+}

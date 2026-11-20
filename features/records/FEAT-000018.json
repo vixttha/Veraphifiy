@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000018",
+  "title": "Feature code-to-test and document navigation",
+  "summary": "Extend implementation-only lookup with verified test and document destinations, preserving exact pins and source evidence.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000006",
+    "IDEA-000007"
+  ],
+  "acceptance_criteria": [
+    "A user can follow an implementation to its associated tests and docs with evidence for each link."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #54.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/54"
+    },
+    {
+      "kind": "context",
+      "claim": "Inherited design proposals from the Graphify HQ library.",
+      "source_sha": "edcca9ad4107a70a48c1f9f86d9e01f0b527a32b",
+      "source_path": "provenistem/features/INDEX.md",
+      "receipt": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

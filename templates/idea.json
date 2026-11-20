@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000000",
+  "title": "Describe the idea",
+  "summary": "Explain the reader or maintainer problem and the improvement you want to explore.",
+  "kind": "process",
+  "origin": {
+    "created_by": "human",
+    "source": "Name the discussion, issue, or observation that led to the idea."
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "replace-this-category"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [],
+  "evidence": []
+}

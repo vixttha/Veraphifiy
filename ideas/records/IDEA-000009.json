@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000009",
+  "title": "Publish evidence as one immutable unit",
+  "summary": "Keep graph, receipt, and pinned source bytes together so replay cannot silently accept a partial update.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000009.json"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "archive"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000008",
+    "IDEA-000019"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Earlier Graphify HQ planning record IDEA-000009.",
+      "repository": "vixttha/Blender-Agent-Refinement-Toolkit",
+      "commit": "edcca9ad4107a70a48c1f9f86d9e01f0b527a32b",
+      "path": "provenistem/ideas/records/IDEA-000009.json",
+      "url": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000009.json"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #2.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/2"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #3.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/3"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #42.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/42"
+    }
+  ]
+}

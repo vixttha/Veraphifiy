@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000005",
+  "title": "Physical source citation readback",
+  "summary": "Veraphify resolves verified implementation anchors to physical source coordinates, retaining compatibility with the existing producer archive.",
+  "kind": "capability",
+  "lifecycle_status": "implemented",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000006",
+    "IDEA-000017"
+  ],
+  "acceptance_criteria": [
+    "The lookup reports Git-visible line numbers and rejects unusable offsets and non-code targets."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/javascript/inspect-evidence.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/javascript/inspect-evidence.mjs"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/python/test_builder.py",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/python/test_builder.py"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #43.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/43"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #49.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/49"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

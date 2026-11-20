@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000013",
+  "title": "Separate version namespaces",
+  "summary": "Distinguish product version, project version, archive format, producer version, and cross-repository checkpoint numbers.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000013.json"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "identity"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000005",
+    "IDEA-000010",
+    "IDEA-000023"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Earlier Graphify HQ planning record IDEA-000013.",
+      "repository": "vixttha/Blender-Agent-Refinement-Toolkit",
+      "commit": "edcca9ad4107a70a48c1f9f86d9e01f0b527a32b",
+      "path": "provenistem/ideas/records/IDEA-000013.json",
+      "url": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000013.json"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #35.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/35"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #47.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/47"
+    }
+  ]
+}

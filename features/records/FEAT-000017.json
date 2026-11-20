@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000017",
+  "title": "Exact-ref comparison and graph discovery",
+  "summary": "Add a discoverable mapping from branch or project version to verified graph snapshot and compare changes across two pinned versions.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000003",
+    "IDEA-000005",
+    "IDEA-000012"
+  ],
+  "acceptance_criteria": [
+    "The selected two source pins and changed evidence relationships are explicit and auditable."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "context",
+      "claim": "Inherited design proposals from the Graphify HQ library.",
+      "source_sha": "edcca9ad4107a70a48c1f9f86d9e01f0b527a32b",
+      "source_path": "provenistem/features/INDEX.md",
+      "receipt": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

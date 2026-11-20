@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000008",
+  "title": "Detect Git-mode archive drift",
+  "summary": "Decide which tracked file metadata matters for long-term archive equality in addition to exact source bytes and rejection of symlink inputs.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000008.json"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "archive"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000009",
+    "IDEA-000017"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Earlier Graphify HQ planning record IDEA-000008.",
+      "repository": "vixttha/Blender-Agent-Refinement-Toolkit",
+      "commit": "edcca9ad4107a70a48c1f9f86d9e01f0b527a32b",
+      "path": "provenistem/ideas/records/IDEA-000008.json",
+      "url": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000008.json"
+    }
+  ]
+}

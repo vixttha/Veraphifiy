@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000010",
+  "title": "Preserve evidence through repository renames",
+  "summary": "Resolve identity consistently across archived names, casing, canonical GitHub labels, and current references without rewriting frozen evidence.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000010.json"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "identity"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000013",
+    "IDEA-000024"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Earlier Graphify HQ planning record IDEA-000010.",
+      "repository": "vixttha/Blender-Agent-Refinement-Toolkit",
+      "commit": "edcca9ad4107a70a48c1f9f86d9e01f0b527a32b",
+      "path": "provenistem/ideas/records/IDEA-000010.json",
+      "url": "https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/blob/edcca9ad4107a70a48c1f9f86d9e01f0b527a32b/provenistem/ideas/records/IDEA-000010.json"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #17.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/17"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #23.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/23"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #25.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/25"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #51.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/51"
+    }
+  ]
+}

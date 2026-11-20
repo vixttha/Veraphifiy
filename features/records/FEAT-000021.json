@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000021",
+  "title": "Remaining Vault adoption and protocol tests",
+  "summary": "Keep the remaining active cases and adopter-dependent language tracks in the existing proposal matrix.",
+  "kind": "capability",
+  "lifecycle_status": "planned",
+  "implementation_status": "planned",
+  "idea_ids": [
+    "IDEA-000016",
+    "IDEA-000018"
+  ],
+  "acceptance_criteria": [
+    "Each promoted test connects to a supported producer or adopter workflow and reports the required assertion."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #15.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/15"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #28.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/28"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #53.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/53"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000023",
+  "title": "Make downstream adoption claims exact",
+  "summary": "Align Branchwell's guide and evidence labels and carry only independently checked inherited behavior from BART, AlderVale, Lydite, and README HQ.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/27"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "adoption"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000015",
+    "IDEA-000024"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #27.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/27"
+    }
+  ]
+}

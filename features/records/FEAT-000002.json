@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000002",
+  "title": "Canonical project and version identity",
+  "summary": "Project keys use one casing policy and the selected project/version is checked against the archived identity.",
+  "kind": "capability",
+  "lifecycle_status": "implemented",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000010",
+    "IDEA-000013",
+    "IDEA-000017"
+  ],
+  "acceptance_criteria": [
+    "Two casing spellings of one GitHub repository resolve consistently while distinct project/version entries remain separate."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "veraphifiy.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/veraphifiy.mjs"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/python/test_builder.py",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/python/test_builder.py"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #47.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/47"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #51.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/51"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

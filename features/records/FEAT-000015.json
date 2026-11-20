@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000015",
+  "title": "Public and local operation",
+  "summary": "The current CLI runs from a local checkout and the public workflow runs on standard GitHub-hosted Ubuntu and Windows.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000015"
+  ],
+  "acceptance_criteria": [
+    "Local use has a documented CLI entry and public jobs replay verified fixture evidence."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Pinned integration candidate",
+    "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "README.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/README.md"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": ".github/workflows/test-vault.yml",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/.github/workflows/test-vault.yml"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #9.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/9"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #24.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/24"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #36.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/36"
+    },
+    {
+      "kind": "test",
+      "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

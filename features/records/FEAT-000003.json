@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000003",
+  "title": "Immutable evidence import",
+  "summary": "The archive entry atomically publishes graph bytes, a receipt, and verified source blobs, while an identical retry is repeatable.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000008",
+    "IDEA-000009"
+  ],
+  "acceptance_criteria": [
+    "A new version leaves the prior bytes unchanged and an existing version cannot be replaced by different content."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Pinned integration candidate",
+    "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "veraphifiy.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/veraphifiy.mjs"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "docs/adopter-walkthrough.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/docs/adopter-walkthrough.md"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #3.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/3"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #42.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/42"
+    },
+    {
+      "kind": "test",
+      "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

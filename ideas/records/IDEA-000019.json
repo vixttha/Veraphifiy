@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000019",
+  "title": "Make PR and release evidence independently reviewable",
+  "summary": "Keep fixture artifact digests, documented release gates, same-attempt replay, and owner approval centered on the exact release target.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/2"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "release"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000012",
+    "IDEA-000024"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #2.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/2"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #18.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/18"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #21.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/21"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #34.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/34"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #45.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/45"
+    }
+  ]
+}

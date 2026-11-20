@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000022",
+  "title": "Canonical landing and release publication",
+  "summary": "Move approved identity and the verified combined README to the canonical landing when the candidate is approved, and carry over the matching verification evidence.",
+  "kind": "capability",
+  "lifecycle_status": "planned",
+  "implementation_status": "planned",
+  "idea_ids": [
+    "IDEA-000019",
+    "IDEA-000020",
+    "IDEA-000022",
+    "IDEA-000024"
+  ],
+  "acceptance_criteria": [
+    "The default ref and product release links point to the exact reviewed source and approved publication."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #21.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/21"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #22.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/22"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #23.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/23"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #25.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/25"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #29.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/29"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

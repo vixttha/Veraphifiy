@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000012",
+  "title": "Candidate README and reproducible verification guide",
+  "summary": "The candidate README links to a precise runnable walkthrough and permanent commit, run, job, and artifact context.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000020",
+    "IDEA-000025"
+  ],
+  "acceptance_criteria": [
+    "A reader can find the CLI, walk through both versions, and trace the verification claim to its actual product checkout."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Pinned integration candidate",
+    "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "README.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/README.md"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "docs/verification.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/docs/verification.md"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #22.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/22"
+    },
+    {
+      "kind": "test",
+      "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

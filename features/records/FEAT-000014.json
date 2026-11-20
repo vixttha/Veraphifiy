@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000014",
+  "title": "First-party MIT and imported notices",
+  "summary": "The candidate contains a first-party MIT license and a guide explaining the scope of imported Lydite and Brand Identity notices.",
+  "kind": "capability",
+  "lifecycle_status": "implemented",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000022"
+  ],
+  "acceptance_criteria": [
+    "A reader can identify the applicable first-party terms and the separately attributed upstream files."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "LICENSE",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/LICENSE"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "docs/reuse.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/docs/reuse.md"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #29.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/29"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #41.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/41"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

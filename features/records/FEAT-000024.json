@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000024",
+  "title": "Checkpoints and cross-project adoption record",
+  "summary": "Track explicit checkpoint, repo, source ref, and proven adopter coverage for Branchwell and inherited implementations.",
+  "kind": "capability",
+  "lifecycle_status": "planned",
+  "implementation_status": "planned",
+  "idea_ids": [
+    "IDEA-000013",
+    "IDEA-000023"
+  ],
+  "acceptance_criteria": [
+    "The recorded adopter check is tied to an exact source and accurately describes the verified behavior."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #27.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/27"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #35.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/35"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

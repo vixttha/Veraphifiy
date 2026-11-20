@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000023",
+  "title": "Approved final artwork handoff",
+  "summary": "Publish the owner-approved logo and wordmark after independent asset and readiness validation.",
+  "kind": "capability",
+  "lifecycle_status": "planned",
+  "implementation_status": "planned",
+  "idea_ids": [
+    "IDEA-000021"
+  ],
+  "acceptance_criteria": [
+    "The manifest includes the approved assets and the exact handoff integrity result."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #26.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/26"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #46.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/46"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #52.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/52"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

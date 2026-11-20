@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000008",
+  "title": "Cross-platform retained evidence replay",
+  "summary": "Ubuntu produces a synthetic receipt bundle and independent Ubuntu and Windows consumers verify the same artifact, attempt, and archive pins.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000009",
+    "IDEA-000012",
+    "IDEA-000019"
+  ],
+  "acceptance_criteria": [
+    "Both consumers check the producer artifact digest, tracked plan, receipts, and both exact fixture entries."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Pinned integration candidate",
+    "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": ".github/workflows/test-vault.yml",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/.github/workflows/test-vault.yml"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/evidence_bundle.py",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/evidence_bundle.py"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/javascript/verify-archive-replay.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/javascript/verify-archive-replay.mjs"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #2.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/2"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #18.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/18"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #30.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/30"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #32.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/32"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #34.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/34"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #42.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/42"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #45.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/45"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #38.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/38"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #40.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/40"
+    },
+    {
+      "kind": "test",
+      "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

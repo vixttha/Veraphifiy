@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000018",
+  "title": "Recognize correct MCP failure categories",
+  "summary": "Distinguish malformed tool input, missing nodes, and unreachable transport from a normal valid lookup.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/28"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "protocol"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000002",
+    "IDEA-000016"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #28.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/28"
+    }
+  ]
+}

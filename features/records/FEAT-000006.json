@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000006",
+  "title": "Archive input and storage safeguards",
+  "summary": "The CLI bounds graph, receipt, entry, and source reads and uses restrictive new archive and entry permissions on POSIX.",
+  "kind": "capability",
+  "lifecycle_status": "implemented",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000008",
+    "IDEA-000009",
+    "IDEA-000017"
+  ],
+  "acceptance_criteria": [
+    "The archive accepts ordinary committed blob files, respects bounded reads, and publishes owner-restricted source entries on POSIX."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "veraphifiy.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/veraphifiy.mjs"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/handoff-profile.json",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/handoff-profile.json"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #44.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/44"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #50.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/50"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

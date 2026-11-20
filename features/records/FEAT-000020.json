@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000020",
+  "title": "Optional private execution mode",
+  "summary": "Define and independently verify a private operational path with explicit consent and private evidence storage.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [
+    "IDEA-000015"
+  ],
+  "acceptance_criteria": [
+    "Private operation is demonstrably isolated and has its own verification boundary."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [],
+  "release_membership": "NOT_ASSERTED"
+}

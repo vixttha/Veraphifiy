@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000025",
+  "title": "Standalone ideas and features library",
+  "summary": "The Provenistem branch gives Veraphify maintainers an indexed home for source-backed features, proposals, and ideas.",
+  "kind": "capability",
+  "lifecycle_status": "implemented",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000014"
+  ],
+  "acceptance_criteria": [
+    "A reader can navigate to every indexed record and trace it to its public source or the dedicated workflow."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "The dedicated library README and its two indexes implement this workflow.",
+      "source_path": "README.md",
+      "receipt": "https://github.com/vixttha/Veraphify/tree/Provenistem"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

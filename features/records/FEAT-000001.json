@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000001",
+  "title": "Version archive CLI",
+  "summary": "The Node CLI exposes import, verify, and lookup for an explicit project/version pair.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000011",
+    "IDEA-000013",
+    "IDEA-000017"
+  ],
+  "acceptance_criteria": [
+    "A clean checkout can build and import a fixture, verify its exact entry, and return a citation."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Pinned integration candidate",
+    "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "veraphifiy.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/veraphifiy.mjs"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "docs/adopter-walkthrough.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/docs/adopter-walkthrough.md"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #36.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/36"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #37.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/37"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #47.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/47"
+    },
+    {
+      "kind": "test",
+      "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

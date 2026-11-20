@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000024",
+  "title": "Preserve release checks across workflow ref changes",
+  "summary": "Before renaming working refs, confirm triggers and exact-SHA replay. Protect the publication target without prescribing a path-filtered check for unrelated changes.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/9"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "release"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000012",
+    "IDEA-000019"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #9.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/9"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #24.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/24"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #25.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/25"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #45.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/45"
+    }
+  ]
+}

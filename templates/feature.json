@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000000",
+  "title": "Name the capability",
+  "summary": "Describe the capability and the result a Veraphify user should observe.",
+  "kind": "capability",
+  "lifecycle_status": "proposed",
+  "implementation_status": "not_planned",
+  "idea_ids": [],
+  "acceptance_criteria": [
+    "State an observable result that a reviewer can check."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [],
+  "release_membership": "NOT_ASSERTED"
+}

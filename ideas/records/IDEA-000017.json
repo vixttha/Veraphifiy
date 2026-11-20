@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000017",
+  "title": "Harden citation and archive boundaries",
+  "summary": "Preserve physical file coordinates, compare compatible repository identities, protect source bytes, and require a source-file attachment for inventoried anchors.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/20"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "archive"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000008",
+    "IDEA-000009",
+    "IDEA-000006"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #20.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/20"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #31.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/31"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #43.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/43"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #44.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/44"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #49.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/49"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #50.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/50"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #51.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/51"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #54.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/54"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000013",
+  "title": "Brand inventory and approval checks",
+  "summary": "The imported verifier distinguishes an inventory from a final artwork handoff, checks declared PNGs, and requires the existing approval record.",
+  "kind": "capability",
+  "lifecycle_status": "implemented",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000021"
+  ],
+  "acceptance_criteria": [
+    "A draft inventory is verifiable. A final handoff requires approved assets and separate integrity validation."
+  ],
+  "testing": {
+    "status": "untested"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "brand-identity/verify.py",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/brand-identity/verify.py"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "brand-identity/png_integrity.py",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/brand-identity/png_integrity.py"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "brand-identity/09-assets/manifest.json",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/brand-identity/09-assets/manifest.json"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #26.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/26"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #46.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/46"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #52.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/52"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000010",
+  "title": "Pinned producer build and MCP compatibility",
+  "summary": "The Vault invokes the existing Graphify 0.9.109 producer and retains a separate frozen BART compatibility control.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000001",
+    "IDEA-000006",
+    "IDEA-000011",
+    "IDEA-000018"
+  ],
+  "acceptance_criteria": [
+    "The frozen baseline remains readable and a fresh pinned fixture rebuild returns the expected graph and source evidence."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Pinned integration candidate",
+    "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/python/test_builder.py",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/python/test_builder.py"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/go/mcp_test.go",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/go/mcp_test.go"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/README.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/README.md"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #4.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/4"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #5.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/5"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #6.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/6"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #7.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/7"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #8.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/8"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #11.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/11"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #16.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/16"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #20.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/20"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #28.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/28"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #31.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/31"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #43.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/43"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #54.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/54"
+    },
+    {
+      "kind": "test",
+      "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

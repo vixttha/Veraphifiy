@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000009",
+  "title": "Six-lane Test Vault catalog",
+  "summary": "The catalog maps executable results from Python, Bash, JavaScript, TypeScript, Go, and PowerShell to stable case IDs.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000002",
+    "IDEA-000016"
+  ],
+  "acceptance_criteria": [
+    "The pinned integration catalog registers 206 named cases. CI must reconcile those results by lane before claiming passage."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Pinned integration candidate",
+    "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/cases.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/cases.md"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "test-vault/verify_case_run.py",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/test-vault/verify_case_run.py"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #1.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/1"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #10.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/10"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #12.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/12"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #13.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/13"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #14.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/14"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #19.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/19"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #33.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/33"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #39.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/39"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #53.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/53"
+    },
+    {
+      "kind": "test",
+      "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

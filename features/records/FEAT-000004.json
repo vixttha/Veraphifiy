@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "FEAT-000004",
+  "title": "Independent source and archive pins",
+  "summary": "Verify and lookup accept an expected source SHA and archive SHA-256 recorded separately from the archive.",
+  "kind": "capability",
+  "lifecycle_status": "verified",
+  "implementation_status": "implemented",
+  "idea_ids": [
+    "IDEA-000009",
+    "IDEA-000013",
+    "IDEA-000019"
+  ],
+  "acceptance_criteria": [
+    "Replay rejects a different source or entry digest and validates the graph, receipt, and committed blobs."
+  ],
+  "testing": {
+    "status": "passed",
+    "scope": "Pinned integration candidate",
+    "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+    "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+  },
+  "evidence": [
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "veraphifiy.mjs",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/veraphifiy.mjs"
+    },
+    {
+      "kind": "implementation",
+      "claim": "Pinned Veraphify integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "source_path": "docs/verification.md",
+      "receipt": "https://github.com/vixttha/Veraphify/blob/0ff057ce08bf20a45da6154000417c02652418c2/docs/verification.md"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #42.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/42"
+    },
+    {
+      "kind": "tracking",
+      "claim": "Tracked in GitHub issue #47.",
+      "receipt": "https://github.com/vixttha/Veraphify/issues/47"
+    },
+    {
+      "kind": "test",
+      "claim": "Standard public Ubuntu and Windows jobs passed on the pinned integration candidate.",
+      "source_sha": "0ff057ce08bf20a45da6154000417c02652418c2",
+      "receipt": "https://github.com/vixttha/Veraphify/actions/runs/44647713993/attempts/1"
+    }
+  ],
+  "release_membership": "NOT_ASSERTED"
+}

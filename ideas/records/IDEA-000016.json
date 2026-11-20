@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "IDEA-000016",
+  "title": "Finish and retain the named Vault coverage",
+  "summary": "Promote the remaining proposals using real adopter boundaries. Keep each proposal ID in the original language matrix and derive executable coverage from the named catalog.",
+  "kind": "process",
+  "origin": {
+    "created_by": "assistant",
+    "source": "https://github.com/vixttha/Veraphify/issues/1"
+  },
+  "lifecycle_status": "captured",
+  "implementation_status": "not_planned",
+  "testing": {
+    "status": "untested"
+  },
+  "importance": "unknown",
+  "complexity": "unknown",
+  "categories": [
+    "testing"
+  ],
+  "benefits": [],
+  "risks": [],
+  "related_ideas": [
+    "IDEA-000002",
+    "IDEA-000018"
+  ],
+  "evidence": [
+    {
+      "relation": "context",
+      "claim": "Tracking issue #1.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/1"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #13.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/13"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #15.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/15"
+    },
+    {
+      "relation": "context",
+      "claim": "Tracking issue #53.",
+      "repository": "vixttha/Veraphify",
+      "url": "https://github.com/vixttha/Veraphify/issues/53"
+    }
+  ]
+}
