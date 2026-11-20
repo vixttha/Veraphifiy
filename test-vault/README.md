@@ -68,6 +68,8 @@ The TypeScript code is a reference consumer for typed source navigation. Go talk
 
 ## Installed files
 
+The [reuse and attribution guide](../docs/reuse.md) identifies the first-party Veraphify terms and the upstream notices that accompany imported material.
+
 These files originate at the pinned Lydite commit:
 
 | File | Installed copy | Source |
