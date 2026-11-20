@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
-      README_SHA: 7e29bf835cbe17ed9b5e01cb1321a9fe1517bb1c
+      README_SHA: 92ec58f3e574efd814f395d2f2bc23948d794b55
       PRODUCT_SHA: 66e822b56528c5f3e7b7730709d4b472ae2d5f1e
       PYTHONHASHSEED: '0'
       GRAPHIFY_QUERY_LOG_DISABLE: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: 7e29bf835cbe17ed9b5e01cb1321a9fe1517bb1c
+          ref: 92ec58f3e574efd814f395d2f2bc23948d794b55
           path: homepage
           fetch-depth: 0
           persist-credentials: false
