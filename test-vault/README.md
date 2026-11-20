@@ -2,6 +2,14 @@
 
 Graphify HQ uses the copy-in starter from [Lydite v0.0.4](https://github.com/vixttha/Lydite-Test-Vault-Template/releases/tag/v0.0.4). The [case catalog](cases.md) lists executable checks across Python, Bash, JavaScript, TypeScript, Go, and PowerShell. The [coverage plan](PLAN.md) records the original 40 scenarios. The [language plan](LANGUAGE-PLAN.md) maps the next cases across all 14 Lydite languages. The [language audit](LANGUAGE-AUDIT.md) records the gap probes and the boundaries of the baseline. The [audit](AUDIT.md) records the gaps and the checks that address them.
 
+## Canonical Vault and adoption check
+
+Veraphify's maintained Vault is `vixttha/Veraphify` at `refs/heads/graphify-hq-test-vault`, under [`test-vault/`](https://github.com/vixttha/Veraphify/tree/graphify-hq-test-vault/test-vault). Its [catalog](cases.md), [Lydite verifier](verify_receipts.py), and [public workflow](../.github/workflows/test-vault.yml) identify the installation. The integration candidate also contains the same Vault. [Original Vault run at `be00421`](https://github.com/vixttha/Veraphify/actions/runs/44538412520/attempts/1) · [Integration candidate](https://github.com/vixttha/Veraphify/pull/56)
+
+Before creating or importing a Vault, resolve the repository identity and check the default branch, other refs including legacy names, and open integration PRs for an existing catalog, verifier, and workflow. Record the canonical ref, resolved SHA, path, and evidence link in the handoff. An existing Vault means resume there. If evidence is unavailable or points to multiple independent Vaults, resolve that before creating a ref. A conditional first install can proceed after a successful inventory shows absence and a fresh check confirms there has been no intervening adoption. [Upstream adoption preflight issue](https://github.com/vixttha/Lydite-Test-Vault-Template/issues/114)
+
+Use the [Veraphify continuation](LANGUAGE-PLAN.md#veraphify-product-test-continuation) for additions to the current tests.
+
 ## Run the suites
 
 From the repository root, with Python 3.12 available, run `python test-vault/validate_catalog.py` to check the Lydite catalog. The [Test Vault workflow](../.github/workflows/test-vault.yml) runs the suites on standard public GitHub-hosted Ubuntu and Windows runners.
