@@ -1,6 +1,8 @@
 """Check the Vault catalog against named results from completed runner commands."""
 
 import argparse
+from html import escape
+import os
 import json
 import re
 from collections import Counter, defaultdict
@@ -18,6 +20,11 @@ TAP_SUMMARY = re.compile(
     r"# fail (\d+)\n# cancelled (\d+)\n# skipped (\d+)\n# todo (\d+)\n"
     r"# duration_ms \d+(?:\.\d+)?\s*\Z"
 )
+
+
+UNITTEST_TOTAL = re.compile(r"(?m)^Ran (\d+) tests? in \d+(?:\.\d+)?s$")
+UNITTEST_START = re.compile(r"(?m)^test_\w+ \([^\r\n]*\) \.\.\.(?: |$)")
+UNITTEST_OK = re.compile(r"OK(?: \((?:skipped|expected failures)=\d+(?:, (?:skipped|expected failures)=\d+)*\))?")
 
 
 def typed_passes(log, source):
@@ -126,6 +133,22 @@ def require_complete_tap(log):
         raise ValueError("native TAP summary totals do not reconcile")
 
 
+def require_complete_unittest(log):
+    totals = list(UNITTEST_TOTAL.finditer(log))
+    if len(totals) != 1 or not log[:totals[0].start()].endswith("-" * 70 + "\n"):
+        raise ValueError("missing or repeated native unittest summary")
+    total = totals[0]
+    verdict = log[total.end():].strip()
+    if verdict.startswith("FAILED"):
+        raise ValueError("native unittest suite failed: " + verdict.splitlines()[0])
+    if not UNITTEST_OK.fullmatch(verdict):
+        raise ValueError("missing successful native unittest verdict")
+    # A skipped subtest may have its own indented line. Count only top-level test starts.
+    records = UNITTEST_START.findall(log, 0, total.start())
+    if not records or len(records) != int(total[1]):
+        raise ValueError("native unittest total does not match the verbose test records")
+
+
 def catalog_lanes(cases):
     lanes = defaultdict(set)
     for case in sorted(cases):
@@ -154,6 +177,8 @@ def main():
                 actual = passed_cases(kind, log, failed_cases=failed_cases)
                 if kind in {"TS", "JS"}:
                     require_complete_tap(log)
+                elif kind == "PY":
+                    require_complete_unittest(log)
                 if kind == "TS":
                     actual += typed_passes(log, (VAULT / "typescript/citations.types.ts").read_text(encoding="utf-8"))
                 require_cases(expected, actual)
@@ -165,6 +190,12 @@ def main():
         if failures:
             raise ValueError("\n" + "\n".join(failures))
     except (OSError, ValueError) as error:
+        if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
+            heading = f"### Test Vault {args.platform} reconciliation failed\n\n"
+            # Escape report text and bound the retained summary independently of the logs.
+            diagnostic = escape(str(error)[:4096])
+            with Path(summary).open("a", encoding="utf-8") as output:
+                output.write(heading + "<pre>" + diagnostic + "</pre>\n")
         parser.exit(1, f"Test Vault run evidence failed: {error}\n")
 
 

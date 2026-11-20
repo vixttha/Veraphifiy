@@ -1,6 +1,6 @@
 # Graphify HQ Test Vault audit
 
-The review starts from Graphify-HQ commit [a740fa9](https://github.com/vixttha/Graphify-HQ/commit/a740fa9af32517d67cbcbe3f0cccd0f169605d25) and its [31-check public run](https://github.com/vixttha/Graphify-HQ/actions/runs/44510666971). It uses direct inspection of the workflow, assertions, catalog, archived bytes, Graphify responses, and the pinned Lydite tools.
+The review starts from Graphify-HQ commit [a740fa9](https://github.com/vixttha/Veraphifiy/commit/a740fa9af32517d67cbcbe3f0cccd0f169605d25) and its [31-check public run](https://github.com/vixttha/Veraphifiy/actions/runs/44510666971). It uses direct inspection of the workflow, assertions, catalog, archived bytes, Graphify responses, and the pinned Lydite tools.
 
 | Finding | Change and proof |
 | --- | --- |

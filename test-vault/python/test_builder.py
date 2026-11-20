@@ -1,6 +1,7 @@
 """Run the frozen Graphify builder against committed, disposable inputs."""
 
 import asyncio
+import base64
 import copy
 import hashlib
 import json
@@ -8,6 +9,7 @@ import os
 import re
 import select
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -83,6 +85,15 @@ class BuilderTests(unittest.TestCase):
     def succeeds(self, result):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def archive_command(self, command, archive, *args, umask=-1, project=None):
+        cli = Path(__file__).resolve().parents[2] / "veraphifiy.mjs"
+        return subprocess.run(
+            ["node", str(cli), command, "--archive", str(archive),
+             "--project", project if project is not None else self.manifest["repository"],
+             "--version", "v1.0.0", *args],
+            cwd=self.root, capture_output=True, text=True, timeout=30, umask=umask,
+        )
+
     def unchanged_failure(self, manifest, message):
         output = self.root / "saved"
         output.mkdir(exist_ok=True)
@@ -130,6 +141,270 @@ class BuilderTests(unittest.TestCase):
             ))
         write_observation(output, "python")
         shutil.copytree(output, HANDOFF)
+
+    def test_GHQ_PY_100_archives_and_replays_two_pinned_versions(self):
+        cli = Path(__file__).resolve().parents[2] / "veraphifiy.mjs"
+        project = self.manifest["repository"]
+        archive = self.root / "Veraphify archive"
+        first = self.root / "first evidence"
+        second = self.root / "second evidence"
+
+        def call(command, version, *extra, project_id=project, archive_dir=archive):
+            return subprocess.run(
+                ["node", str(cli), command, "--archive", str(archive_dir),
+                 "--project", project_id, "--version", version, *extra],
+                cwd=self.root, capture_output=True, text=True, timeout=30,
+            )
+
+        def import_version(version, source, output, project_id=project, archive_dir=archive):
+            return call("import", version, "--source", source, "--checkout", str(self.repo),
+                        "--evidence", str(output), project_id=project_id, archive_dir=archive_dir)
+
+        def result(command, version, *extra):
+            run = call(command, version, *extra)
+            self.succeeds(run)
+            return json.loads(run.stdout)
+
+        first_source = self.source
+        self.succeeds(self.invoke(first))
+        imported_first = import_version("v1.0.0", first_source, first)
+        self.succeeds(imported_first)
+        repeated = import_version("v1.0.0", first_source, first)
+        self.succeeds(repeated)
+        self.assertEqual(json.loads(repeated.stdout), json.loads(imported_first.stdout))
+        old_entry = next(archive.glob("*.json"))
+        old_bytes = old_entry.read_bytes()
+        first_digest = hashlib.sha256(old_bytes).hexdigest()
+        self.assertEqual(json.loads(imported_first.stdout)["archive_sha256"], first_digest)
+
+        # Two distinct version labels may legitimately point to the same source commit.
+        shared_archive = self.root / "shared source versions"
+        for version in ("v1.0.0", "v1.0.1"):
+            self.succeeds(import_version(version, first_source, first, archive_dir=shared_archive))
+        shared = {read_json(path)["version"]: path for path in shared_archive.glob("*.json")}
+        archived = call("verify", "v1.0.1", "--source", first_source, archive_dir=shared_archive)
+        self.succeeds(archived)
+        self.assertNotEqual(json.loads(archived.stdout)["archive_sha256"], first_digest)
+        shared["v1.0.1"].write_bytes(shared["v1.0.0"].read_bytes())
+        swapped = call("verify", "v1.0.1", "--source", first_source, archive_dir=shared_archive)
+        self.assertNotEqual(swapped.returncode, 0)
+        self.assertIn("does not match the selected project and version", swapped.stderr)
+
+        companion = "example/companion-fixture"
+        companion_export = self.root / "companion evidence"
+        self.succeeds(self.invoke(companion_export, manifest=dict(self.manifest, repository=companion)))
+        self.succeeds(import_version("v1.0.0", first_source, companion_export, project_id=companion,
+                                     archive_dir=shared_archive))
+        distinct_project = call("verify", "v1.0.0", "--source", first_source, project_id=companion,
+                                archive_dir=shared_archive)
+        self.succeeds(distinct_project)
+        self.assertEqual(json.loads(distinct_project.stdout)["project"], companion)
+
+        self.write("src/feature.py", b"# implementation\n# second version\ndef export():\n    return 'ready-v2'\n")
+        self.write("test_sample.py", b"# v2 behavior\ndef test_export():\n    assert True\n")
+        self.git("add", "src/feature.py", "test_sample.py")
+        self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-qm", "Change the second fixture version")
+        second_source = self.git("rev-parse", "HEAD").strip()
+        newer_manifest = dict(self.manifest, source_commit=second_source, features=[
+            dict(feature, implemented_in=[{"path": "src/feature.py", "anchor": "return 'ready-v2'"}])
+            for feature in self.manifest["features"]
+        ])
+        self.succeeds(self.invoke(second, manifest=newer_manifest))
+        imported_second = import_version("v1.1.0", second_source, second)
+        self.succeeds(imported_second)
+        second_digest = json.loads(imported_second.stdout)["archive_sha256"]
+
+        for version, source, line, digest in (
+            ("v1.0.0", first_source, 3, first_digest), ("v1.1.0", second_source, 4, second_digest),
+        ):
+            looked_up = result("lookup", version, "--source", source, "--archive-sha256", digest,
+                               "--feature", FEATURE)
+            self.assertEqual((looked_up["project"], looked_up["version"], looked_up["source"]),
+                             (project, version, source))
+            self.assertEqual(looked_up["citations"], [{"path": "src/feature.py", "line": line}])
+            self.assertEqual(looked_up["archive_sha256"], digest)
+            self.assertEqual((looked_up["veraphifiy_version"], looked_up["format"]), ("v0.0.9", 1))
+            self.assertEqual(result("verify", version)["graph_sha256"], looked_up["graph_sha256"])
+
+        missing = call("verify", "v1.2.0")
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn("not archived", missing.stderr)
+        wrong_project = import_version("v1.0.0", first_source, first, "example/other-fixture")
+        self.assertNotEqual(wrong_project.returncode, 0)
+        self.assertIn("repository mismatch", wrong_project.stderr)
+        wrong_pin = call("verify", "v1.0.0", "--source", second_source)
+        self.assertNotEqual(wrong_pin.returncode, 0)
+        self.assertIn("source commit mismatch", wrong_pin.stderr)
+        replace = import_version("v1.0.0", second_source, second)
+        self.assertNotEqual(replace.returncode, 0)
+        self.assertIn("cannot be replaced", replace.stderr)
+        self.assertEqual(old_entry.read_bytes(), old_bytes)
+
+        old_entry.write_bytes(old_bytes + b"\n")
+        self.succeeds(call("verify", "v1.0.0", "--source", first_source))
+        changed_pin = call("verify", "v1.0.0", "--source", first_source, "--archive-sha256", first_digest)
+        self.assertNotEqual(changed_pin.returncode, 0)
+        self.assertIn("Archive SHA-256 mismatch", changed_pin.stderr)
+        old_entry.write_bytes(old_bytes)
+
+        regular_file = old_entry.with_suffix(".saved")
+        old_entry.rename(regular_file)
+        old_entry.symlink_to(regular_file)
+        link_entry = call("verify", "v1.0.0", "--source", first_source)
+        self.assertNotEqual(link_entry.returncode, 0)
+        self.assertIn("Archive entry must be a regular file", link_entry.stderr)
+        old_entry.unlink()
+        regular_file.rename(old_entry)
+
+        damaged = read_json(old_entry)
+        damaged["receipt_sha256"] = "0" * 64
+        old_entry.write_text(json.dumps(damaged), encoding="utf-8")
+        changed = call("verify", "v1.0.0")
+        self.assertNotEqual(changed.returncode, 0)
+        self.assertIn("Receipt digest mismatch", changed.stderr)
+        old_entry.write_bytes(old_bytes)
+        shutil.copytree(archive, HANDOFF / "veraphifiy-archive")
+        (HANDOFF / "veraphifiy-archive-expectations.json").write_text(json.dumps({
+            "project": project,
+            "feature": FEATURE,
+            "versions": [
+                {"version": "v1.0.0", "source": first_source, "line": 3, "archive_sha256": first_digest},
+                {"version": "v1.1.0", "source": second_source, "line": 4, "archive_sha256": second_digest},
+            ],
+        }) + "\n", encoding="utf-8")
+
+        replay = cli.parent / "test-vault/javascript/verify-archive-replay.mjs"
+        fixture = self.root / "replay context"
+        fixture.mkdir()
+        env_context = {
+            "GITHUB_SHA": first_source, "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/example",
+            "GITHUB_WORKFLOW_REF": "example/project/.github/workflows/test.yml@refs/heads/example",
+            "GITHUB_WORKFLOW_SHA": first_source, "GITHUB_RUN_ID": "12", "GITHUB_RUN_ATTEMPT": "2",
+        }
+        context = {key.lower(): value for key, value in env_context.items() if key != "GITHUB_SHA"}
+        context.update(checkout_sha=first_source, github_run_attempt="1")
+        (fixture / "evidence-context.json").write_text(json.dumps(context), encoding="utf-8")
+        wrong_attempt = subprocess.run(["node", str(replay), str(fixture), "--actions"],
+                                       capture_output=True, text=True, timeout=15,
+                                       env=dict(os.environ, **env_context))
+        self.assertNotEqual(wrong_attempt.returncode, 0)
+        self.assertIn("Archive handoff context mismatch: github_run_attempt", wrong_attempt.stderr)
+
+    def test_GHQ_PY_103_case_alias_preserves_archived_identity(self):
+        evidence = self.root / "case evidence"
+        archive = self.root / "case archive"
+        alias_archive = self.root / "case alias archive"
+        project = self.manifest["repository"]
+        alias = project.upper()
+        self.succeeds(self.invoke(evidence))
+        args = ("--source", self.source, "--checkout", str(self.repo), "--evidence", str(evidence))
+        first = self.archive_command("import", archive, *args)
+        self.succeeds(first)
+        entry, = archive.glob("*.json")
+        original = entry.read_bytes()
+        result = json.loads(first.stdout)
+
+        replay = self.archive_command("import", archive, *args, project=alias)
+        self.succeeds(replay)
+        self.assertEqual(json.loads(replay.stdout), result)
+        self.assertEqual(entry.read_bytes(), original)
+        self.assertEqual(list(archive.glob("*.json")), [entry])
+
+        fresh = self.archive_command("import", alias_archive, *args, project=alias)
+        self.succeeds(fresh)
+        self.assertEqual(json.loads(fresh.stdout), result)
+        alias_entry, = alias_archive.glob("*.json")
+        self.assertEqual(alias_entry.name, entry.name)
+        self.assertEqual(alias_entry.read_bytes(), original)
+
+        verified = self.archive_command("verify", archive, "--source", self.source,
+                                        "--archive-sha256", result["archive_sha256"], project=alias)
+        self.succeeds(verified)
+        self.assertEqual(json.loads(verified.stdout), result)
+        wrong_digest = self.archive_command("verify", archive, "--archive-sha256", "0" * 64, project=alias)
+        self.assertNotEqual(wrong_digest.returncode, 0)
+        self.assertIn("Archive SHA-256 mismatch", wrong_digest.stderr)
+        for other_project in ("other/graphify-fixture", "example/other-fixture"):
+            rejected = self.archive_command("import", archive, *args, project=other_project)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("repository mismatch", rejected.stderr)
+
+    def test_GHQ_PY_101_lookup_uses_physical_git_lines(self):
+        fixtures = {
+            "src/lf.py": b"# prefix\ndef test():\n    return 1\n",
+            "src/crlf.py": b"# prefix\r\ndef test():\r\n    return 1\r\n",
+            "src/unicode.py": "# prefix\u2028inside the same Git line\ndef test():\n    return 1\n".encode(),
+        }
+        for name, contents in fixtures.items():
+            self.write(name, contents)
+        self.git("-c", "core.autocrlf=false", "add", "--", *fixtures)
+        self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-qm", "Commit line ending controls")
+        source = self.git("rev-parse", "HEAD").strip()
+        for name, contents in fixtures.items():
+            self.assertEqual(subprocess.check_output(["git", "show", f"{source}:{name}"], cwd=self.repo), contents)
+        feature = dict(self.manifest["features"][0], implemented_in=[
+            {"path": name, "anchor": "return 1"} for name in fixtures
+        ])
+        export = self.root / "line evidence"
+        manifest = dict(self.manifest, source_commit=source, features=[feature], source_files=list(fixtures))
+        self.succeeds(self.invoke(export, manifest=manifest))
+        graph_bytes = (export / "graph.json").read_bytes()
+        receipt_bytes = (export / "receipt.json").read_bytes()
+        targets = {node["source_file"]: node["source_location"] for node in read_json(export / "graph.json")["nodes"]
+                   if node["id"].startswith("implemented_in:")}
+        self.assertEqual(targets, {"src/lf.py": "L3", "src/crlf.py": "L3", "src/unicode.py": "L4"})
+
+        archive = self.root / "line archive"
+        imported = self.archive_command("import", archive, "--source", source,
+                                        "--checkout", str(self.repo), "--evidence", str(export))
+        self.succeeds(imported)
+        entry = next(archive.glob("*.json"))
+        archived_bytes = entry.read_bytes()
+        looked_up = self.archive_command("lookup", archive, "--source", source, "--feature", FEATURE,
+                                         "--archive-sha256", json.loads(imported.stdout)["archive_sha256"])
+        self.succeeds(looked_up)
+        citations = {item["path"]: item for item in json.loads(looked_up.stdout)["citations"]}
+        for name in fixtures:
+            expected = {"path": name, "line": 3}
+            if name == "src/unicode.py":
+                expected["producer_line"] = 4
+            self.assertEqual(citations[name], expected)
+        self.assertEqual(entry.read_bytes(), archived_bytes)
+        self.assertEqual(base64.b64decode(read_json(entry)["graph"]), graph_bytes)
+        self.assertEqual(base64.b64decode(read_json(entry)["receipt"]), receipt_bytes)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX archive permissions")
+    def test_GHQ_PY_102_archive_is_private_under_normal_umask(self):
+        evidence = self.root / "permission evidence"
+        self.succeeds(self.invoke(evidence))
+        args = ("--source", self.source, "--checkout", str(self.repo), "--evidence", str(evidence))
+
+        archive = self.root / "new parent" / "new archive"
+        first = self.archive_command("import", archive, *args, umask=0o022)
+        self.succeeds(first)
+        entry, = archive.glob("*.json")
+        original = entry.stat()
+        contents = entry.read_bytes()
+        self.assertEqual(stat.S_IMODE(archive.parent.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(archive.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(original.st_mode), 0o600)
+
+        replay = self.archive_command("import", archive, *args, umask=0o022)
+        self.succeeds(replay)
+        self.assertEqual(json.loads(first.stdout), json.loads(replay.stdout))
+        self.assertEqual(entry.read_bytes(), contents)
+        self.assertEqual(entry.stat().st_ino, original.st_ino)
+        self.assertEqual(stat.S_IMODE(entry.stat().st_mode), 0o600)
+
+        existing = self.root / "managed archive"
+        existing.mkdir()
+        existing.chmod(0o750)
+        self.succeeds(self.archive_command("import", existing, *args, umask=0o022))
+        existing_entry, = existing.glob("*.json")
+        self.assertEqual(stat.S_IMODE(existing.stat().st_mode), 0o750)
+        self.assertEqual(stat.S_IMODE(existing_entry.stat().st_mode), 0o600)
 
     def test_GHQ_PY_002_rebuilds_identical_graph_and_receipt(self):
         first, second = self.root / "first", self.root / "second"

@@ -12,7 +12,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from evidence_bundle import PROFILE, encode_bundle, write_observation
 from validate_catalog import HEADER, read_cases
-from verify_case_run import passed_cases, require_cases, require_complete_tap, typed_passes
+from verify_case_run import (
+    passed_cases, require_cases, require_complete_tap, require_complete_unittest, typed_passes,
+)
 
 
 class CaseRunTests(unittest.TestCase):
@@ -22,6 +24,13 @@ class CaseRunTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing=.*GHQ-JS-002"):
             require_cases(expected, passed_cases("JS", log))
         require_cases(expected, passed_cases("JS", log.replace(" # SKIP", "")))
+
+        typed_expected = {"GHQ-TS-001", "GHQ-TS-004"}
+        complete = "ok 1 - GHQ-TS-001 control\nok 2 - GHQ-TS-004 implementation coordinates\n"
+        require_cases(typed_expected, passed_cases("TS", complete))
+        omitted = complete.replace("GHQ-TS-004 implementation coordinates", "unrelated passing assertion")
+        with self.assertRaisesRegex(ValueError, "missing=.*GHQ-TS-004"):
+            require_cases(typed_expected, passed_cases("TS", omitted))
 
     def test_GHQ_PY_024_rejects_duplicate_and_unexpected_case_reports(self):
         expected = {"GHQ-PS-001"}
@@ -139,6 +148,16 @@ class CaseRunTests(unittest.TestCase):
             self.assertFalse(receipts.exists())
             with mock.patch.dict(os.environ, {"GITHUB_RUN_ID": "12", "GITHUB_RUN_ATTEMPT": "2"}):
                 write_observation(handoff, "node")
+            path = handoff / "node.observation.json"
+            original = path.read_text(encoding="utf-8")
+            observation = json.loads(original)
+            observation["check_id"] = "python-build"
+            path.write_text(json.dumps(observation), encoding="utf-8")
+            wrong_check = self.invoke_recorder(recorder, handoff, receipts, attempt="2")
+            self.assertNotEqual(wrong_check.returncode, 0)
+            self.assertIn("belongs to a different check", wrong_check.stderr)
+            self.assertFalse(receipts.exists())
+            path.write_text(original, encoding="utf-8")
             result = self.invoke_recorder(recorder, handoff, receipts, attempt="2")
             self.assertEqual(result.returncode, 0, result.stderr)
 
@@ -210,14 +229,19 @@ class CaseRunTests(unittest.TestCase):
                 {"Action": "fail", "Test": "TestGraphifyMCP/GHQ-GO-001_discover"},
                 {"Action": "fail"},
             ), encoding="utf-8")
+            summary = root / "summary.md"
             result = subprocess.run(
                 [sys.executable, "-B", str(reconciler), "linux", str(root)],
+                env=dict(os.environ, GITHUB_STEP_SUMMARY=str(summary)),
                 capture_output=True, text=True, timeout=10,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("JS: failed or skipped cases=['GHQ-JS-001']", result.stderr)
             self.assertIn("GO: failed or skipped cases=['GHQ-GO-001']", result.stderr)
             self.assertIn("SH: no native log, suite unavailable", result.stderr)
+            retained = summary.read_text(encoding="utf-8")
+            self.assertIn("GHQ-JS-001", retained)
+            self.assertIn("no native log", retained)
 
     def test_GHQ_PY_057_requires_complete_native_tap_and_rejects_unnamed_failures(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -243,6 +267,46 @@ class CaseRunTests(unittest.TestCase):
                             require_complete_tap(result.stdout.split("# tests", 1)[0])
                         with self.assertRaisesRegex(ValueError, "plan does not match"):
                             require_complete_tap(result.stdout.replace("1..2\n", "1..3\n"))
+
+    def test_GHQ_PY_104_requires_complete_native_unittest_output(self):
+        fixture = """
+import unittest
+
+class Fixture(unittest.TestCase):
+    def test_GHQ_PY_001_control(self):
+        pass
+
+    def test_ordinary_assertion(self):
+        OUTCOME
+
+    @unittest.skip("optional fixture")
+    def test_optional_assertion(self):
+        pass
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+"""
+        command = [sys.executable, "-B", "-"]
+        for outcome in ("pass", "self.fail('ordinary assertion')"):
+            with self.subTest(outcome=outcome):
+                native = subprocess.run(command, input=fixture.replace("OUTCOME", outcome),
+                                        capture_output=True, text=True, timeout=15)
+                self.assertEqual(native.returncode, int(outcome != "pass"), native.stderr)
+                log = native.stderr
+                require_cases({"GHQ-PY-001"}, passed_cases("PY", log))
+                if outcome != "pass":
+                    with self.assertRaisesRegex(ValueError, "native unittest suite failed"):
+                        require_complete_unittest(log)
+                else:
+                    require_complete_unittest(log)
+                    for incomplete, error in (
+                        (log.split("Ran ", 1)[0], "unittest summary"),
+                        (log.split("OK (", 1)[0], "unittest verdict"),
+                        (log.replace("Ran 3 tests", "Ran 4 tests"), "does not match"),
+                        (log + log, "unittest summary"),
+                    ):
+                        with self.assertRaisesRegex(ValueError, error):
+                            require_complete_unittest(incomplete)
 
     def test_GHQ_PY_058_keeps_only_visible_well_formed_case_tables(self):
         heading = "| " + " | ".join(HEADER) + " |\n"

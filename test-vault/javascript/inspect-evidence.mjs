@@ -1,8 +1,11 @@
 import { createHash } from "node:crypto";
-import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
+import { closeSync, constants, fstatSync, openSync, readFileSync, readSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const profile = JSON.parse(readFileSync(new URL("../handoff-profile.json", import.meta.url), "utf8"));
+export const GRAPH_BYTES = profile.files["graph.json"];
+export const RECEIPT_BYTES = profile.files["receipt.json"];
+export const PINNED_PRODUCER = profile.producer_version;
 const bundleHeader = "graphify-handoff-v2\n";
 
 export function sha256(bytes) {
@@ -32,9 +35,10 @@ function rejectDuplicateKeys(text, filename) {
   }
 }
 
-function readBytes(path, maxBytes, remaining = Infinity) {
+export function readBytes(path, maxBytes, remaining = Infinity) {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error("Invalid artifact byte budget");
-  const fd = openSync(path, "r");
+  if (!statSync(path).isFile()) throw new Error("Artifact is not a regular file");
+  const fd = openSync(path, constants.O_RDONLY | (constants.O_NONBLOCK ?? 0));
   try {
     const stat = fstatSync(fd);
     if (!stat.isFile() || stat.size > maxBytes) throw new Error("Artifact exceeds byte budget or is not a regular file");
@@ -62,6 +66,10 @@ function readJSON(read, filename, maxBytes) {
   } catch (err) {
     throw new Error("Cannot read " + filename + ": " + (err.code ?? err.message));
   }
+  return [raw, parseEvidenceObject(raw, filename)];
+}
+
+export function parseEvidenceObject(raw, filename) {
   let text;
   try {
     text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(raw);
@@ -78,7 +86,7 @@ function readJSON(read, filename, maxBytes) {
     throw new Error("Expected an object in " + filename);
   }
   rejectDuplicateKeys(text, filename);
-  return [raw, value];
+  return value;
 }
 
 const relations = new Set(["documented_in", "changed_in", "tested_by", "implemented_in"]);
@@ -90,13 +98,21 @@ function ordinaryRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function repositoryPath(path) {
+export function repositoryPath(path) {
   return typeof path === "string" && path.trim().length > 0 && !/[\\:\p{C}]/u.test(path) &&
     path.split("/").every((part) => part !== "" && part !== "." && part !== ".." && part !== ".git");
 }
 
 export function inspectEvidence(directory, sourceCommit, options) {
   return inspect((name, limit) => readBytes(join(directory, name), limit), sourceCommit, options);
+}
+
+export function inspectEvidenceBytes(graph, receipt, sourceCommit, options) {
+  return inspect((name, limit) => {
+    const bytes = name === "graph.json" ? graph : receipt;
+    if (bytes.length > limit) throw new Error("Artifact exceeds byte budget");
+    return bytes;
+  }, sourceCommit, options);
 }
 
 function inspect(read, sourceCommit, {
@@ -158,6 +174,8 @@ function inspect(read, sourceCommit, {
   const uniqueEdges = new Set();
   const featured = new Set();
   const inventoried = new Set();
+  const inventoriedAnchors = new Set();
+  const attachedAnchors = new Set();
   const implementations = [];
   for (const edge of graph.links) {
     if (!nodes.has(edge?.source) || !nodes.has(edge?.target)) throw new Error("Missing edge endpoint");
@@ -188,6 +206,7 @@ function inspect(read, sourceCommit, {
           edge.source_file !== origin.source_file || ![...relations].some((kind) => source.startsWith(kind + ":"))) {
         throw new Error("Invalid located_in evidence edge");
       }
+      attachedAnchors.add(source);
     }
     if (relations.has(relation)) {
       if (!summaries.has(source) || !target.startsWith(relation + ":")) throw new Error("Invalid evidence anchor");
@@ -195,7 +214,10 @@ function inspect(read, sourceCommit, {
         throw new Error("Invalid implementation target category");
       }
       if (relation === "implemented_in") implementations.push(edge);
-      referenced.add(nodes.get(target).source_file);
+      const path = nodes.get(target).source_file;
+      // Linked-only source paths have digests but no file nodes in the pinned producer.
+      if (inventory.has(path)) inventoriedAnchors.add(target);
+      referenced.add(path);
       const counts = summaries.get(edge.source);
       counts.set(edge.relation, (counts.get(edge.relation) ?? 0) + 1);
     }
@@ -203,15 +225,8 @@ function inspect(read, sourceCommit, {
   if (featured.size !== summaries.size || inventoried.size !== inventory.size) {
     throw new Error("Missing source-root attachment");
   }
-  if (sourceBlobs !== undefined) {
-    const counts = new Map();
-    for (const edge of implementations) {
-      const location = matchedLocation(edge, nodes.get(edge.target));
-      if (!location) throw new Error("Invalid implementation location: " + edge.target);
-      const { path, line } = location;
-      if (!counts.has(path)) counts.set(path, sourceLineCount(sourceBlobs.get(path), path));
-      if (line > counts.get(path)) throw new Error("Implementation line is outside the pinned source: " + path);
-    }
+  for (const anchor of inventoriedAnchors) {
+    if (!attachedAnchors.has(anchor)) throw new Error("Missing source-file attachment: " + anchor);
   }
   for (const path of referenced) {
     const digest = receipt.source_sha256[path];
@@ -237,7 +252,21 @@ function inspect(read, sourceCommit, {
       throw new Error("Feature summary mismatch: " + id);
     }
   }
-  return { nodes, links: graph.links, digest };
+  const physicalLines = new Map();
+  if (sourceBlobs !== undefined) {
+    const requestedLines = new Map();
+    for (const edge of implementations) {
+      const location = matchedLocation(edge, nodes.get(edge.target));
+      if (!location) throw new Error("Invalid implementation location: " + edge.target);
+      const { path, line } = location;
+      if (!requestedLines.has(path)) requestedLines.set(path, new Set());
+      requestedLines.get(path).add(line);
+    }
+    for (const [path, requested] of requestedLines) {
+      physicalLines.set(path, mapSourceLines(sourceBlobs.get(path), path, requested));
+    }
+  }
+  return { nodes, links: graph.links, digest, physicalLines };
 }
 
 export function inspectHandoff(directory, { limits = {}, maximum = profile.max_bundle_bytes } = {}) {
@@ -266,22 +295,46 @@ export function inspectHandoff(directory, { limits = {}, maximum = profile.max_b
   return { ...graph, bundleDigest: hash.digest("hex") };
 }
 
-function sourceLineCount(blob, path) {
+function mapSourceLines(blob, path, requested) {
   let text;
   try {
     text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(blob);
   } catch {
     throw new Error("Invalid UTF-8 in pinned source: " + path);
   }
-  // Match the frozen builder's UTF-8 decode and Python splitlines semantics.
-  const lines = text.split(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/u);
-  return lines.length - Number(lines.at(-1) === "");
+  const coordinates = new Map();
+  let producerLine = 1;
+  let physicalLine = 1;
+  let start = 0;
+  // The pinned producer uses Python splitlines. A Git line advances only at LF.
+  for (const boundary of text.matchAll(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/gu)) {
+    if (requested.has(producerLine)) coordinates.set(producerLine, physicalLine);
+    producerLine++;
+    if (boundary[0].endsWith("\n")) physicalLine++;
+    start = boundary.index + boundary[0].length;
+  }
+  if (start < text.length && requested.has(producerLine)) coordinates.set(producerLine, physicalLine);
+  if (coordinates.size !== requested.size) throw new Error("Implementation line is outside the pinned source: " + path);
+  return coordinates;
 }
 
-export function implementationLocation({ nodes, links }, feature, target) {
+export function implementationLocation({ nodes, links, physicalLines }, feature, target) {
   const edge = links.find((link) => link.source === feature && link.target === target &&
     link.relation === "implemented_in");
-  return matchedLocation(edge, nodes.get(target));
+  return citationLocation(edge, nodes.get(target), physicalLines);
+}
+
+export function implementationLocations({ nodes, links, physicalLines }, feature) {
+  return links.filter(link => link.source === feature && link.relation === "implemented_in")
+    .map(link => citationLocation(link, nodes.get(link.target), physicalLines));
+}
+
+function citationLocation(edge, node, physicalLines) {
+  const location = matchedLocation(edge, node);
+  if (!location) return null;
+  const line = physicalLines?.get(location.path)?.get(location.line);
+  if (line === undefined || line === location.line) return location;
+  return { path: location.path, line, producer_line: location.line };
 }
 
 function matchedLocation(edge, node) {

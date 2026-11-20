@@ -41,6 +41,7 @@ test("GHQ-JS-001 accepts the fresh Python graph and its receipt", () => {
   assert.deepEqual(readFileSync(join(handoff, "source.txt")), Buffer.from(source + "\n", "ascii"));
   writeFileSync(join(handoff, "node.sha256"), graph.digest + "\n");
   writeFileSync(join(handoff, "node.observation.json"), JSON.stringify({
+    check_id: "node-consume",
     run_id: process.env.GITHUB_RUN_ID ?? "",
     attempt: process.env.GITHUB_RUN_ATTEMPT ?? "",
     bundle_sha256: graph.bundleDigest,
@@ -223,6 +224,32 @@ test("GHQ-JS-022 matches each inventory anchor with its actual file", (t) => {
     graph.links.find((edge) => edge.relation === "located_in").target = feature;
   });
   assert.throws(() => inspectEvidence(dir, source), /Invalid located_in evidence edge/);
+});
+
+test("GHQ-JS-041 requires source-file links for inventoried anchors", (t) => {
+  const original = inspectHandoff(handoff);
+  for (const id of [feature, "feature:preview"]) {
+    assert.deepEqual(implementationLocation(original, id, anchor), { path: "src/feature.py", line: 3 });
+  }
+  assert.equal(original.links.filter((edge) => edge.relation === "located_in" && edge.source === anchor).length, 1);
+  const anchors = original.links.filter((edge) => edge.source === feature).map((edge) => edge.target);
+  const hasFileNode = (id) => original.nodes.has("file:" + original.nodes.get(id).source_file);
+  const linkedOnly = anchors.filter((id) => !hasFileNode(id));
+  assert.ok(linkedOnly.length > 0);
+  for (const id of linkedOnly) {
+    assert.ok(!original.links.some((edge) => edge.relation === "located_in" && edge.source === id));
+  }
+  const inventoried = anchors.filter(hasFileNode);
+  assert.ok(inventoried.includes(anchor));
+  for (const target of inventoried) {
+    const dir = copy(t);
+    changeGraph(dir, (graph) => {
+      graph.links = graph.links.filter((edge) => edge.relation !== "located_in" || edge.source !== target);
+      assert.equal(graph.links.length, original.links.length - 1);
+    });
+    change(dir, receiptFile, (receipt) => { receipt.edges--; });
+    assert.throws(() => inspectHandoff(dir), { message: "Missing source-file attachment: " + target });
+  }
 });
 
 test("GHQ-JS-023 rejects features without source-root attachments", (t) => {
