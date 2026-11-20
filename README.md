@@ -30,7 +30,7 @@ Each result identifies a different source commit. Importing `v1.1.0` leaves the 
 
 1. **Import** a `graph.json` and `receipt.json` pair from the [pinned Graphify producer](https://github.com/vixttha/Blender-Agent-Refinement-Toolkit/tree/6af3c2025be3f51e02dca4e4502088c526aae6d1/versions/v0.0.8), using the project identity and source commit declared by the receipt.
 2. **Verify** the entry for that project and version. Store the source commit and archive SHA-256 from a trusted import separately. Pass them as `--source` and `--archive-sha256` to verify the exact entry.
-3. **Look up** a feature in that version. Citations give one-based physical line numbers in the pinned Git source.
+3. **Look up** a feature in that version. Pass the same trusted `--source` and `--archive-sha256` pins to `lookup`. Citations give one-based physical line numbers in the pinned Git source.
 
 Archive entries preserve the graph, receipt, and verified source bytes. Keep archives built from private repositories in private storage.
 
