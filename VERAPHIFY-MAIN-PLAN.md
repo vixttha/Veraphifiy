@@ -1,6 +1,6 @@
 # Veraphify main-branch README plan
 
-**Status** · Drafted in [PR #55](https://github.com/vixttha/Veraphify/pull/55). The [public runner](https://github.com/vixttha/Veraphify/actions/runs/44641675869/attempts/1) verified the exact README commit `c0a03f7e40b115c51fbc4be2a45f50ce1dee46f7`. The product evidence below records the inputs to the original plan. README HQ baseline: [v0.0.6.67 trial](README.md#trial-baseline).
+**Status** · Drafted in [PR #55](https://github.com/vixttha/Veraphify/pull/55). The [public runner](https://github.com/vixttha/Veraphify/actions/runs/44642589173/attempts/1) verified the exact README commit `88d5d08cd8c80de3927858685878e51b6d7c69b8`. The product evidence below records the inputs to the original plan. README HQ baseline: [v0.0.6.67 trial](README.md#trial-baseline).
 
 The [observed main commit](https://github.com/vixttha/Veraphify/commit/2e43c950b564d525161e966a2a86de378c62d950) contains a one-line `# Graphify-HQ` README. The runnable [v0.0.9 draft](https://github.com/vixttha/Veraphify/pull/48) targets `graphify-hq-test-vault`. The CLI, walkthrough, and Test Vault links below refer to [the draft product commit](https://github.com/vixttha/Veraphify/commit/35c463cf063a9a52dc7397491978a25284743556).
 
